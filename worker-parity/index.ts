@@ -249,9 +249,23 @@ export default {
                     recentSignals: sanitizeSignals(state.signals).slice(-15),
                     previousFocus: state.lastDailyFocus?.focus,
                 });
-                state.lastDailyFocus = { title: focus.title, focus: focus.focus, microTask: focus.microTask, reflection: focus.reflection, timestamp: focus.timestamp };
+                // Contract: always return { title, focus, microTask, reflection } as strings.
+                // Backward compatibility: if legacy fields exist (e.g., category/timestamp), map deterministically.
+                const legacyCategory = (focus as any)?.category;
+                const title = String(focus?.title || legacyCategory || "Today’s Focus");
+                const focusText = String(focus?.focus || "");
+                const microTask = String((focus as any)?.microTask || "");
+                const reflection = String((focus as any)?.reflection || "");
+
+                state.lastDailyFocus = {
+                    title,
+                    focus: focusText,
+                    microTask,
+                    reflection,
+                    timestamp: String((focus as any)?.timestamp || new Date().toISOString()),
+                };
                 await saveState(env, sessionId, state, ctx);
-                return json({ title: focus.title, focus: focus.focus, microTask: focus.microTask, reflection: focus.reflection }, headers);
+                return json({ title, focus: focusText, microTask, reflection }, headers);
             }
 
             if (pathname === "/api/coach/prompts" && (req.method === "GET" || req.method === "POST")) {
