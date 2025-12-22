@@ -1,0 +1,107 @@
+clear, defensible hierarchy you can use verbatim for a slide, product page, or legal-reviewed client explainer. This resolves confusion and locks your differentiation.
+
+⸻
+
+ReflectivAI Selling & Coaching Frameworks
+
+How Emotional Intelligence, Communication Models, and Coaching Tools Work Together
+
+⸻
+
+Layer 1 — Emotional Intelligence (Core Measurement Layer)
+
+What ReflectivAI measures and optimizes
+
+Emotional Intelligence is the foundation of ReflectivAI.
+It assesses how effectively a seller perceives, interprets, and responds to human decision-making in complex sales conversations.
+
+Measured capabilities (examples):
+	•	Empathy accuracy (did the rep correctly understand what matters?)
+	•	Adaptation quality (did they adjust based on cues?)
+	•	Clarity of intent and message alignment
+	•	Objection response appropriateness
+	•	Emotional regulation under pressure
+
+Key point:
+This layer evaluates internal capability + external execution.
+It is not personality-based and not behavioral labeling.
+
+⸻
+
+Layer 2 — Behavioral Communication Models (Supporting Insight Layer)
+
+How sellers adapt their approach
+
+Behavioral models help sellers apply EI more effectively by understanding observable communication preferences.
+
+DISC (Behavioral Communication Model)
+
+DISC supports emotionally intelligent interactions but does not measure emotional intelligence.
+	•	Focus: observable behavior patterns
+	•	Purpose: adapt communication style to stakeholder preferences
+	•	Use case: message framing, pacing, tone, structure
+
+DISC Communication Styles
+	•	Dominance (D): Direct, results-oriented, decisive
+	•	Influence (I): Enthusiastic, collaborative, optimistic
+	•	Steadiness (S): Patient, reliable, team-oriented
+	•	Conscientiousness (C): Analytical, precise, systematic
+
+Important distinction (explicit):
+DISC explains how someone tends to communicate.
+EI explains how well someone perceives, regulates, and adapts emotionally.
+
+DISC informs EI-driven adaptation.
+DISC does not replace EI assessment.
+
+⸻
+
+Layer 3 — Coaching & Execution Tools (Action Layer)
+
+How improvement happens
+
+This layer turns insight into behavior change.
+
+Tools include:
+	•	Adaptive language examples (not scripts)
+	•	Coaching prompts tied to EI gaps
+	•	AI-guided practice and role-play
+	•	Manager coaching recommendations
+	•	Progress tracking over time
+
+Compliance-safe framing (pharma):
+	•	Guidance, not mandated language
+	•	Context-aware, not prescriptive
+	•	Reinforces approved messaging without scripting
+
+⸻
+
+How the Layers Work Together (Simple Flow)
+	1.	EI metrics identify what needs improvement
+	2.	Behavioral models inform how to adapt communication
+	3.	Coaching tools drive deliberate practice and change
+
+This prevents:
+	•	Personality stereotyping
+	•	Generic “AI coaching” claims
+	•	One-size-fits-all scripts
+
+⸻
+
+Why This Matters (Buyer-facing truth)
+
+Most platforms:
+	•	Optimize content, activity, or workflows
+
+ReflectivAI:
+	•	Optimizes human effectiveness in high-stakes conversations
+
+⸻
+
+Risks
+	•	If DISC is presented without hierarchy, buyers may assume EI = personality.
+	•	If EI scoring is not explainable, trust erodes.
+
+Assumptions
+	•	EI metrics are rubric-based and auditable.
+	•	Behavioral models are optional, configurable, and secondary.

@@ -1,0 +1,67 @@
+TASK: Integrate Signal Intelligence Language (NO STRUCTURAL CHANGES)
+
+HARD CONSTRAINTS (DO NOT VIOLATE):
+	•	Do NOT modify application logic
+	•	Do NOT rename existing framework layers
+	•	Do NOT change EI skill names
+	•	Do NOT change Behavioral Model positioning
+	•	Do NOT add new UI sections
+	•	Do NOT paraphrase provided language
+	•	Use provided text verbatim only
+
+⸻
+
+OBJECTIVE
+
+Introduce Signal Intelligence as the named connective capability across the product without altering architecture, taxonomy, or behavior.
+
+⸻
+
+CHANGES TO MAKE
+
+1. Selling & Coaching Frameworks (Header Area Only)
+Immediately beneath the “Selling & Coaching Frameworks” header, add this sentence verbatim:
+
+ReflectivAI is powered by Signal Intelligence — AI detects meaningful behavioral signals, and humans apply judgment using emotional intelligence, communication models, and coaching tools.
+
+Placement:
+	•	One sentence
+	•	No additional explanation
+	•	No styling changes beyond existing body text
+
+⸻
+
+2. AI-Powered Template Customization Helper Text
+In the AI-powered template customization description, append this line:
+
+Signal Intelligence helps identify when and how to adapt.
+
+Do not change existing copy. Append only.
+
+⸻
+
+3. Compliance / Informational Section (If Present)
+If a compliance, legal, or informational text block exists, add the following paragraph verbatim:
+
+Signal Intelligence does not involve psychological profiling, emotional manipulation, or behavior coercion. It supports ethical, compliant interactions by identifying observable communication signals and guiding appropriate, evidence-based responses.
+
+Add once only.
+If no appropriate section exists, do not create one.
+
+⸻
+
+ACCEPTANCE CRITERIA
+	•	Signal Intelligence appears exactly as defined above
+	•	No framework layers are renamed or reordered
+	•	No EI or DISC language is altered
+	•	No new concepts are introduced
+	•	UI behavior remains unchanged
+
+⸻
+
+STOP CONDITIONS
+
+If any constraint cannot be met:
+	•	Stop execution
+	•	Make no partial changes
+	•	Return an explanation

@@ -1,0 +1,7 @@
+name = "reflectivai-api-ui-parity"
+main = "index.ts"
+compatibility_date = "2024-11-01"
+
+[[kv_namespaces]]
+binding = "SESS"
+id = "<set-in-dashboard>"

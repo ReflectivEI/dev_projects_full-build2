@@ -1,0 +1,313 @@
+Below is a clean, deterministic AI Agent Instruction (MEGA PROMPT) designed specifically for Replit Agent Mode.
+
+It is written to:
+	•	Avoid ambiguity
+	•	Prevent agent drift
+	•	Enforce naming, ordering, and scope
+	•	Be executable step-by-step
+	•	Protect compliance language
+
+You can paste this verbatim into Replit Agent Mode.
+
+⸻
+
+🚨 REFLECTIVAI — REPLIT AGENT MODE INSTRUCTIONS
+
+UI, IA, EI METRICS, FRAMEWORKS, AND COACHING LOGIC UPDATE
+
+ROLE
+
+You are an expert product engineer + UX implementer working inside an existing AI sales enablement application (ReflectivAI).
+Your task is to update UI structure, navigation, naming, EI metrics presentation, and coaching logic exactly as specified below.
+
+You must not invent new features, rename anything not listed, or alter backend logic unless explicitly instructed.
+
+⸻
+
+HARD CONSTRAINTS (DO NOT VIOLATE)
+	•	❌ Do NOT introduce new metrics
+	•	❌ Do NOT remove existing metrics
+	•	❌ Do NOT infer emotions, intent, or personality
+	•	❌ Do NOT change scoring algorithms
+	•	❌ Do NOT alter compliance logic
+	•	❌ Do NOT expose SQL or backend logic to reps
+	•	✅ All language must be explainable, compliant, and observable
+	•	✅ Use provided copy verbatim where specified
+
+⸻
+
+PHASE 0 — NAVIGATION & INFORMATION ARCHITECTURE (MANDATORY)
+
+LEFT NAV → CUSTOMIZATIONS (REORDER + RENAME)
+
+Update Customizations section to the following exact order:
+	1.	EI Metrics
+	2.	Selling and Coaching Frameworks
+	3.	Data and Reports
+	4.	Knowledge Base
+
+Rules:
+	•	“Tools” must be renamed to Customizations
+	•	“Heuristics” must be renamed to Selling and Coaching Frameworks
+	•	“SQL Translator” must be renamed to Data and Reports
+	•	Naming must be consistent across:
+	•	Sidebar
+	•	Dashboard
+	•	Headers
+	•	Tooltips
+
+⸻
+
+PHASE 1 — EI METRICS STRUCTURE (CORE VS EXTENDED)
+
+EI METRICS SCREEN (UNDER CUSTOMIZATIONS)
+
+Create an EI Metrics configuration screen with two sections:
+
+⸻
+
+SECTION A — CORE METRICS (DEFAULT / DEMO)
+
+Label:
+
+Core EI Metrics (Recommended)
+
+These four metrics only must be surfaced by default across:
+	•	Dashboard
+	•	Role-Play Performance Analysis
+	•	Project cards
+	•	Demo views
+
+Core Metrics (EXACT LIST):
+	1.	Empathy Accuracy
+	2.	Discovery Depth
+	3.	Clarity
+	4.	Adaptability
+
+Each metric must display:
+	•	Name
+	•	Score (1–5)
+	•	Expandable explanation panel
+	•	Coaching feedback (existing logic, unchanged)
+
+⸻
+
+SECTION B — EXTENDED METRICS (OPTIONAL)
+
+Label:
+
+Additional EI Metrics (Configurable)
+
+Include remaining metrics:
+	•	Compliance
+	•	Active Listening
+	•	Objection Handling
+	•	Confidence
+	•	Action Insight
+	•	Resilience
+
+Rules:
+	•	Metrics can be toggled on/off
+	•	Metrics can be weighted (if already supported)
+	•	Metrics must indicate where they are used:
+	•	AI Coach
+	•	Role Play Simulator
+	•	Exercises
+	•	Reporting
+
+⸻
+
+GOVERNANCE CALLOUT (REQUIRED COPY — USE VERBATIM)
+
+“ReflectivAI evaluates emotionally intelligent behaviors using observable communication signals.
+It does not assess personality, intent, or emotional state.”
+
+⸻
+
+PHASE 2 — LEGAL-APPROVED EI METRIC DEFINITIONS
+
+Use the following definitions verbatim wherever EI metric explanations appear:
+
+Empathy Accuracy
+
+Measures how effectively the representative acknowledged and reflected the HCP’s expressed concerns, priorities, and constraints based on observable conversation cues.
+
+Discovery Depth
+
+Measures the extent to which the representative asked relevant follow-up questions to validate assumptions and understand the HCP’s context before responding.
+
+Clarity
+
+Measures how clearly and appropriately the representative translated information into relevant, context-specific messaging aligned to the HCP’s decision considerations.
+
+Adaptability
+
+Measures how effectively the representative adjusted their communication approach in response to new information or signals during the interaction.
+
+Compliance
+
+Adherence to approved labeling and avoidance of off-label discussion.
+
+Active Listening
+
+Demonstrated attention through accurate paraphrasing and referencing of stated concerns.
+
+Objection Handling
+
+Acknowledgment and response to objections using appropriate, non-promotional framing.
+
+Confidence
+
+Clear and composed delivery without overreliance on generalized claims.
+
+Action Insight
+
+Ability to propose appropriate next steps based on discussion content.
+
+Resilience
+
+Maintenance of composure and professionalism under challenge.
+
+⸻
+
+PHASE 3 — DASHBOARD & QUICK ACTION ALIGNMENT
+
+QUICK ACTIONS (MANDATORY)
+
+Ensure the following four quick actions appear:
+	•	Together on the Dashboard
+	•	Together at the top of the Sidebar
+
+Exact order:
+	1.	Dashboard
+	2.	AI Coach
+	3.	Role Play Simulator
+	4.	Exercises
+
+Naming must match exactly across all locations.
+
+⸻
+
+PHASE 4 — AI COACH & ROLE PLAY CONFIGURATION
+
+DROPDOWN STRUCTURE (INDUSTRY STANDARD)
+
+Apply this structure to AI Coach and Role Play Simulator:
+
+Dropdown 1: Disease State
+Dropdown 2: Specialty (filtered by Disease State)
+	•	Cardiologist
+	•	Endocrinologist
+	•	NP
+	•	PA
+	•	Family Practice
+	•	Internal Medicine
+
+Dropdown 3: HCP Category
+	•	KOL
+	•	Prescriber / Treater
+	•	Non-Prescribing
+	•	Low Engagement
+
+Dropdown 4: Influence & Decision Drivers
+	•	Evidence-Based
+	•	Patient-Centric
+	•	Risk-Averse
+	•	Guideline-Anchored
+
+⸻
+
+PHASE 5 — PERSONA & SIMULATION RULES
+
+AI Coach
+	•	❌ No named HCPs
+	•	❌ No fixed personas
+	•	✅ Use decision signals only
+
+Role Play Simulator
+	•	✅ Named HCPs allowed
+	•	✅ Simulates real-world conversation
+	•	🔒 Lock HCP category
+	•	🔄 Vary influence signal mix
+
+⸻
+
+PHASE 6 — COACHING FEEDBACK LOGIC (LANGUAGE RULES)
+
+REQUIRED LANGUAGE PATTERN
+
+AI feedback must reference signals, not labels.
+
+❌ Bad:
+
+“This HCP is risk-averse.”
+
+✅ Good:
+
+“Risk-cautious and guideline-anchored signals were present.”
+
+⸻
+
+EXAMPLE FEEDBACK (USE AS TEMPLATE)
+
+“You acknowledged concerns but moved quickly to generalized data.
+Based on guideline-anchored and risk-cautious signals, consider validating workflow constraints before introducing outcomes.”
+
+⸻
+
+PHASE 7 — DATA & REPORTS (FORMERLY SQL TRANSLATOR)
+
+Rename SQL Translator → Data and Reports
+
+MANAGER-LEVEL CALLOUT (USE VERBATIM)
+
+“Data and Reports supports performance trends, coaching insights, and reporting for managers and leadership.
+This feature is not intended for daily sales representative workflows.”
+
+Add:
+	•	Manager Access Only badge
+	•	Hide from rep-level views
+
+⸻
+
+PHASE 8 — FRAMEWORK POSITIONING (FOUNDATIONAL COPY)
+
+Wherever frameworks are explained, use this sentence verbatim:
+
+“ReflectivAI incorporates behavioral models, decision-influence frameworks, and emotional intelligence principles to support compliant, adaptive, and human-centered engagement.”
+
+⸻
+
+FINAL VALIDATION CHECKLIST (MUST PASS)
+
+Before completion, confirm:
+	•	✅ EI Metrics appear before Selling & Coaching Frameworks
+	•	✅ Only 4 EI metrics appear in demo views
+	•	✅ All 10 metrics are configurable
+	•	✅ No persona-based labeling exists
+	•	✅ All copy is explainable and compliant
+	•	✅ Sidebar mirrors dashboard
+	•	✅ No backend logic altered unintentionally
+
+⸻
+
+OUTPUT REQUIREMENT
+
+At completion, provide:
+	1.	List of files modified
+	2.	Summary of changes by phase
+	3.	Confirmation that no prohibited actions occurred
+
+⸻
+
+END OF INSTRUCTIONS
+
+⸻
+
+If you want next, I can:
+	•	Convert this into a VS Code Copilot Agent prompt
+	•	Break this into atomic tickets
+	•	Add acceptance criteria per phase
+	•	Write a rollback plan if agent mode fails mid-execution
+
+Just say the word.
