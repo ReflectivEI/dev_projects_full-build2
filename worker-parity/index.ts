@@ -1,24 +1,3 @@
-/*
-Required commands (bash) — do not run automatically:
-
-Deploy parity-prod worker:
-    npx wrangler deploy --config worker-parity/wrangler.toml
-
-Verify AI Insights / Today’s Focus return `source: "ai" | "preset"`:
-    curl -sS https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev/api/dashboard/insights | jq
-    curl -sS https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev/api/daily-focus | jq
-
-Verify chat/send returns `signals` (and won’t crash on unknown types):
-    curl -sS -X POST \
-        -H 'Content-Type: application/json' \
-        -H 'x-session-id: manual-verify' \
-        -d '{"message":"Give me 1-3 observable signals from this conversation so far."}' \
-        https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev/api/chat/send | jq
-
-Run smoke test against parity-prod:
-    WORKER_URL=https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev node script/parity-smoke.mjs
-*/
-
 import { signalFrameworkPrompt } from "./signal_intel";
 
 // Minimal Cloudflare Workers type shims (avoids requiring @cloudflare/workers-types in this repo).
@@ -718,7 +697,7 @@ async function translateSql(env: Env, question: string) {
     try {
         const prompt = `You are an expert SQL translator for pharma sales. Return JSON with fields sqlQuery and explanation. Question: ${question}`;
         const content = await providerChat(env, [{ role: "system", content: prompt }], { responseFormat: { type: "json_object" }, maxTokens: 400 });
-        const parsed = JSON.parse(content);
+        const parsed = safeJsonParse<any>(content);
         return { sqlQuery: parsed.sqlQuery || parsed.sql || "-- unable to generate", explanation: parsed.explanation };
     } catch (e: any) {
         return { sqlQuery: "-- demo sql\nSELECT * FROM sales_calls LIMIT 10;", explanation: e.message };
@@ -779,7 +758,7 @@ async function analyzeConversation(env: Env, messages: ChatMessage[]) {
     try {
         const prompt = `Provide a concise roleplay analysis JSON with fields overallScore, eqScore, technicalScore, strengths[], areasForImprovement[], frameworksApplied[], recommendations[]. Messages: ${messages.map((m) => `${m.role}: ${m.content}`).join(" | ")}`;
         const content = await providerChat(env, [{ role: "system", content: prompt }], { responseFormat: { type: "json_object" }, maxTokens: 500 });
-        return JSON.parse(content);
+        return safeJsonParse<any>(content);
     } catch (e: any) {
         return {
             overallScore: 82,
@@ -820,7 +799,7 @@ async function dashboardInsights(env: Env) {
             maxTokens: 420,
             temperature: 0.55,
         });
-        const parsed = JSON.parse(res);
+        const parsed = safeJsonParse<any>(res);
         const out = normalizeInsights(parsed, undefined, presets, fallbackPreset);
         (out as any).source = "ai";
         return out;
@@ -1143,7 +1122,7 @@ async function moduleExercise(env: Env, title: string, description: string, type
     try {
         const prompt = `Generate a short ${type} exercise for module ${title}. Include JSON with title,instructions,content:[{prompt,choices,correctAnswer,explanation}]`;
         const content = await providerChat(env, [{ role: "system", content: prompt }], { responseFormat: { type: "json_object" }, maxTokens: 500 });
-        return JSON.parse(content);
+        return safeJsonParse<any>(content);
     } catch (e: any) {
         return {
             title: `${title} Exercise`,
