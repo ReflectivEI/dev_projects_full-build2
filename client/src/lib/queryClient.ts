@@ -22,16 +22,53 @@ let SESSION_ID: string | undefined =
     ? window.localStorage.getItem(SESSION_STORAGE_KEY) || undefined
     : undefined;
 
+let sessionInitPromise: Promise<string> | null = null;
+
 export function getSessionId(): string | undefined {
   return SESSION_ID;
 }
 
 function setSessionId(next?: string | null) {
   if (!next) return;
+  if (SESSION_ID) return;
   SESSION_ID = next;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_STORAGE_KEY, next);
     window.dispatchEvent(new Event(SESSION_ID_EVENT));
+  }
+}
+
+async function ensureSessionId(): Promise<string | null> {
+  if (SESSION_ID) return SESSION_ID;
+  if (typeof window === "undefined") return null;
+
+  if (!sessionInitPromise) {
+    sessionInitPromise = (async () => {
+      const fullUrl = buildUrl("/health");
+      const isExternalApi = !!API_BASE_URL;
+
+      const res = await fetch(fullUrl, {
+        method: "GET",
+        headers: getHeaders(false),
+        credentials: isExternalApi ? "omit" : "include",
+      });
+
+      const nextSession = res.headers.get("x-session-id");
+      if (!nextSession) {
+        throw new Error("Missing x-session-id from session init response");
+      }
+
+      setSessionId(nextSession);
+      return nextSession;
+    })().finally(() => {
+      sessionInitPromise = null;
+    });
+  }
+
+  try {
+    return await sessionInitPromise;
+  } catch {
+    return null;
   }
 }
 
@@ -54,7 +91,7 @@ function buildUrl(path: string): string {
 
 function getHeaders(includeContentType: boolean = false): HeadersInit {
   const headers: HeadersInit = {};
-  
+
   if (includeContentType) {
     headers["Content-Type"] = "application/json";
   }
@@ -62,12 +99,12 @@ function getHeaders(includeContentType: boolean = false): HeadersInit {
   if (sessionId) {
     headers["x-session-id"] = sessionId;
   }
-  
+
   // Add API key header if configured (for external backends like Cloudflare Workers)
   if (API_KEY) {
     headers["Authorization"] = `Bearer ${API_KEY}`;
   }
-  
+
   return headers;
 }
 
@@ -83,9 +120,12 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  if (!getSessionId()) {
+    await ensureSessionId();
+  }
   const fullUrl = buildUrl(url);
   const isExternalApi = !!API_BASE_URL;
-  
+
   const res = await fetch(fullUrl, {
     method,
     headers: getHeaders(!!data),
@@ -106,26 +146,29 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
-    const path = queryKey.join("/") as string;
-    const fullUrl = buildUrl(path);
-    const isExternalApi = !!API_BASE_URL;
-    
-    const res = await fetch(fullUrl, {
-      headers: getHeaders(false),
-      credentials: isExternalApi ? "omit" : "include",
-    });
+    async ({ queryKey }) => {
+      if (!getSessionId()) {
+        await ensureSessionId();
+      }
+      const path = queryKey.join("/") as string;
+      const fullUrl = buildUrl(path);
+      const isExternalApi = !!API_BASE_URL;
 
-    const nextSession = res.headers.get("x-session-id");
-    setSessionId(nextSession);
+      const res = await fetch(fullUrl, {
+        headers: getHeaders(false),
+        credentials: isExternalApi ? "omit" : "include",
+      });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
+      const nextSession = res.headers.get("x-session-id");
+      setSessionId(nextSession);
 
-    await throwIfResNotOk(res);
-    return await res.json();
-  };
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    };
 
 export const queryClient = new QueryClient({
   defaultOptions: {

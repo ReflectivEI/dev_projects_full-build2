@@ -102,7 +102,7 @@ export function AppSidebar() {
   }, []);
 
   const { data: dailyFocus, isLoading: isFocusLoading, refetch: refetchFocus, isFetching: isFocusFetching } = useQuery<DailyFocus>({
-    queryKey: ["/api/daily-focus", sessionId],
+    queryKey: ["/api/daily-focus"],
     staleTime: 1000 * 60 * 60 * 24, // Cache for 24 hours (changes daily)
     refetchOnWindowFocus: false,
   });
