@@ -37,7 +37,7 @@ type SessionState = {
     sqlQueries: SqlRecord[];
     roleplay: RoleplaySession | null;
     signals?: any[];
-    lastDailyFocus?: { focus: string; category: string; timestamp: string };
+    lastDailyFocus?: { title: string; focus: string; microTask: string; reflection: string; timestamp: string };
     lastPromptBundle?: { conversationStarters: string[]; suggestedTopics: string[]; timestamp: string };
 };
 
@@ -249,9 +249,9 @@ export default {
                     recentSignals: sanitizeSignals(state.signals).slice(-15),
                     previousFocus: state.lastDailyFocus?.focus,
                 });
-                state.lastDailyFocus = { focus: focus.focus, category: focus.category, timestamp: focus.timestamp };
+                state.lastDailyFocus = { title: focus.title, focus: focus.focus, microTask: focus.microTask, reflection: focus.reflection, timestamp: focus.timestamp };
                 await saveState(env, sessionId, state, ctx);
-                return json(focus, headers);
+                return json({ title: focus.title, focus: focus.focus, microTask: focus.microTask, reflection: focus.reflection }, headers);
             }
 
             if (pathname === "/api/coach/prompts" && (req.method === "GET" || req.method === "POST")) {
@@ -537,6 +537,7 @@ You are ReflectivAI AI Coach for pharma/biotech sales.
 
 Hard requirements:
 - Be explicitly tailored to the provided context (disease state, specialty, HCP category, influence driver) when present.
+    - If any context field is provided, explicitly reference it in your reply at least once (so dropdown changes materially affect coaching).
 - Signal Intelligence: only output OBSERVABLE interaction signals; no personality/intent/emotion inference.
 - If DISC is not enabled, do not mention DISC.
 
@@ -787,17 +788,18 @@ async function dashboardInsights(env: Env) {
     const fallbackPreset = presets[Math.floor(Date.now() / (1000 * 60)) % presets.length];
     try {
         const prompt = `Return JSON ONLY with fields: {
-      "dailyTip": string (140-240 chars, 2 sentences, actionable EI coaching for life sciences, include why it matters),
-      "focusArea": string (one of: "Active Listening", "Emotional Intelligence", "Discovery", "Objection Handling", "Storytelling"),
-      "suggestedExercise": { "title": string (<=80 chars), "description": string (180-260 chars, 2-3 steps, practical action for next call) },
-      "motivationalQuote": string (100-160 chars, concise, no attribution, emotionally intelligent)
-    }
-    Keep tone: specific, pharma/biotech stakeholder-facing, concise but substantive. Do NOT include attribution. Do NOT wrap in code fences.`;
+            "dailyTip": string (2-4 sentences, actionable EI coaching for life sciences, include why it matters),
+            "focusArea": string (one of: "Active Listening", "Emotional Intelligence", "Discovery", "Objection Handling", "Storytelling"),
+            "suggestedExercise": { "title": string (<=80 chars), "description": string (2-4 steps, practical action for next call) },
+            "motivationalQuote": string (short, emotionally intelligent, no attribution)
+        }
+        Keep tone: specific, pharma/biotech stakeholder-facing, concise but substantive.
+        Do NOT include attribution. Do NOT wrap in code fences.`;
 
         const res = await providerChat(env, [{ role: "system", content: prompt }], {
             responseFormat: { type: "json_object" },
-            maxTokens: 420,
-            temperature: 0.55,
+            maxTokens: 700,
+            temperature: 0.65,
         });
         const parsed = safeJsonParse<any>(res);
         const out = normalizeInsights(parsed, undefined, presets, fallbackPreset);
@@ -929,7 +931,7 @@ async function dailyFocus(
             .map((m, idx) => `${idx + 1}. ${m.role}: ${m.content}`)
             .join("\n");
 
-        const sys = `You are ReflectivAI, an AI Sales Coach for life sciences/pharma.
+                const sys = `You are ReflectivAI, an AI Sales Coach for life sciences/pharma.
 
 Task: Generate "Today's Focus" for ${args.date}.
 
@@ -942,22 +944,21 @@ Inputs you may use:
 
 Hard requirements:
 - Must feel sales + EI intelligent (not generic).
-- Must vary across: skills focus, EI dimension, tactical micro-behavior, and a reflection prompt.
 - Ground to transcript/signals when available; otherwise generate a plausible focus for pharma sales.
 - Avoid repeating previous focus phrasing.
 
 Return JSON ONLY with fields:
 {
-  "focus": string,
-  "category": string,
-  "skills": string[],
-  "eiDimensions": string[],
-  "tacticalFocus": string,
-  "reflectionPrompt": string
+    "title": string,
+    "focus": string,
+    "microTask": string,
+    "reflection": string
 }
 Constraints:
+- title: 3-7 words
 - focus: 2-4 sentences, <= 520 chars total
-- reflectionPrompt: a single question
+- microTask: 1 sentence, concrete action
+- reflection: a single question
 - No code fences, no extra keys.
 `;
 
@@ -971,13 +972,17 @@ Constraints:
         });
 
         const out = normalizeFocus(parsed, undefined, presets, fallbackPreset);
-        (out as any).skills = Array.isArray(parsed?.skills) ? parsed.skills.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 8) : [];
-        (out as any).eiDimensions = Array.isArray(parsed?.eiDimensions)
-            ? parsed.eiDimensions.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
-            : [];
-        (out as any).tacticalFocus = typeof parsed?.tacticalFocus === "string" ? parsed.tacticalFocus.trim() : "";
-        (out as any).reflectionPrompt = typeof parsed?.reflectionPrompt === "string" ? parsed.reflectionPrompt.trim() : "";
         (out as any).source = "ai";
+
+        const prev = typeof args.previousFocus === "string" ? args.previousFocus.trim().toLowerCase() : "";
+        if (prev && typeof out?.focus === "string" && out.focus.trim().toLowerCase() === prev) {
+            const altPreset = presets.find((p) => typeof p?.focus === "string" && p.focus.trim().toLowerCase() !== prev) || fallbackPreset;
+            out.title = altPreset?.title || out.title;
+            out.focus = altPreset?.focus || out.focus;
+            out.microTask = altPreset?.microTask || out.microTask;
+            out.reflection = altPreset?.reflection || out.reflection;
+            (out as any).source = "preset";
+        }
         return out;
     } catch (e: any) {
         const out = normalizeFocus(fallbackPreset, `fallback: ${e.message}`, presets, fallbackPreset);
@@ -1044,14 +1049,37 @@ No extra keys, no code fences.
         ? parsed.suggestedTopics.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim())
         : [];
 
-    const starterSet = new Set(starters.map((s: string) => s.toLowerCase()));
-    const cleanedTopics = topics.filter((t: string) => !starterSet.has(t.toLowerCase()));
+    const norm = (s: string) =>
+        s
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, " ")
+            .trim();
 
-    const uniq = (arr: string[]) => Array.from(new Set(arr));
+    const isNearDuplicate = (a: string, b: string) => {
+        const na = norm(a);
+        const nb = norm(b);
+        if (!na || !nb) return false;
+        if (na === nb) return true;
+        if (na.length >= 12 && (na.includes(nb) || nb.includes(na))) return true;
+        return false;
+    };
+
+    const uniqNear = (arr: string[]) => {
+        const out: string[] = [];
+        for (const item of arr) {
+            if (!item) continue;
+            if (out.some((x) => isNearDuplicate(x, item))) continue;
+            out.push(item);
+        }
+        return out;
+    };
+
+    const cleanedStarters = uniqNear(starters).slice(0, 3);
+    const cleanedTopics = uniqNear(topics).filter((t) => !cleanedStarters.some((s) => isNearDuplicate(s, t)));
 
     return {
-        conversationStarters: uniq(starters).slice(0, 3),
-        suggestedTopics: uniq(cleanedTopics).slice(0, 6),
+        conversationStarters: cleanedStarters,
+        suggestedTopics: cleanedTopics.slice(0, 6),
         timestamp: new Date().toISOString(),
     };
 }
@@ -1059,14 +1087,22 @@ No extra keys, no code fences.
 function normalizeFocus(raw: any, error?: string, presets?: Array<any>, fallbackPreset?: any) {
     const preset = fallbackPreset || (presets?.length ? presets[0] : undefined);
     const safe = {
+        title:
+            typeof raw?.title === "string" && raw.title.trim()
+                ? raw.title.trim().slice(0, 60)
+                : preset?.title || "Customer Listening",
         focus:
             typeof raw?.focus === "string" && raw.focus.trim()
-                ? raw.focus.trim().slice(0, 240)
-                : preset?.focus || "Practice active listening techniques with oncology stakeholders.",
-        category:
-            typeof raw?.category === "string" && raw.category.trim()
-                ? raw.category.trim().slice(0, 80)
-                : preset?.category || "Active Listening",
+                ? raw.focus.trim().slice(0, 520)
+                : preset?.focus || "Use open-ended questions and mirror one key phrase to show you heard their concern.",
+        microTask:
+            typeof raw?.microTask === "string" && raw.microTask.trim()
+                ? raw.microTask.trim().slice(0, 220)
+                : preset?.microTask || "In your next interaction, mirror one key phrase and pause for a full 2 seconds before responding.",
+        reflection:
+            typeof raw?.reflection === "string" && raw.reflection.trim()
+                ? raw.reflection.trim().slice(0, 220)
+                : preset?.reflection || "What did the HCP care most about that I almost missed?",
         timestamp: new Date().toISOString(),
     } as any;
     if (error) safe.error = error;
@@ -1076,24 +1112,34 @@ function normalizeFocus(raw: any, error?: string, presets?: Array<any>, fallback
 function getFocusPresets() {
     return [
         {
+            title: "Active Listening",
             focus: "Use open-ended questions and mirror one key phrase to show you heard their concern.",
-            category: "Active Listening",
+            microTask: "In your next interaction, mirror one key phrase and pause for a full 2 seconds before responding.",
+            reflection: "Where did I assume, instead of clarifying?",
         },
         {
+            title: "Clinical Why First",
             focus: "Share one clinical insight tied to their patient population before discussing product specifics.",
-            category: "Storytelling",
+            microTask: "Write a one-sentence 'clinical why' opener and rehearse it twice before your next call.",
+            reflection: "Did I lead with outcomes or features today?",
         },
         {
+            title: "Objection Prep",
             focus: "List the top two objections you expect and prep a calm acknowledgment plus a data point for each.",
-            category: "Objection Handling",
+            microTask: "Draft two empathy-first acknowledgments and pair each with one evidence point you can cite.",
+            reflection: "Which objection do I get defensive about, and why?",
         },
         {
+            title: "Next Step Close",
             focus: "Close every call with a single, mutual next step and who owns it—keep it under 15 seconds.",
-            category: "Discovery",
+            microTask: "End your next conversation by confirming one next step and who owns it in one sentence.",
+            reflection: "What would make the next step feel easier for them?",
         },
         {
-            focus: "Name the emotion you sense, then ask a gentle check-in question to confirm it.",
-            category: "Emotional Intelligence",
+            title: "EI Check-In",
+            focus: "Name the sentiment you observe in the conversation and ask a gentle check-in question to confirm it.",
+            microTask: "Use one 'check-in' question: 'How are you feeling about X right now?' and then listen without interrupting.",
+            reflection: "What did I do that increased trust in the last 2 minutes?",
         },
     ];
 }

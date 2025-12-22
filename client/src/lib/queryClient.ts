@@ -16,12 +16,13 @@ const API_BASE_URL =
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
 const SESSION_STORAGE_KEY = "reflectivai-session-id";
+export const SESSION_ID_EVENT = "reflectivai:session-id";
 let SESSION_ID: string | undefined =
   typeof window !== "undefined"
     ? window.localStorage.getItem(SESSION_STORAGE_KEY) || undefined
     : undefined;
 
-function getSessionId(): string | undefined {
+export function getSessionId(): string | undefined {
   return SESSION_ID;
 }
 
@@ -30,6 +31,7 @@ function setSessionId(next?: string | null) {
   SESSION_ID = next;
   if (typeof window !== "undefined") {
     window.localStorage.setItem(SESSION_STORAGE_KEY, next);
+    window.dispatchEvent(new Event(SESSION_ID_EVENT));
   }
 }
 

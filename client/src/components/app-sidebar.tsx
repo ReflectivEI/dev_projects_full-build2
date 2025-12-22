@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   Sidebar,
@@ -28,11 +29,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import reflectivAILogo from "@assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
+import { getSessionId, SESSION_ID_EVENT } from "@/lib/queryClient";
 
 interface DailyFocus {
+  title: string;
   focus: string;
-  category: string;
-  timestamp: string;
+  microTask: string;
+  reflection: string;
 }
 
 const mainNavItems = [
@@ -89,8 +92,17 @@ const customizationsNavItems = [
 export function AppSidebar() {
   const [location] = useLocation();
 
+  const [sessionId, setSessionId] = useState<string>(() => getSessionId() || "anon");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setSessionId(getSessionId() || "anon");
+    window.addEventListener(SESSION_ID_EVENT, handler);
+    return () => window.removeEventListener(SESSION_ID_EVENT, handler);
+  }, []);
+
   const { data: dailyFocus, isLoading: isFocusLoading, refetch: refetchFocus, isFetching: isFocusFetching } = useQuery<DailyFocus>({
-    queryKey: ["/api/daily-focus"],
+    queryKey: ["/api/daily-focus", sessionId],
     staleTime: 1000 * 60 * 60 * 24, // Cache for 24 hours (changes daily)
     refetchOnWindowFocus: false,
   });
@@ -179,9 +191,24 @@ export function AppSidebar() {
               <span className="text-xs text-muted-foreground">Loading...</span>
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground" data-testid="text-daily-focus">
-              {dailyFocus?.focus || "Unable to load today's focus. Tap refresh."}
-            </p>
+            <div className="space-y-2" data-testid="text-daily-focus">
+              <div className="text-xs font-medium text-foreground">
+                {dailyFocus?.title || "Today's Focus"}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {dailyFocus?.focus || "Unable to load today's focus. Tap refresh."}
+              </p>
+              {dailyFocus?.microTask ? (
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Micro-task:</span> {dailyFocus.microTask}
+                </p>
+              ) : null}
+              {dailyFocus?.reflection ? (
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-medium text-foreground">Reflection:</span> {dailyFocus.reflection}
+                </p>
+              ) : null}
+            </div>
           )}
         </div>
       </SidebarFooter>
