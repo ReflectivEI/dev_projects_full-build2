@@ -41,18 +41,18 @@ import type { Scenario } from "@shared/schema";
 interface ComprehensiveFeedback {
   overallScore: number;
   performanceLevel: "exceptional" | "strong" | "developing" | "emerging" | "needs-focus";
-  eqScores: Array<{ 
-    metricId: string; 
-    score: number; 
+  eqScores: Array<{
+    metricId: string;
+    score: number;
     feedback: string;
     observedBehaviors?: number;
     totalOpportunities?: number;
     calculationNote?: string;
   }>;
-  salesSkillScores: Array<{ 
-    skillId: string; 
-    skillName: string; 
-    score: number; 
+  salesSkillScores: Array<{
+    skillId: string;
+    skillName: string;
+    score: number;
     feedback: string;
     observedBehaviors?: number;
     totalOpportunities?: number;
@@ -73,8 +73,49 @@ type RoleplayMessage = {
 
 function normalizeScoreToFive(score?: number): number {
   if (typeof score !== "number" || Number.isNaN(score)) return 0;
+  // Accept either a 0-5 or 0-100 scale and normalize to 0-5.
+  if (score <= 5) {
+    const clamped = Math.min(Math.max(score, 0), 5);
+    return Math.round(clamped * 10) / 10;
+  }
   const clamped = Math.min(Math.max(score, 0), 100);
-  return Math.round((clamped / 20) * 10) / 10;
+  return Math.round(((clamped / 100) * 5) * 10) / 10;
+}
+
+function cap50<T>(items: T[]): T[] {
+  if (!Array.isArray(items)) return [];
+  return items.slice(-50);
+}
+
+function stableSignalKey(signal: any): string {
+  if (signal?.id != null) return `id:${String(signal.id)}`;
+
+  const type = signal?.type ?? "";
+  const severity = signal?.severity ?? "";
+  const timestamp = signal?.timestamp ?? "";
+  const spanStart = signal?.spanStart ?? signal?.span?.start ?? "";
+  const spanEnd = signal?.spanEnd ?? signal?.span?.end ?? "";
+  const quote = signal?.quote ?? signal?.evidence ?? signal?.signal ?? "";
+
+  return `${type}|${severity}|${timestamp}|${spanStart}|${spanEnd}|${quote}`;
+}
+
+function dedupeByStableKey<T>(items: T[]): T[] {
+  if (!Array.isArray(items)) return [];
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const item of items) {
+    const key = stableSignalKey(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out;
+}
+
+function extractSignals(payload: any): any[] {
+  const signals = payload?.signals ?? payload?.session?.signals ?? [];
+  return Array.isArray(signals) ? signals : [];
 }
 
 function mapWorkerMessages(messages?: Array<{ id?: string; role?: string; content?: string }>): RoleplayMessage[] {
@@ -110,18 +151,53 @@ function mapWorkerEqAnalysis(eq?: { score?: number; strengths?: string[]; improv
 }
 
 function mapWorkerFeedback(analysis: any): ComprehensiveFeedback {
-  const overall = normalizeScoreToFive(analysis?.overallScore ?? analysis?.eqScore ?? 0);
+  const root = analysis?.analysis ?? analysis;
+  const overall = normalizeScoreToFive(root?.overallScore ?? root?.eqScore ?? root?.score ?? 0);
+
+  const rawPerformanceLevel = root?.performanceLevel;
+  const performanceLevel = (
+    rawPerformanceLevel === "exceptional" ||
+    rawPerformanceLevel === "strong" ||
+    rawPerformanceLevel === "developing" ||
+    rawPerformanceLevel === "emerging" ||
+    rawPerformanceLevel === "needs-focus"
+  )
+    ? rawPerformanceLevel
+    : getPerformanceLevel(overall).level;
+
+  const eqScores = Array.isArray(root?.eqScores) ? root.eqScores : [];
+  const salesSkillScores = Array.isArray(root?.salesSkillScores) ? root.salesSkillScores : [];
+  const specificExamples = Array.isArray(root?.specificExamples) ? root.specificExamples : [];
 
   return {
     overallScore: overall,
-    performanceLevel: getPerformanceLevel(overall).level,
-    eqScores: [],
-    salesSkillScores: [],
-    topStrengths: analysis?.strengths ?? [],
-    priorityImprovements: analysis?.areasForImprovement ?? analysis?.improvements ?? [],
-    specificExamples: [],
-    nextSteps: analysis?.recommendations ?? [],
-    overallSummary: analysis?.overallSummary ?? analysis?.summary ?? "Session complete.",
+    performanceLevel,
+    eqScores: eqScores.map((eq: any) => ({
+      metricId: String(eq?.metricId ?? ""),
+      score: normalizeScoreToFive(eq?.score ?? 0),
+      feedback: String(eq?.feedback ?? eq?.explanation ?? ""),
+      observedBehaviors: typeof eq?.observedBehaviors === "number" ? eq.observedBehaviors : undefined,
+      totalOpportunities: typeof eq?.totalOpportunities === "number" ? eq.totalOpportunities : undefined,
+      calculationNote: typeof eq?.calculationNote === "string" ? eq.calculationNote : undefined,
+    })).filter((x: any) => x.metricId),
+    salesSkillScores: salesSkillScores.map((skill: any) => ({
+      skillId: String(skill?.skillId ?? ""),
+      skillName: String(skill?.skillName ?? skill?.name ?? ""),
+      score: normalizeScoreToFive(skill?.score ?? 0),
+      feedback: String(skill?.feedback ?? skill?.explanation ?? ""),
+      observedBehaviors: typeof skill?.observedBehaviors === "number" ? skill.observedBehaviors : undefined,
+      totalOpportunities: typeof skill?.totalOpportunities === "number" ? skill.totalOpportunities : undefined,
+      calculationNote: typeof skill?.calculationNote === "string" ? skill.calculationNote : undefined,
+    })).filter((x: any) => x.skillId && x.skillName),
+    topStrengths: (Array.isArray(root?.topStrengths) ? root.topStrengths : (Array.isArray(root?.strengths) ? root.strengths : [])).map((s: any) => String(s)).filter(Boolean),
+    priorityImprovements: (Array.isArray(root?.priorityImprovements) ? root.priorityImprovements : (Array.isArray(root?.areasForImprovement) ? root.areasForImprovement : (Array.isArray(root?.improvements) ? root.improvements : []))).map((s: any) => String(s)).filter(Boolean),
+    specificExamples: specificExamples.map((ex: any) => ({
+      quote: String(ex?.quote ?? ""),
+      analysis: String(ex?.analysis ?? ex?.feedback ?? ""),
+      isPositive: Boolean(ex?.isPositive),
+    })).filter((x: any) => x.quote && x.analysis),
+    nextSteps: (Array.isArray(root?.nextSteps) ? root.nextSteps : (Array.isArray(root?.recommendations) ? root.recommendations : [])).map((s: any) => String(s)).filter(Boolean),
+    overallSummary: String(root?.overallSummary ?? root?.summary ?? "Session complete."),
   };
 }
 
@@ -169,7 +245,6 @@ const specialtyToCategories: Record<string, string[]> = {
 
 export default function RolePlayPage() {
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
-  const [isActive, setIsActive] = useState(false);
   const [input, setInput] = useState("");
   // 4-dropdown state matching AI Coach
   const [selectedDiseaseState, setSelectedDiseaseState] = useState<string>("");
@@ -182,17 +257,17 @@ export default function RolePlayPage() {
   const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState<string>("");
   const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
   const queryClient = useQueryClient();
-  
+
   // Get derived values for display
   const selectedDisease = diseaseStates.find(d => d.id === selectedDiseaseState);
   const selectedCategory = hcpCategories.find(c => c.id === selectedHcpCategory);
   const selectedDriver = influenceDrivers.find(d => d.id === selectedInfluenceDriver);
-  
+
   // Get available specialties based on disease state
-  const availableSpecialties = selectedDiseaseState 
+  const availableSpecialties = selectedDiseaseState
     ? (specialtiesByDiseaseState[selectedDiseaseState] || allSpecialties)
     : allSpecialties;
-    
+
   // Clear specialty if it's no longer in filtered list (matching AI Coach behavior)
   useEffect(() => {
     if (selectedSpecialty && !availableSpecialties.includes(selectedSpecialty)) {
@@ -205,22 +280,22 @@ export default function RolePlayPage() {
     if (showAllScenarios || !selectedDiseaseState) {
       return scenarios;
     }
-    
+
     // Disease state is the primary filter
     if (selectedDiseaseState && diseaseToCategories[selectedDiseaseState]) {
-      let filtered = scenarios.filter(s => 
+      let filtered = scenarios.filter(s =>
         diseaseToCategories[selectedDiseaseState].includes(s.category)
       );
-      
+
       // Further filter by specialty if selected
       if (selectedSpecialty && specialtyToCategories[selectedSpecialty]) {
         const specialtyCategories = specialtyToCategories[selectedSpecialty];
         filtered = filtered.filter(s => specialtyCategories.includes(s.category));
       }
-      
+
       return filtered;
     }
-    
+
     return scenarios;
   })();
 
@@ -266,49 +341,90 @@ export default function RolePlayPage() {
   const displaySuggestedPhrasing = tailoredContent?.suggestedPhrasing || selectedScenario?.suggestedPhrasing || [];
   const isLoadingTailoredContent = false;
 
+  const roleplayContext = {
+    diseaseState: selectedDiseaseState,
+    specialty: selectedSpecialty,
+    hcpCategory: selectedHcpCategory,
+    influenceDriver: selectedInfluenceDriver,
+  };
+
+  type RoleplaySignal = ObservableSignal & { severity?: number; evidence?: string };
+
   const { data: roleplayData } = useQuery<{
+    session: any | null;
     messages: RoleplayMessage[];
+    signals: RoleplaySignal[];
   }>({
     queryKey: ["/api/roleplay/session"],
-    enabled: isActive,
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/roleplay/session");
       const data = await response.json();
+      const signals = extractSignals(data);
       return {
+        session: data?.session ?? null,
         messages: mapWorkerMessages(data?.session?.messages),
+        signals: signals as RoleplaySignal[],
       };
     },
   });
 
-  const [eqAnalysis, setEqAnalysis] = useState<EQAnalysisResult | null>(null);
-  const [isEQLoading, setIsEQLoading] = useState(false);
+  const messages = roleplayData?.messages || [];
+  const isActive = messages.length > 0;
+
+  // Rehydrate server-side signals (and keep local cap as a safety net).
+  useEffect(() => {
+    if (!isActive) {
+      setObservableSignals([]);
+      return;
+    }
+    const serverSignals = Array.isArray(roleplayData?.signals) ? roleplayData!.signals : [];
+    setObservableSignals(cap50(dedupeByStableKey(serverSignals)) as any);
+  }, [isActive, roleplayData?.signals]);
+
+  const {
+    data: eqAnalysis,
+    isLoading: isEQLoading,
+    refetch: refetchEQ,
+  } = useQuery<EQAnalysisResult>({
+    queryKey: ["/api/roleplay/eq-analysis"],
+    queryFn: async () => {
+      const response = await apiRequest("POST", "/api/roleplay/eq-analysis");
+      return response.json();
+    },
+    enabled: isActive && (messages.filter(m => m.role === "user").length ?? 0) > 0,
+    refetchOnWindowFocus: false,
+    staleTime: 30000,
+  });
 
   const startScenarioMutation = useMutation({
     mutationFn: async (scenario: Scenario) => {
-      const response = await apiRequest("POST", "/api/roleplay/start", { 
+      const response = await apiRequest("POST", "/api/roleplay/start", {
         scenarioId: scenario.id,
         difficulty: scenario.difficulty,
+        scenario,
+        context: roleplayContext,
       });
       return response.json();
     },
     onSuccess: () => {
-      setIsActive(true);
-      setEqAnalysis(null);
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
     },
   });
 
   const sendResponseMutation = useMutation({
     mutationFn: async (content: string) => {
-      setIsEQLoading(true);
       const response = await apiRequest("POST", "/api/roleplay/respond", { message: content });
       return response.json();
     },
     onSuccess: (data) => {
-      setEqAnalysis(mapWorkerEqAnalysis(data?.eqAnalysis));
+      // Phase 1: debug + robust signals from all supported shapes.
+      console.debug("[roleplay/respond] signals", data?.signals, data?.session?.signals);
+      const newSignals = extractSignals(data) as RoleplaySignal[];
+      setObservableSignals((prev) => cap50(dedupeByStableKey([...(prev as any), ...newSignals])) as any);
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+      // Blocker D: EQ scoring only from /eq-analysis (not /respond)
+      setTimeout(() => refetchEQ(), 500);
     },
-    onSettled: () => setIsEQLoading(false),
   });
 
   const endScenarioMutation = useMutation({
@@ -327,6 +443,18 @@ export default function RolePlayPage() {
     },
   });
 
+  const clearScenarioMutation = useMutation({
+    mutationFn: async () => {
+      // Clear the server-side roleplay session without showing feedback.
+      // Uses existing /end route (no new endpoints, no coach changes).
+      const response = await apiRequest("POST", "/api/roleplay/end");
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+    },
+  });
+
   const handleStart = () => {
     if (selectedScenario) {
       startScenarioMutation.mutate(selectedScenario);
@@ -340,14 +468,16 @@ export default function RolePlayPage() {
   };
 
   const handleReset = () => {
-    setIsActive(false);
+    if (isActive) {
+      clearScenarioMutation.mutate();
+    }
     setSelectedScenario(null);
     setTailoredContent(null);
-    setEqAnalysis(null);
+    setObservableSignals([]);
+    setShowFeedbackDialog(false);
+    setFeedbackData(null);
     queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
   };
-
-  const messages = roleplayData?.messages || [];
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -371,7 +501,7 @@ export default function RolePlayPage() {
             </Button>
           )}
         </div>
-        
+
         {!isActive && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
@@ -387,7 +517,7 @@ export default function RolePlayPage() {
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
                 <SelectTrigger data-testid="select-roleplay-specialty">
                   <SelectValue placeholder="Specialty" />
@@ -400,7 +530,7 @@ export default function RolePlayPage() {
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={selectedHcpCategory} onValueChange={setSelectedHcpCategory}>
                 <SelectTrigger data-testid="select-roleplay-hcp-category">
                   <SelectValue placeholder="HCP Category" />
@@ -413,7 +543,7 @@ export default function RolePlayPage() {
                   ))}
                 </SelectContent>
               </Select>
-              
+
               <Select value={selectedInfluenceDriver} onValueChange={setSelectedInfluenceDriver}>
                 <SelectTrigger data-testid="select-roleplay-influence-driver">
                   <SelectValue placeholder="Influence Driver" />
@@ -427,7 +557,7 @@ export default function RolePlayPage() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {(selectedDisease || selectedSpecialty || selectedCategory || selectedDriver) && (
               <div className="flex items-center gap-2 mt-3 flex-wrap">
                 {selectedDisease && (
@@ -470,7 +600,7 @@ export default function RolePlayPage() {
                   )}
                 </CardTitle>
                 <CardDescription>
-                  {isFiltered 
+                  {isFiltered
                     ? `Showing scenarios relevant to your selected filters.`
                     : "Choose a pharma sales scenario to practice. Each scenario includes unique challenges and stakeholder dynamics."}
                 </CardDescription>
@@ -778,11 +908,10 @@ export default function RolePlayPage() {
                     className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
                   >
                     <div
-                      className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-chart-2 text-white"
-                      }`}
+                      className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-chart-2 text-white"
+                        }`}
                     >
                       {message.role === "user" ? (
                         <span className="text-xs font-medium">You</span>
@@ -792,11 +921,10 @@ export default function RolePlayPage() {
                     </div>
                     <div className={`flex-1 max-w-[80%] ${message.role === "user" ? "text-right" : ""}`}>
                       <div
-                        className={`inline-block p-3 rounded-lg ${
-                          message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
-                        }`}
+                        className={`inline-block p-3 rounded-lg ${message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                          }`}
                       >
                         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       </div>
@@ -813,8 +941,8 @@ export default function RolePlayPage() {
                         <div className="flex items-center gap-2">
                           <div className="flex space-x-1">
                             <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" />
-                            <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "150ms" }} />
-                            <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: "300ms" }} />
+                            <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:150ms]" />
+                            <div className="h-2 w-2 rounded-full bg-muted-foreground animate-bounce [animation-delay:300ms]" />
                           </div>
                         </div>
                       </div>
@@ -865,15 +993,15 @@ export default function RolePlayPage() {
               <SignalIntelligencePanel
                 signals={observableSignals}
                 isLoading={sendResponseMutation.isPending}
-                hasActivity={(roleplayData?.messages?.length ?? 0) > 0}
+                hasActivity={messages.length > 0}
                 compact={true}
               />
-              
+
               <div className="border-t pt-4">
                 <CompactEQAnalysis
                   analysis={eqAnalysis || null}
                   isLoading={isEQLoading || sendResponseMutation.isPending}
-                  hasMessages={(roleplayData?.messages?.filter(m => m.role === "user").length ?? 0) > 0}
+                  hasMessages={(messages.filter(m => m.role === "user").length ?? 0) > 0}
                 />
               </div>
             </CardContent>
