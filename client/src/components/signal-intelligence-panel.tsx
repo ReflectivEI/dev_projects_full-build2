@@ -223,9 +223,9 @@ export function SignalIntelligencePanel({
               ))}
             </div>
 
-            {!compact && signals.length > 3 && (
+            {!compact && validSignals.length > 3 && (
               <div className="text-xs text-muted-foreground text-center mt-2">
-                Showing {validSignals.length} of {signals.length} signals
+                Showing most recent 3 signals
               </div>
             )}
           </motion.div>

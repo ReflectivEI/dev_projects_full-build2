@@ -33,7 +33,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { scenarios, diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties, getPerformanceLevel } from "@/lib/data";
-import { CompactEQAnalysis, type EQAnalysisResult } from "@/components/live-eq-analysis";
+import { CompactEQAnalysis, type EQAnalysisResult, type EQScore } from "@/components/live-eq-analysis";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
@@ -141,18 +141,26 @@ function mapWorkerEqAnalysis(eq?: {
   if (!eq) return null;
 
   // Map worker-parity's 4 new metrics to EQScore format
-  const scores: any[] = [];
+  // Note: curiosity is mapped to 'discovery' to align with existing UI metric definitions
+  const METRIC_MAPPINGS: Record<string, string> = {
+    empathy: "empathy",
+    adaptability: "adaptability",
+    curiosity: "discovery", // Maps to discovery questions metric in UI
+    resilience: "resilience"
+  };
+
+  const scores: EQScore[] = [];
   if (typeof eq.empathy === "number") {
-    scores.push({ metricId: "empathy", score: normalizeScoreToFive(eq.empathy), maxScore: 5 });
+    scores.push({ metricId: METRIC_MAPPINGS.empathy, score: normalizeScoreToFive(eq.empathy), maxScore: 5 });
   }
   if (typeof eq.adaptability === "number") {
-    scores.push({ metricId: "adaptability", score: normalizeScoreToFive(eq.adaptability), maxScore: 5 });
+    scores.push({ metricId: METRIC_MAPPINGS.adaptability, score: normalizeScoreToFive(eq.adaptability), maxScore: 5 });
   }
   if (typeof eq.curiosity === "number") {
-    scores.push({ metricId: "discovery", score: normalizeScoreToFive(eq.curiosity), maxScore: 5 }); // Map curiosity to discovery
+    scores.push({ metricId: METRIC_MAPPINGS.curiosity, score: normalizeScoreToFive(eq.curiosity), maxScore: 5 });
   }
   if (typeof eq.resilience === "number") {
-    scores.push({ metricId: "resilience", score: normalizeScoreToFive(eq.resilience), maxScore: 5 });
+    scores.push({ metricId: METRIC_MAPPINGS.resilience, score: normalizeScoreToFive(eq.resilience), maxScore: 5 });
   }
 
   const summaryParts: string[] = [];
