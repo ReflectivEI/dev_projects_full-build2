@@ -382,90 +382,119 @@ export function RoleplayFeedbackDialog({
                 <p className="text-sm text-muted-foreground mb-4">
                   <strong>Layer 1 — Emotional Intelligence:</strong> Demonstrated capabilities measured through observable behaviors. These metrics assess how effectively you perceived signals, adapted your approach, and preserved trust. Click any metric to see definition, calculation, and your specific breakdown.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {feedback.eqScores.map((eq, idx) => (
-                    <motion.div
-                      key={eq.metricId}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                    >
-                      <MetricScoreCard
-                        name={getMetricName(eq.metricId)}
-                        score={eq.score}
-                        feedback={eq.feedback}
-                        metricId={eq.metricId}
-                        observedBehaviors={eq.observedBehaviors}
-                        totalOpportunities={eq.totalOpportunities}
-                        calculationNote={eq.calculationNote}
-                        icon={Brain}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
+                {feedback.eqScores.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {feedback.eqScores.map((eq, idx) => (
+                      <motion.div
+                        key={eq.metricId}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                      >
+                        <MetricScoreCard
+                          name={getMetricName(eq.metricId)}
+                          score={eq.score}
+                          feedback={eq.feedback}
+                          metricId={eq.metricId}
+                          observedBehaviors={eq.observedBehaviors}
+                          totalOpportunities={eq.totalOpportunities}
+                          calculationNote={eq.calculationNote}
+                          icon={Brain}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Brain className="h-12 w-12 mb-3 opacity-30" />
+                    <p className="text-sm">
+                      EI metrics will be calculated based on your conversation
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="sales" className="mt-4 space-y-3">
                 <p className="text-sm text-muted-foreground mb-4">
                   Traditional sales competency rubrics. Click any skill to see definition, calculation formula, and your specific breakdown.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {feedback.salesSkillScores.map((skill, idx) => (
-                    <motion.div
-                      key={skill.skillId}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.05 }}
-                    >
-                      <MetricScoreCard
-                        name={skill.skillName}
-                        score={skill.score}
-                        feedback={skill.feedback}
-                        metricId={skill.skillId}
-                        observedBehaviors={skill.observedBehaviors}
-                        totalOpportunities={skill.totalOpportunities}
-                        calculationNote={skill.calculationNote}
-                        icon={Briefcase}
-                      />
-                    </motion.div>
-                  ))}
-                </div>
+                {feedback.salesSkillScores.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {feedback.salesSkillScores.map((skill, idx) => (
+                      <motion.div
+                        key={skill.skillId}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                      >
+                        <MetricScoreCard
+                          name={skill.skillName}
+                          score={skill.score}
+                          feedback={skill.feedback}
+                          metricId={skill.skillId}
+                          observedBehaviors={skill.observedBehaviors}
+                          totalOpportunities={skill.totalOpportunities}
+                          calculationNote={skill.calculationNote}
+                          icon={Briefcase}
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Briefcase className="h-12 w-12 mb-3 opacity-30" />
+                    <p className="text-sm">
+                      Sales skills assessment available for longer conversations
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="examples" className="mt-4 space-y-4">
                 <p className="text-sm text-muted-foreground mb-4">
                   Specific moments from your conversation with analysis of what worked well or could improve.
                 </p>
-                {feedback.specificExamples.map((example, idx) => (
-                  <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.1 }}
-                  >
-                    <Card className={example.isPositive ? "border-green-500/30" : "border-orange-500/30"}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className={`p-1.5 rounded-full ${example.isPositive ? "bg-green-500/10" : "bg-orange-500/10"}`}>
-                            {example.isPositive ? (
-                              <CheckCircle2 className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <AlertCircle className="h-4 w-4 text-orange-500" />
-                            )}
-                          </div>
-                          <div className="flex-1 space-y-2">
-                            <blockquote className="text-sm italic border-l-2 border-muted-foreground/30 pl-3">
-                              "{example.quote}"
-                            </blockquote>
-                            <p className="text-sm text-muted-foreground">
-                              {example.analysis}
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                {feedback.specificExamples.length > 0 ? (
+                  <>
+                    {feedback.specificExamples.map((example, idx) => (
+                      <motion.div
+                        key={idx}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                      >
+                        <Card className={example.isPositive ? "border-green-500/30" : "border-orange-500/30"}>
+                          <CardContent className="p-4">
+                            <div className="flex items-start gap-3">
+                              <div className={`p-1.5 rounded-full ${example.isPositive ? "bg-green-500/10" : "bg-orange-500/10"}`}>
+                                {example.isPositive ? (
+                                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <AlertCircle className="h-4 w-4 text-orange-500" />
+                                )}
+                              </div>
+                              <div className="flex-1 space-y-2">
+                                <blockquote className="text-sm italic border-l-2 border-muted-foreground/30 pl-3">
+                                  "{example.quote}"
+                                </blockquote>
+                                <p className="text-sm text-muted-foreground">
+                                  {example.analysis}
+                                </p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <MessageSquareQuote className="h-12 w-12 mb-3 opacity-30" />
+                    <p className="text-sm">
+                      Specific examples will be highlighted from longer conversations
+                    </p>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="growth" className="mt-4 space-y-6">
