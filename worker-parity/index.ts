@@ -881,10 +881,10 @@ Ensure language is professional, specific, and immediately actionable for a phar
                 : ["Prepare 3 discovery questions for next HCP conversation", "Review key trial endpoints to cite when discussing efficacy", "Practice 20-second acknowledgment of common objections"],
             strengths: Array.isArray(parsed?.strengths)
                 ? parsed.strengths.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 8)
-                : parsed.topStrengths || ["Clear value communication", "Good rapport"],
+                : (Array.isArray(parsed?.topStrengths) ? parsed.topStrengths : ["Clear value communication", "Good rapport"]),
             areasForImprovement: Array.isArray(parsed?.areasForImprovement)
                 ? parsed.areasForImprovement.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 8)
-                : parsed.priorityImprovements || ["Ask more open-ended questions"],
+                : (Array.isArray(parsed?.priorityImprovements) ? parsed.priorityImprovements : ["Ask more open-ended questions"]),
             frameworksApplied: Array.isArray(parsed?.frameworksApplied)
                 ? parsed.frameworksApplied.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
                 : ["active-listening", "value-based-messaging"],
