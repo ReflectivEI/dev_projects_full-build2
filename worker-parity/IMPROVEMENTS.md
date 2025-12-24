@@ -123,15 +123,18 @@ After (clearer, more specific):
 // New structure (maintains eqAnalysis field for compatibility):
 {
   "eqAnalysis": {
-    "empathy": number,        // 0-5 scale, specific to empathy
-    "adaptability": number,   // 0-5 scale, specific to adaptability
-    "curiosity": number,      // 0-5 scale, specific to curiosity/discovery
-    "resilience": number,     // 0-5 scale, specific to resilience
-    "strengths": string[],    // Behavior-specific observations
-    "improvements": string[]  // Actionable, specific suggestions
+    "empathy": number,        // NEW: 0-5 scale, specific to empathy
+    "adaptability": number,   // NEW: 0-5 scale, specific to adaptability
+    "curiosity": number,      // NEW: 0-5 scale, specific to curiosity/discovery
+    "resilience": number,     // NEW: 0-5 scale, specific to resilience
+    "strengths": string[],    // ENHANCED: Behavior-specific observations
+    "improvements": string[], // ENHANCED: Actionable, specific suggestions
+    "frameworksUsed": string[] // PRESERVED: For backward compatibility
   }
 }
 ```
+
+**Note:** This is an **additive change** - the old `frameworksUsed` field is preserved for backward compatibility. Client code using the old fields will continue to work.
 
 ### Scoring Guidelines Added
 ```
@@ -175,7 +178,8 @@ After:
       "Ask 1-2 discovery questions before offering solutions",
       "Confirm understanding of HCP's top priority explicitly",
       "Adapt pacing based on HCP engagement signals"
-    ]
+    ],
+    "frameworksUsed": ["active-listening", "value-based-messaging"]
   }
 }
 ```
@@ -185,6 +189,7 @@ After:
 - Strengths cite specific observed behaviors
 - Improvements are actionable and tied to low-scoring metrics
 - Internally consistent (low curiosity score → improvement suggests asking more questions)
+- frameworksUsed preserved for backward compatibility
 
 ---
 

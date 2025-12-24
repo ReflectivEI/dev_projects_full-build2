@@ -748,7 +748,8 @@ Return JSON ONLY:
     "curiosity": number (0-5 scale),
     "resilience": number (0-5 scale),
     "strengths": string[],
-    "improvements": string[]
+    "improvements": string[],
+    "frameworksUsed": string[] (optional, e.g., ["active-listening", "value-based-messaging"])
   }
 }
 
@@ -770,6 +771,7 @@ Important:
 - Strengths array (2-4 items): specific, sales-relevant behaviors observed (e.g., "Acknowledged time constraints before presenting data")
 - Improvements array (2-4 items): actionable, behavior-specific suggestions (e.g., "Ask 1-2 discovery questions before offering solutions")
 - Ensure strengths and improvements align with the numeric scores provided
+- frameworksUsed: optional, list sales frameworks observed (e.g., "SPIN", "active-listening")
 
 No code fences, no extra keys.`;
 
@@ -784,6 +786,7 @@ No code fences, no extra keys.`;
             resilience: typeof eq?.resilience === "number" ? Math.min(5, Math.max(0, eq.resilience)) : 3,
             strengths: Array.isArray(eq?.strengths) ? eq.strengths.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["Maintained professional tone", "Clear communication"],
             improvements: Array.isArray(eq?.improvements) ? eq.improvements.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["Ask more discovery questions to understand HCP needs"],
+            frameworksUsed: Array.isArray(eq?.frameworksUsed) ? eq.frameworksUsed.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["active-listening"],
         };
 
         return { reply, eqAnalysis };
@@ -797,6 +800,7 @@ No code fences, no extra keys.`;
                 resilience: 3,
                 strengths: ["Professional demeanor"],
                 improvements: ["Incorporate more discovery questions"],
+                frameworksUsed: ["active-listening"],
             },
         };
     }
