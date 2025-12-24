@@ -210,7 +210,7 @@ export default {
                 const reply = await roleplayReply(env, state.roleplay.messages);
                 state.roleplay.messages.push({ role: "assistant", content: reply.reply, timestamp: Date.now() });
                 await saveState(env, sessionId, state, ctx);
-                return json({ session: state.roleplay, eqAnalysis: reply.eqAnalysis, reply: reply.reply, signals: reply.signals || [] }, headers);
+                return json({ session: state.roleplay, eqAnalysis: reply.eqAnalysis, reply: reply.reply, signals: reply.signals }, headers);
             }
 
             if (pathname === "/api/roleplay/end" && req.method === "POST") {
@@ -1213,6 +1213,10 @@ async function moduleExercise(env: Env, title: string, description: string, type
 }
 
 async function liveEqAnalysis(env: Env, messages: ChatMessage[]) {
+    const clampScore = (value: unknown, fallback: number = 3): number => {
+        return typeof value === "number" ? Math.min(5, Math.max(0, value)) : fallback;
+    };
+
     try {
         const userMessages = messages.filter(m => m.role === "user");
         if (userMessages.length === 0) {
@@ -1236,10 +1240,10 @@ Return JSON ONLY: {"empathy": number, "adaptability": number, "curiosity": numbe
         const parsed = await providerChatJson<any>(env, [{ role: "system", content: sys }, { role: "user", content: transcript }], { maxTokens: 200, temperature: 0.3 });
         
         return {
-            empathy: typeof parsed?.empathy === "number" ? Math.min(5, Math.max(0, parsed.empathy)) : 3,
-            adaptability: typeof parsed?.adaptability === "number" ? Math.min(5, Math.max(0, parsed.adaptability)) : 3,
-            curiosity: typeof parsed?.curiosity === "number" ? Math.min(5, Math.max(0, parsed.curiosity)) : 3,
-            resilience: typeof parsed?.resilience === "number" ? Math.min(5, Math.max(0, parsed.resilience)) : 3,
+            empathy: clampScore(parsed?.empathy),
+            adaptability: clampScore(parsed?.adaptability),
+            curiosity: clampScore(parsed?.curiosity),
+            resilience: clampScore(parsed?.resilience),
         };
     } catch (e: any) {
         return {
@@ -1272,9 +1276,13 @@ function normalizeEndAnalysis(analysis: any) {
     
     // Add priorityImprovements if missing (fallback from areasForImprovement if available)
     if (!Array.isArray(normalized.priorityImprovements)) {
-        normalized.priorityImprovements = Array.isArray(normalized.areasForImprovement) 
-            ? normalized.areasForImprovement 
-            : (Array.isArray(normalized.improvements) ? normalized.improvements : ["Ask more discovery questions"]);
+        if (Array.isArray(normalized.areasForImprovement)) {
+            normalized.priorityImprovements = normalized.areasForImprovement;
+        } else if (Array.isArray(normalized.improvements)) {
+            normalized.priorityImprovements = normalized.improvements;
+        } else {
+            normalized.priorityImprovements = ["Ask more discovery questions"];
+        }
     }
     
     // Add nextSteps if missing (fallback from recommendations if available)
