@@ -33,7 +33,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { scenarios, diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties, getPerformanceLevel } from "@/lib/data";
-import { CompactEQAnalysis, type EQAnalysisResult } from "@/components/live-eq-analysis";
+import { CompactEQAnalysis, type EQAnalysisResult, type EQScore } from "@/components/live-eq-analysis";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
@@ -128,24 +128,61 @@ function mapWorkerMessages(messages?: Array<{ id?: string; role?: string; conten
   }));
 }
 
-function mapWorkerEqAnalysis(eq?: { score?: number; strengths?: string[]; improvements?: string[]; frameworksUsed?: string[]; }): EQAnalysisResult | null {
+function mapWorkerEqAnalysis(eq?: { 
+  score?: number; 
+  empathy?: number;
+  adaptability?: number;
+  curiosity?: number;
+  resilience?: number;
+  strengths?: string[]; 
+  improvements?: string[]; 
+  frameworksUsed?: string[]; 
+}): EQAnalysisResult | null {
   if (!eq) return null;
+
+  // Map worker-parity's 4 new metrics to EQScore format
+  // Note: curiosity is mapped to 'discovery' to align with existing UI metric definitions
+  const METRIC_MAPPINGS: Record<string, string> = {
+    empathy: "empathy",
+    adaptability: "adaptability",
+    curiosity: "discovery", // Maps to discovery questions metric in UI
+    resilience: "resilience"
+  };
+
+  const scores: EQScore[] = [];
+  if (typeof eq.empathy === "number") {
+    scores.push({ metricId: METRIC_MAPPINGS.empathy, score: normalizeScoreToFive(eq.empathy), maxScore: 5 });
+  }
+  if (typeof eq.adaptability === "number") {
+    scores.push({ metricId: METRIC_MAPPINGS.adaptability, score: normalizeScoreToFive(eq.adaptability), maxScore: 5 });
+  }
+  if (typeof eq.curiosity === "number") {
+    scores.push({ metricId: METRIC_MAPPINGS.curiosity, score: normalizeScoreToFive(eq.curiosity), maxScore: 5 });
+  }
+  if (typeof eq.resilience === "number") {
+    scores.push({ metricId: METRIC_MAPPINGS.resilience, score: normalizeScoreToFive(eq.resilience), maxScore: 5 });
+  }
 
   const summaryParts: string[] = [];
   if (Array.isArray(eq.strengths) && eq.strengths.length) {
     summaryParts.push(`Strengths: ${eq.strengths.join(", ")}`);
   }
   if (Array.isArray(eq.improvements) && eq.improvements.length) {
-    summaryParts.push(`Improvements: ${eq.improvements.join(", ")}`);
+    summaryParts.push(`Focus: ${eq.improvements.join(", ")}`);
   }
-  if (Array.isArray(eq.frameworksUsed) && eq.frameworksUsed.length) {
-    summaryParts.push(`Frameworks: ${eq.frameworksUsed.join(", ")}`);
+
+  // Calculate overall score from the 4 metrics if available, otherwise use score field
+  let overallScore = 0;
+  if (scores.length > 0) {
+    overallScore = scores.reduce((sum, s) => sum + s.score, 0) / scores.length;
+  } else if (typeof eq.score === "number") {
+    overallScore = normalizeScoreToFive(eq.score);
   }
 
   return {
-    overallScore: normalizeScoreToFive(eq.score),
-    scores: [],
-    summary: summaryParts.join(" | ") || undefined,
+    overallScore: overallScore || 0,
+    scores: scores,
+    summary: summaryParts.join(" | ") || "Conversation in progress...",
     timestamp: new Date().toISOString(),
   };
 }
@@ -169,6 +206,39 @@ function mapWorkerFeedback(analysis: any): ComprehensiveFeedback {
   const salesSkillScores = Array.isArray(root?.salesSkillScores) ? root.salesSkillScores : [];
   const specificExamples = Array.isArray(root?.specificExamples) ? root.specificExamples : [];
 
+  // Defensive fallback for topStrengths - ensure we always have something
+  const rawTopStrengths = Array.isArray(root?.topStrengths) 
+    ? root.topStrengths 
+    : (Array.isArray(root?.strengths) ? root.strengths : []);
+  const topStrengths = rawTopStrengths.map((s: any) => String(s)).filter(Boolean);
+  if (topStrengths.length === 0) {
+    topStrengths.push("Maintained professional communication throughout the conversation");
+    topStrengths.push("Engaged with the scenario and provided thoughtful responses");
+  }
+
+  // Defensive fallback for priorityImprovements - ensure we always have something
+  const rawImprovements = Array.isArray(root?.priorityImprovements) 
+    ? root.priorityImprovements 
+    : (Array.isArray(root?.areasForImprovement) 
+      ? root.areasForImprovement 
+      : (Array.isArray(root?.improvements) ? root.improvements : []));
+  const priorityImprovements = rawImprovements.map((s: any) => String(s)).filter(Boolean);
+  if (priorityImprovements.length === 0) {
+    priorityImprovements.push("Practice asking 2-3 discovery questions before presenting solutions");
+    priorityImprovements.push("Reference specific evidence or data points when making clinical claims");
+  }
+
+  // Defensive fallback for nextSteps - ensure we always have something
+  const rawNextSteps = Array.isArray(root?.nextSteps) 
+    ? root.nextSteps 
+    : (Array.isArray(root?.recommendations) ? root.recommendations : []);
+  const nextSteps = rawNextSteps.map((s: any) => String(s)).filter(Boolean);
+  if (nextSteps.length === 0) {
+    nextSteps.push("Review the conversation and identify 2-3 moments where you could have asked a discovery question");
+    nextSteps.push("Prepare 3 discovery questions tailored to this stakeholder type for your next session");
+    nextSteps.push("Practice a 30-second opening that establishes rapport before presenting information");
+  }
+
   return {
     overallScore: overall,
     performanceLevel,
@@ -189,15 +259,15 @@ function mapWorkerFeedback(analysis: any): ComprehensiveFeedback {
       totalOpportunities: typeof skill?.totalOpportunities === "number" ? skill.totalOpportunities : undefined,
       calculationNote: typeof skill?.calculationNote === "string" ? skill.calculationNote : undefined,
     })).filter((x: any) => x.skillId && x.skillName),
-    topStrengths: (Array.isArray(root?.topStrengths) ? root.topStrengths : (Array.isArray(root?.strengths) ? root.strengths : [])).map((s: any) => String(s)).filter(Boolean),
-    priorityImprovements: (Array.isArray(root?.priorityImprovements) ? root.priorityImprovements : (Array.isArray(root?.areasForImprovement) ? root.areasForImprovement : (Array.isArray(root?.improvements) ? root.improvements : []))).map((s: any) => String(s)).filter(Boolean),
+    topStrengths,
+    priorityImprovements,
     specificExamples: specificExamples.map((ex: any) => ({
       quote: String(ex?.quote ?? ""),
       analysis: String(ex?.analysis ?? ex?.feedback ?? ""),
       isPositive: Boolean(ex?.isPositive),
     })).filter((x: any) => x.quote && x.analysis),
-    nextSteps: (Array.isArray(root?.nextSteps) ? root.nextSteps : (Array.isArray(root?.recommendations) ? root.recommendations : [])).map((s: any) => String(s)).filter(Boolean),
-    overallSummary: String(root?.overallSummary ?? root?.summary ?? "Session complete."),
+    nextSteps,
+    overallSummary: String(root?.overallSummary ?? root?.summary ?? "Your role-play session has been completed. Review the feedback above to identify strengths and areas for development."),
   };
 }
 

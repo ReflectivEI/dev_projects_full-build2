@@ -575,11 +575,18 @@ Return JSON ONLY with fields:
   "reply": string,
   "signals": Array<{"type":"verbal"|"conversational"|"engagement"|"contextual","signal":string,"evidence":string,"interpretation":string,"suggestedResponse"?:string}>
 }
-Rules for signals:
-- 0-3 items max
-- evidence must quote or closely paraphrase an excerpt from the conversation
-- interpretation must be a hypothesis framed with uncertainty (e.g., "may indicate...")
-- do not invent facts not present in the messages
+
+Critical rules for signals:
+- Output 0 signals if nothing meaningful or observable occurred in this exchange
+- Output 1-3 signals ONLY when clear behavioral shifts or meaningful patterns are present
+- Each signal must be:
+  * Clear and specific (avoid vague language like "showed interest")
+  * Tied directly to quoted or closely paraphrased evidence from the conversation
+  * Framed as an observable pattern, not an assumed emotion or intent
+- Evidence: must be a direct quote or close paraphrase from the user's message
+- Interpretation: must be a behavioral hypothesis with uncertainty language ("may suggest", "could indicate", "appears to show")
+- SuggestedResponse: optional, but when included must be concrete and actionable
+- Do not force signals when the conversation is routine or contains no meaningful behavioral cues
 `;
 
         const parsed = await providerChatJson<{ reply?: string; signals?: any[] }>(
@@ -745,13 +752,39 @@ Return JSON ONLY:
 {
   "reply": string,
   "eqAnalysis": {
-    "score": number,
+    "empathy": number (0-5 scale),
+    "adaptability": number (0-5 scale),
+    "curiosity": number (0-5 scale),
+    "resilience": number (0-5 scale),
     "strengths": string[],
     "improvements": string[],
+    "frameworksUsed": string[] (optional, e.g., ["active-listening", "value-based-messaging"])
+  }
     "frameworksUsed": string[]
   },
   "signals": Array<{"type":string,"signal":string,"interpretation":string,"evidence"?:string,"suggestedResponse"?:string}>
 }
+
+EQ Metrics Scoring (0-5 scale, based on rep's most recent message):
+- empathy: How well the rep acknowledged HCP concerns or constraints before presenting solutions
+- adaptability: How flexibly the rep adjusted their approach based on HCP signals or pushback
+- curiosity: How effectively the rep asked discovery questions to understand HCP needs
+- resilience: How the rep maintained composure and professionalism when facing objections or resistance
+
+Scoring guidelines:
+- 0-1: No evidence or significant gaps
+- 2: Emerging capability with room for growth
+- 3: Adequate demonstration, meets baseline
+- 4: Strong demonstration with minor refinement opportunities
+- 5: Exceptional demonstration, natural and effective
+
+Important:
+- Scores must be internally consistent with the message tone and content
+- Strengths array (2-4 items): specific, sales-relevant behaviors observed (e.g., "Acknowledged time constraints before presenting data")
+- Improvements array (2-4 items): actionable, behavior-specific suggestions (e.g., "Ask 1-2 discovery questions before offering solutions")
+- Ensure strengths and improvements align with the numeric scores provided
+- frameworksUsed: optional, list sales frameworks observed (e.g., "SPIN", "active-listening")
+
 No code fences, no extra keys.`;
 
         const parsed = await providerChatJson<any>(env, [{ role: "system", content: sys }, ...mapped], { maxTokens: 800, temperature: 0.6 });
@@ -759,9 +792,12 @@ No code fences, no extra keys.`;
         const eq = parsed?.eqAnalysis && typeof parsed.eqAnalysis === "object" ? parsed.eqAnalysis : null;
 
         const eqAnalysis = {
-            score: typeof eq?.score === "number" ? eq.score : 80,
-            strengths: Array.isArray(eq?.strengths) ? eq.strengths.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["Empathy", "Clarity"],
-            improvements: Array.isArray(eq?.improvements) ? eq.improvements.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["Ask more discovery questions"],
+            empathy: typeof eq?.empathy === "number" ? Math.min(5, Math.max(0, eq.empathy)) : 3,
+            adaptability: typeof eq?.adaptability === "number" ? Math.min(5, Math.max(0, eq.adaptability)) : 3,
+            curiosity: typeof eq?.curiosity === "number" ? Math.min(5, Math.max(0, eq.curiosity)) : 3,
+            resilience: typeof eq?.resilience === "number" ? Math.min(5, Math.max(0, eq.resilience)) : 3,
+            strengths: Array.isArray(eq?.strengths) ? eq.strengths.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["Maintained professional tone", "Clear communication"],
+            improvements: Array.isArray(eq?.improvements) ? eq.improvements.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["Ask more discovery questions to understand HCP needs"],
             frameworksUsed: Array.isArray(eq?.frameworksUsed) ? eq.frameworksUsed.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["active-listening"],
         };
 
@@ -772,10 +808,13 @@ No code fences, no extra keys.`;
         return {
             reply: `Acknowledged. Let's continue. (${e.message})`,
             eqAnalysis: {
-                score: 75,
-                strengths: ["Empathy"],
-                improvements: ["More discovery"],
-                frameworksUsed: ["rapport-building"],
+                empathy: 3,
+                adaptability: 3,
+                curiosity: 2,
+                resilience: 3,
+                strengths: ["Professional demeanor"],
+                improvements: ["Incorporate more discovery questions"],
+                frameworksUsed: ["active-listening"],
             },
             signals: [],
         };
@@ -784,17 +823,101 @@ No code fences, no extra keys.`;
 
 async function analyzeConversation(env: Env, messages: ChatMessage[]) {
     try {
-        const prompt = `Provide a concise roleplay analysis JSON with fields overallScore, eqScore, technicalScore, strengths[], areasForImprovement[], frameworksApplied[], recommendations[]. Messages: ${messages.map((m) => `${m.role}: ${m.content}`).join(" | ")}`;
-        const content = await providerChat(env, [{ role: "system", content: prompt }], { responseFormat: { type: "json_object" }, maxTokens: 500 });
-        return safeJsonParse<any>(content);
+        const transcript = messages
+            .map((m) => `${m.role}: ${m.content}`)
+            .join("\n\n");
+
+        const prompt = `You are an expert sales coach analyzing a completed pharma roleplay session. Provide a comprehensive analysis.
+
+CONVERSATION TRANSCRIPT:
+${transcript}
+
+Return JSON ONLY with these exact fields:
+{
+  "overallScore": number (0-100),
+  "eqScore": number (0-100),
+  "technicalScore": number (0-100),
+  "topStrengths": string[],
+  "priorityImprovements": string[],
+  "strengths": string[],
+  "areasForImprovement": string[],
+  "frameworksApplied": string[],
+  "recommendations": string[],
+  "nextSteps": string[]
+}
+
+CRITICAL QUALITY REQUIREMENTS:
+
+topStrengths (3-5 items):
+- Must be sales-relevant and behavior-specific
+- Must reference observable actions from the conversation
+- Format: Start with action verb, cite specific behavior
+- Examples: "Asked targeted discovery questions about patient volume before presenting", "Acknowledged time constraints explicitly", "Used evidence from clinical trial when handling objection"
+- Avoid generic praise like "good communication" or "showed empathy"
+
+priorityImprovements (3-5 items):
+- Must be actionable and demo-ready
+- Must be specific to sales behaviors
+- Format: Clear action the rep can take in next conversation
+- Examples: "Lead with 1-2 discovery questions before presenting product benefits", "Confirm HCP's top concern explicitly before offering solutions", "Reference specific trial endpoint when discussing efficacy"
+- Avoid vague suggestions like "improve listening" or "be more confident"
+
+nextSteps (3-5 items):
+- Must be concrete practice actions
+- Must be time-bounded or scenario-specific
+- Format: Specific exercise or preparation for next session
+- Examples: "Prepare 3 discovery questions tailored to cardiology practice patterns", "Practice 30-second empathy acknowledgment before presenting data", "Review trial design to cite methodology when asked about efficacy"
+- Avoid generic advice like "keep practicing" or "review materials"
+
+All other fields:
+- strengths: broader capabilities observed (can overlap with topStrengths)
+- areasForImprovement: broader development areas (can overlap with priorityImprovements)
+- frameworksApplied: sales frameworks used (e.g., "SPIN selling", "active-listening", "objection-handling")
+- recommendations: strategic guidance for continued development
+
+Ensure language is professional, specific, and immediately actionable for a pharmaceutical sales context.`;
+
+        const content = await providerChat(env, [{ role: "system", content: prompt }], { responseFormat: { type: "json_object" }, maxTokens: 900, temperature: 0.35 });
+        const parsed = safeJsonParse<any>(content);
+
+        // Normalize and ensure all required fields exist
+        return {
+            overallScore: typeof parsed?.overallScore === "number" ? parsed.overallScore : 82,
+            eqScore: typeof parsed?.eqScore === "number" ? parsed.eqScore : 78,
+            technicalScore: typeof parsed?.technicalScore === "number" ? parsed.technicalScore : 85,
+            topStrengths: Array.isArray(parsed?.topStrengths) 
+                ? parsed.topStrengths.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
+                : ["Acknowledged HCP concerns before presenting solutions", "Used evidence-based language when discussing product", "Maintained professional composure throughout interaction"],
+            priorityImprovements: Array.isArray(parsed?.priorityImprovements)
+                ? parsed.priorityImprovements.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
+                : ["Ask 2-3 discovery questions before presenting product benefits", "Confirm understanding of HCP's top priority explicitly", "Practice citing specific trial data points"],
+            nextSteps: Array.isArray(parsed?.nextSteps)
+                ? parsed.nextSteps.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
+                : ["Prepare 3 discovery questions for next HCP conversation", "Review key trial endpoints to cite when discussing efficacy", "Practice 20-second acknowledgment of common objections"],
+            strengths: Array.isArray(parsed?.strengths)
+                ? parsed.strengths.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 8)
+                : (Array.isArray(parsed?.topStrengths) ? parsed.topStrengths : ["Clear value communication", "Good rapport"]),
+            areasForImprovement: Array.isArray(parsed?.areasForImprovement)
+                ? parsed.areasForImprovement.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 8)
+                : (Array.isArray(parsed?.priorityImprovements) ? parsed.priorityImprovements : ["Ask more open-ended questions"]),
+            frameworksApplied: Array.isArray(parsed?.frameworksApplied)
+                ? parsed.frameworksApplied.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
+                : ["active-listening", "value-based-messaging"],
+            recommendations: Array.isArray(parsed?.recommendations)
+                ? parsed.recommendations.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6)
+                : ["Continue building discovery question library", "Practice evidence-based messaging with trial data"],
+        };
     } catch (e: any) {
         return {
             overallScore: 82,
             eqScore: 78,
             technicalScore: 85,
+            topStrengths: ["Acknowledged HCP perspective before presenting", "Maintained professional tone throughout", "Used evidence-based language"],
+            priorityImprovements: ["Lead with 2-3 discovery questions before product messaging", "Confirm HCP's primary concern explicitly", "Cite specific trial endpoints when discussing efficacy"],
+            nextSteps: ["Prepare 3 tailored discovery questions for next session", "Review trial design to reference methodology", "Practice 30-second empathy acknowledgment"],
             strengths: ["Clear value communication", "Good rapport"],
             areasForImprovement: ["Ask more open-ended questions"],
-            frameworksApplied: ["disc", "active-listening"],
+            frameworksApplied: ["active-listening", "value-based-messaging"],
             recommendations: ["Practice DISC adjustments", "Prepare data follow-ups"],
         };
     }

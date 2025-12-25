@@ -81,6 +81,11 @@ function SignalCard({ signal }: { signal: ObservableSignal }) {
   const interpretationText = (signal as any)?.interpretation ?? "";
   const suggestedResponseText = (signal as any)?.suggestedResponse;
 
+  // Defensive guard: skip rendering if signal has no meaningful content
+  if (!signalText && !interpretationText) {
+    return null;
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -95,8 +100,8 @@ function SignalCard({ signal }: { signal: ObservableSignal }) {
               {config.label}
             </Badge>
           </div>
-          <p className="text-sm font-medium">{signalText}</p>
-          <p className="text-xs text-muted-foreground mt-1">{interpretationText}</p>
+          {signalText && <p className="text-sm font-medium">{signalText}</p>}
+          {interpretationText && <p className="text-xs text-muted-foreground mt-1">{interpretationText}</p>}
           {suggestedResponseText && (
             <div className="mt-2 flex items-start gap-1.5 text-xs text-primary">
               <Lightbulb className="h-3 w-3 mt-0.5 flex-shrink-0" />
@@ -151,6 +156,29 @@ export function SignalIntelligencePanel({
   }
 
   const recentSignals = compact ? signals.slice(-3) : signals;
+  // Filter out any signals that don't have meaningful content
+  const validSignals = recentSignals.filter(s => 
+    (s?.signal && String(s.signal).trim()) || 
+    (s?.interpretation && String(s.interpretation).trim())
+  );
+
+  // If after filtering we have no valid signals, show appropriate empty state
+  if (validSignals.length === 0 && hasActivity) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Radio className="h-4 w-4 text-primary" />
+          <h4 className="text-sm font-medium">Signal Intelligence</h4>
+        </div>
+        <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
+          <Radio className="h-8 w-8 mb-2 opacity-30" />
+          <p className="text-xs">
+            No significant behavioral signals detected yet.<br />Continue the conversation naturally.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -158,9 +186,9 @@ export function SignalIntelligencePanel({
         <div className="flex items-center gap-2">
           <Radio className="h-4 w-4 text-primary" />
           <h4 className="text-sm font-medium">Signal Intelligence</h4>
-          {signals.length > 0 && (
+          {validSignals.length > 0 && (
             <Badge variant="secondary" className="text-xs py-0">
-              {signals.length} detected
+              {validSignals.length} detected
             </Badge>
           )}
         </div>
@@ -190,14 +218,14 @@ export function SignalIntelligencePanel({
             className="overflow-hidden"
           >
             <div className="space-y-2">
-              {recentSignals.map((signal, index) => (
+              {validSignals.map((signal, index) => (
                 <SignalCard key={signal.id || index} signal={signal} />
               ))}
             </div>
 
-            {!compact && signals.length > 3 && (
+            {!compact && validSignals.length > 3 && (
               <div className="text-xs text-muted-foreground text-center mt-2">
-                Showing {recentSignals.length} of {signals.length} signals
+                Showing most recent 3 signals
               </div>
             )}
           </motion.div>
