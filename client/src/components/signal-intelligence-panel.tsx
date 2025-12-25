@@ -121,8 +121,9 @@ export function SignalIntelligencePanel({
   compact = false
 }: SignalIntelligencePanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const hasSignals = signals.length > 0;
 
-  if (!hasActivity && signals.length === 0) {
+  if (!hasActivity && !hasSignals) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -139,7 +140,7 @@ export function SignalIntelligencePanel({
     );
   }
 
-  if (isLoading && signals.length === 0) {
+  if (isLoading && !hasSignals) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">

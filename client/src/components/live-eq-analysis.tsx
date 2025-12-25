@@ -238,9 +238,10 @@ export function CompactEQAnalysis({ analysis, isLoading, hasMessages }: CompactE
   const sortedScores = [...(analysis?.scores || [])].sort((a, b) => b.score - a.score);
   const topScores = sortedScores.slice(0, 3);
   const bottomScores = sortedScores.slice(-3).reverse();
+  const hasAnalysis = analysis !== null && analysis !== undefined;
 
   // Empty state
-  if (!hasMessages && !analysis) {
+  if (!hasMessages && !hasAnalysis) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -258,7 +259,7 @@ export function CompactEQAnalysis({ analysis, isLoading, hasMessages }: CompactE
   }
 
   // Loading state
-  if (isLoading && !analysis) {
+  if (isLoading && !hasAnalysis) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">

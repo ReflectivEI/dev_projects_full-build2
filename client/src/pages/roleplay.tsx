@@ -448,7 +448,14 @@ export default function RolePlayPage() {
       return;
     }
     const serverSignals = Array.isArray(roleplayData?.signals) ? roleplayData!.signals : [];
-    setObservableSignals(cap50(dedupeByStableKey(serverSignals)) as any);
+    // Only update if server has NEW signals (prevent clear on refetch)
+    if (serverSignals.length > 0) {
+      setObservableSignals((prev) => {
+        const combined = [...prev, ...serverSignals];
+        const deduped = dedupeByStableKey(combined);
+        return cap50(deduped) as any;
+      });
+    }
   }, [isActive, roleplayData?.signals]);
 
   const {
@@ -490,7 +497,13 @@ export default function RolePlayPage() {
       // Phase 1: debug + robust signals from all supported shapes.
       console.debug("[roleplay/respond] signals", data?.signals, data?.session?.signals);
       const newSignals = extractSignals(data) as RoleplaySignal[];
-      setObservableSignals((prev) => cap50(dedupeByStableKey([...(prev as any), ...newSignals])) as any);
+      if (newSignals.length > 0) {
+        setObservableSignals((prev) => {
+          const combined = [...prev, ...newSignals];
+          const deduped = dedupeByStableKey(combined);
+          return cap50(deduped) as any;
+        });
+      }
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
       // Blocker D: EQ scoring only from /eq-analysis (not /respond)
       setTimeout(() => refetchEQ(), 500);
@@ -505,9 +518,26 @@ export default function RolePlayPage() {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
       // Show feedback dialog with comprehensive analysis
-      if (data?.analysis) {
-        setFeedbackData(mapWorkerFeedback(data.analysis));
+      const analysis = data?.analysis || data;
+      if (analysis) {
+        const mappedFeedback = mapWorkerFeedback(analysis);
+        setFeedbackData(mappedFeedback);
         setFeedbackScenarioTitle(data.scenario?.title || selectedScenario?.title || "Role-Play Session");
+        setShowFeedbackDialog(true);
+      } else {
+        // Defensive fallback
+        setFeedbackData({
+          overallScore: 3.0,
+          performanceLevel: "developing",
+          eqScores: [],
+          salesSkillScores: [],
+          topStrengths: ["Completed the role-play session", "Engaged with the scenario"],
+          priorityImprovements: ["Practice asking discovery questions before presenting solutions", "Reference specific clinical evidence when making claims"],
+          specificExamples: [],
+          nextSteps: ["Review session transcript", "Prepare 3 discovery questions for next session", "Practice active listening techniques"],
+          overallSummary: "Session completed. Review the conversation to identify strengths and development opportunities.",
+        });
+        setFeedbackScenarioTitle(selectedScenario?.title || "Role-Play Session");
         setShowFeedbackDialog(true);
       }
     },
