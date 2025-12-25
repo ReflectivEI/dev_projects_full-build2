@@ -210,17 +210,25 @@ export default {
                 const reply = await roleplayReply(env, state.roleplay.messages);
                 state.roleplay.messages.push({ role: "assistant", content: reply.reply, timestamp: Date.now() });
                 await saveState(env, sessionId, state, ctx);
-                return json({ session: state.roleplay, eqAnalysis: reply.eqAnalysis, reply: reply.reply }, headers);
+                return json({ session: state.roleplay, eqAnalysis: reply.eqAnalysis, reply: reply.reply, signals: reply.signals }, headers);
             }
 
             if (pathname === "/api/roleplay/end" && req.method === "POST") {
                 const state = await loadState(env, sessionId);
                 if (!state.roleplay) return badRequest("no active session", headers);
                 const analysis = await analyzeConversation(env, state.roleplay.messages);
+                const normalizedAnalysis = normalizeEndAnalysis(analysis);
                 const session = state.roleplay;
                 state.roleplay = null;
                 await saveState(env, sessionId, state, ctx);
-                return json({ analysis, session }, headers);
+                return json({ analysis: normalizedAnalysis, session }, headers);
+            }
+
+            if (pathname === "/api/roleplay/eq-analysis" && req.method === "POST") {
+                const state = await loadState(env, sessionId);
+                if (!state.roleplay) return badRequest("no active session", headers);
+                const eqAnalysis = await liveEqAnalysis(env, state.roleplay.messages);
+                return json({ eqAnalysis }, headers);
             }
 
             // Knowledge
@@ -731,6 +739,7 @@ async function roleplayReply(env: Env, messages: ChatMessage[]) {
 Hard requirements:
 - Keep reply concise (1-4 short paragraphs).
 - Stay within the scenario implied by the conversation; do not invent clinical claims.
+- Generate 0-3 observable signals from the rep's last message (type: "verbal"|"conversational"|"engagement"|"contextual").
 
 Return JSON ONLY:
 {
@@ -740,11 +749,12 @@ Return JSON ONLY:
     "strengths": string[],
     "improvements": string[],
     "frameworksUsed": string[]
-  }
+  },
+  "signals": Array<{"type":string,"signal":string,"interpretation":string,"evidence"?:string,"suggestedResponse"?:string}>
 }
 No code fences, no extra keys.`;
 
-        const parsed = await providerChatJson<any>(env, [{ role: "system", content: sys }, ...mapped], { maxTokens: 700, temperature: 0.6 });
+        const parsed = await providerChatJson<any>(env, [{ role: "system", content: sys }, ...mapped], { maxTokens: 800, temperature: 0.6 });
         const reply = typeof parsed?.reply === "string" && parsed.reply.trim() ? parsed.reply.trim() : "Acknowledged. Let's continue.";
         const eq = parsed?.eqAnalysis && typeof parsed.eqAnalysis === "object" ? parsed.eqAnalysis : null;
 
@@ -755,7 +765,9 @@ No code fences, no extra keys.`;
             frameworksUsed: Array.isArray(eq?.frameworksUsed) ? eq.frameworksUsed.filter((x: any) => typeof x === "string" && x.trim()).map((s: string) => s.trim()).slice(0, 6) : ["active-listening"],
         };
 
-        return { reply, eqAnalysis };
+        const signals = normalizeSignals(parsed?.signals || []);
+
+        return { reply, eqAnalysis, signals };
     } catch (e: any) {
         return {
             reply: `Acknowledged. Let's continue. (${e.message})`,
@@ -765,6 +777,7 @@ No code fences, no extra keys.`;
                 improvements: ["More discovery"],
                 frameworksUsed: ["rapport-building"],
             },
+            signals: [],
         };
     }
 }
@@ -1197,4 +1210,87 @@ async function moduleExercise(env: Env, title: string, description: string, type
             ],
         };
     }
+}
+
+async function liveEqAnalysis(env: Env, messages: ChatMessage[]) {
+    const clampScore = (value: unknown, fallback: number = 3): number => {
+        return typeof value === "number" ? Math.min(5, Math.max(0, value)) : fallback;
+    };
+
+    try {
+        const userMessages = messages.filter(m => m.role === "user");
+        if (userMessages.length === 0) {
+            return {
+                empathy: 0,
+                adaptability: 0,
+                curiosity: 0,
+                resilience: 0,
+            };
+        }
+
+        const transcript = messages.map((m, idx) => `${idx + 1}. ${m.role}: ${m.content}`).join("\n");
+        const sys = `Analyze the sales rep's demonstrated emotional intelligence. Score these 4 metrics (0-5 scale):
+- empathy: ability to recognize and respond to HCP concerns
+- adaptability: flexibility in adjusting approach based on signals
+- curiosity: asking discovery questions vs. pushing agenda
+- resilience: composure when facing objections
+
+Return JSON ONLY: {"empathy": number, "adaptability": number, "curiosity": number, "resilience": number}`;
+
+        const parsed = await providerChatJson<any>(env, [{ role: "system", content: sys }, { role: "user", content: transcript }], { maxTokens: 200, temperature: 0.3 });
+        
+        return {
+            empathy: clampScore(parsed?.empathy),
+            adaptability: clampScore(parsed?.adaptability),
+            curiosity: clampScore(parsed?.curiosity),
+            resilience: clampScore(parsed?.resilience),
+        };
+    } catch (e: any) {
+        return {
+            empathy: 3,
+            adaptability: 3,
+            curiosity: 3,
+            resilience: 3,
+        };
+    }
+}
+
+function normalizeEndAnalysis(analysis: any) {
+    // Preserve existing analysis object, add missing fields expected by UI
+    const normalized = { ...analysis };
+    
+    // Add eqScores if missing
+    if (!Array.isArray(normalized.eqScores)) {
+        normalized.eqScores = [];
+    }
+    
+    // Add salesSkillScores if missing
+    if (!Array.isArray(normalized.salesSkillScores)) {
+        normalized.salesSkillScores = [];
+    }
+    
+    // Add topStrengths if missing (fallback from strengths if available)
+    if (!Array.isArray(normalized.topStrengths)) {
+        normalized.topStrengths = Array.isArray(normalized.strengths) ? normalized.strengths : ["Clear communication"];
+    }
+    
+    // Add priorityImprovements if missing (fallback from areasForImprovement if available)
+    if (!Array.isArray(normalized.priorityImprovements)) {
+        if (Array.isArray(normalized.areasForImprovement)) {
+            normalized.priorityImprovements = normalized.areasForImprovement;
+        } else if (Array.isArray(normalized.improvements)) {
+            normalized.priorityImprovements = normalized.improvements;
+        } else {
+            normalized.priorityImprovements = ["Ask more discovery questions"];
+        }
+    }
+    
+    // Add nextSteps if missing (fallback from recommendations if available)
+    if (!Array.isArray(normalized.nextSteps)) {
+        normalized.nextSteps = Array.isArray(normalized.recommendations) 
+            ? normalized.recommendations 
+            : ["Practice active listening", "Focus on discovery questions"];
+    }
+    
+    return normalized;
 }
