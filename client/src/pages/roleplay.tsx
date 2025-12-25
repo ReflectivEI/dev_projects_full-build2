@@ -326,6 +326,8 @@ export default function RolePlayPage() {
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState<string>("");
   const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
+  const [sessionSignals, setSessionSignals] = useState<ObservableSignal[]>([]);
+  const [sessionEQ, setSessionEQ] = useState<EQAnalysisResult | null>(null);
   const queryClient = useQueryClient();
 
   // Get derived values for display
@@ -441,23 +443,24 @@ export default function RolePlayPage() {
   const messages = roleplayData?.messages || [];
   const isActive = messages.length > 0;
 
-  // Rehydrate server-side signals (and keep local cap as a safety net).
-  useEffect(() => {
-    if (!isActive) {
-      setObservableSignals([]);
-      return;
-    }
-    const serverSignals = Array.isArray(roleplayData?.signals) ? roleplayData!.signals : [];
-    // Only update if server has NEW signals (prevent clear on refetch)
-    if (serverSignals.length > 0) {
-      setObservableSignals((prev) => {
-        const combined = [...prev, ...serverSignals];
-        const deduped = dedupeByStableKey(combined);
-        return cap50(deduped) as any;
-      });
-    }
-  }, [isActive, roleplayData?.signals]);
+  // REMOVE: This useEffect was resetting signals on query changes
+  // useEffect(() => {
+  //   if (!isActive) {
+  //     setObservableSignals([]);
+  //     return;
+  //   }
+  //   const serverSignals = Array.isArray(roleplayData?.signals) ? roleplayData!.signals : [];
+  //   if (serverSignals.length > 0) {
+  //     setObservableSignals((prev) => {
+  //       const combined = [...prev, ...serverSignals];
+  //       const deduped = dedupeByStableKey(combined);
+  //       return cap50(deduped) as any;
+  //     });
+  //   }
+  // }, [isActive, roleplayData?.signals]);
 
+
+  // Keep query for data fetching, but sessionEQ is source of truth
   const {
     data: eqAnalysis,
     isLoading: isEQLoading,
@@ -466,7 +469,15 @@ export default function RolePlayPage() {
     queryKey: ["/api/roleplay/eq-analysis"],
     queryFn: async () => {
       const response = await apiRequest("POST", "/api/roleplay/eq-analysis");
-      return response.json();
+      const data = await response.json();
+      // Update session state when query succeeds
+      if (data?.eqAnalysis) {
+        const mapped = mapWorkerEqAnalysis(data.eqAnalysis);
+        if (mapped) {
+          setSessionEQ(mapped);
+        }
+      }
+      return data;
     },
     enabled: isActive && (messages.filter(m => m.role === "user").length ?? 0) > 0,
     refetchOnWindowFocus: false,
@@ -484,6 +495,9 @@ export default function RolePlayPage() {
       return response.json();
     },
     onSuccess: () => {
+      // Clear session state when starting new scenario
+      setSessionSignals([]);
+      setSessionEQ(null);
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
     },
   });
@@ -494,18 +508,25 @@ export default function RolePlayPage() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Phase 1: debug + robust signals from all supported shapes.
-      console.debug("[roleplay/respond] signals", data?.signals, data?.session?.signals);
+      // Accumulate signals in session state (never clear)
       const newSignals = extractSignals(data) as RoleplaySignal[];
       if (newSignals.length > 0) {
-        setObservableSignals((prev) => {
+        setSessionSignals((prev) => {
           const combined = [...prev, ...newSignals];
           const deduped = dedupeByStableKey(combined);
           return cap50(deduped) as any;
         });
       }
+      
+      // Update EQ analysis in session state
+      if (data?.eqAnalysis) {
+        const mapped = mapWorkerEqAnalysis(data.eqAnalysis);
+        if (mapped) {
+          setSessionEQ(mapped);
+        }
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
-      // Blocker D: EQ scoring only from /eq-analysis (not /respond)
       setTimeout(() => refetchEQ(), 500);
     },
   });
@@ -517,7 +538,8 @@ export default function RolePlayPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
-      // Show feedback dialog with comprehensive analysis
+      
+      // Use session state + worker feedback
       const analysis = data?.analysis || data;
       if (analysis) {
         const mappedFeedback = mapWorkerFeedback(analysis);
@@ -525,9 +547,9 @@ export default function RolePlayPage() {
         setFeedbackScenarioTitle(data.scenario?.title || selectedScenario?.title || "Role-Play Session");
         setShowFeedbackDialog(true);
       } else {
-        // Defensive fallback
+        // Defensive fallback using session state
         setFeedbackData({
-          overallScore: 3.0,
+          overallScore: sessionEQ?.overallScore || 3.0,
           performanceLevel: "developing",
           eqScores: [],
           salesSkillScores: [],
@@ -573,6 +595,8 @@ export default function RolePlayPage() {
     }
     setSelectedScenario(null);
     setTailoredContent(null);
+    setSessionSignals([]);  // Clear session signals
+    setSessionEQ(null);      // Clear session EQ
     setObservableSignals([]);
     setShowFeedbackDialog(false);
     setFeedbackData(null);
@@ -1091,17 +1115,17 @@ export default function RolePlayPage() {
           <Card className="w-80 flex-shrink-0 hidden xl:flex flex-col">
             <CardContent className="flex-1 pt-6 space-y-6">
               <SignalIntelligencePanel
-                signals={observableSignals}
+                signals={sessionSignals}
                 isLoading={sendResponseMutation.isPending}
-                hasActivity={messages.length > 0}
+                hasActivity={isActive}
                 compact={true}
               />
 
               <div className="border-t pt-4">
                 <CompactEQAnalysis
-                  analysis={eqAnalysis || null}
+                  analysis={sessionEQ}
                   isLoading={isEQLoading || sendResponseMutation.isPending}
-                  hasMessages={(messages.filter(m => m.role === "user").length ?? 0) > 0}
+                  hasMessages={messages.filter(m => m.role === "user").length > 0}
                 />
               </div>
             </CardContent>
