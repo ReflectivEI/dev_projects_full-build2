@@ -448,7 +448,12 @@ export default function RolePlayPage() {
       return;
     }
     const serverSignals = Array.isArray(roleplayData?.signals) ? roleplayData!.signals : [];
-    setObservableSignals(cap50(dedupeByStableKey(serverSignals)) as any);
+    
+    // GUARD: Only update if serverSignals is non-empty OR if we're explicitly clearing
+    if (serverSignals.length > 0) {
+      setObservableSignals(cap50(dedupeByStableKey(serverSignals)) as any);
+    }
+    // If serverSignals is empty but isActive, keep previous signals
   }, [isActive, roleplayData?.signals]);
 
   const {
@@ -464,6 +469,8 @@ export default function RolePlayPage() {
     enabled: isActive && (messages.filter(m => m.role === "user").length ?? 0) > 0,
     refetchOnWindowFocus: false,
     staleTime: 30000,
+    // Preserve previous data during refetch to prevent flashing
+    placeholderData: (previousData) => previousData,
   });
 
   const startScenarioMutation = useMutation({
@@ -504,11 +511,17 @@ export default function RolePlayPage() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
-      // Show feedback dialog with comprehensive analysis
-      if (data?.analysis) {
-        setFeedbackData(mapWorkerFeedback(data.analysis));
-        setFeedbackScenarioTitle(data.scenario?.title || selectedScenario?.title || "Role-Play Session");
-        setShowFeedbackDialog(true);
+      
+      // Guard: only show feedback if analysis is present and complete
+      if (data?.analysis && typeof data.analysis === 'object') {
+        const mappedFeedback = mapWorkerFeedback(data.analysis);
+        
+        // Defensive check: ensure we have meaningful feedback before opening dialog
+        if (mappedFeedback.overallScore > 0 || mappedFeedback.topStrengths.length > 0) {
+          setFeedbackData(mappedFeedback);
+          setFeedbackScenarioTitle(data.scenario?.title || selectedScenario?.title || "Role-Play Session");
+          setShowFeedbackDialog(true);
+        }
       }
     },
   });

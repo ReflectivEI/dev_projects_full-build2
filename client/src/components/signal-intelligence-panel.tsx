@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Radio,
@@ -121,8 +121,35 @@ export function SignalIntelligencePanel({
   compact = false
 }: SignalIntelligencePanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [accumulatedSignals, setAccumulatedSignals] = useState<ObservableSignal[]>([]);
 
-  if (!hasActivity && signals.length === 0) {
+  // Accumulate signals during active session, clear when inactive
+  useEffect(() => {
+    if (!hasActivity) {
+      setAccumulatedSignals([]);
+      return;
+    }
+    
+    if (signals.length > 0) {
+      // Merge new signals with accumulated (dedupe by id or content)
+      setAccumulatedSignals(prev => {
+        const combined = [...prev, ...signals];
+        // Dedupe by id or JSON stringified content
+        const seen = new Set<string>();
+        return combined.filter(s => {
+          const key = s.id || JSON.stringify(s);
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      });
+    }
+  }, [signals, hasActivity]);
+
+  // Use accumulated signals if available, otherwise fall back to current signals
+  const displaySignals = accumulatedSignals.length > 0 ? accumulatedSignals : signals;
+
+  if (!hasActivity && displaySignals.length === 0) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -139,7 +166,7 @@ export function SignalIntelligencePanel({
     );
   }
 
-  if (isLoading && signals.length === 0) {
+  if (isLoading && displaySignals.length === 0) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -155,7 +182,7 @@ export function SignalIntelligencePanel({
     );
   }
 
-  const recentSignals = compact ? signals.slice(-3) : signals;
+  const recentSignals = compact ? displaySignals.slice(-3) : displaySignals;
   // Filter out any signals that don't have meaningful content
   const validSignals = recentSignals.filter(s => 
     (s?.signal && String(s.signal).trim()) || 

@@ -40,17 +40,28 @@ function getOverallBgColor(score: number): string {
 
 export function LiveEQAnalysis({ analysis, isLoading, hasMessages }: LiveEQAnalysisProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [cachedAnalysis, setCachedAnalysis] = useState<EQAnalysisResult | null>(null);
+
+  // Cache the last valid analysis to persist during loading states
+  useEffect(() => {
+    if (analysis) {
+      setCachedAnalysis(analysis);
+    }
+  }, [analysis]);
+
+  // Use cached analysis if current analysis is undefined during loading
+  const displayAnalysis = analysis || cachedAnalysis;
 
   const getScoreForMetric = (metricId: string): EQScore | undefined => {
-    return analysis?.scores.find(s => s.metricId === metricId);
+    return displayAnalysis?.scores.find(s => s.metricId === metricId);
   };
 
   // Group metrics in two rows as shown in the screenshot
   const topRow = ["empathy", "clarity", "compliance", "discovery", "objection-handling"];
   const bottomRow = ["confidence", "active-listening", "adaptability", "action-insight", "resilience"];
 
-  // Empty state - no messages yet
-  if (!hasMessages && !analysis) {
+  // Empty state - no messages yet and no cached analysis
+  if (!hasMessages && !cachedAnalysis) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -67,8 +78,8 @@ export function LiveEQAnalysis({ analysis, isLoading, hasMessages }: LiveEQAnaly
     );
   }
 
-  // Loading state
-  if (isLoading && !analysis) {
+  // Loading state - only show skeleton if we have no cached data
+  if (isLoading && !displayAnalysis) {
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
@@ -98,18 +109,18 @@ export function LiveEQAnalysis({ analysis, isLoading, hasMessages }: LiveEQAnaly
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
           <h3 className="font-semibold">Live EI Analysis</h3>
-          {analysis && (
+          {displayAnalysis && (
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
-              className={`flex items-center gap-2 px-2 py-0.5 rounded-full ${getOverallBgColor(analysis.overallScore)}`}
+              className={`flex items-center gap-2 px-2 py-0.5 rounded-full ${getOverallBgColor(displayAnalysis.overallScore)}`}
             >
-              <TrendingUp className={`h-3 w-3 ${getOverallColor(analysis.overallScore)}`} />
-              <span className={`text-sm font-bold ${getOverallColor(analysis.overallScore)}`}>
-                {analysis.overallScore.toFixed(1)}/5
+              <TrendingUp className={`h-3 w-3 ${getOverallColor(displayAnalysis.overallScore)}`} />
+              <span className={`text-sm font-bold ${getOverallColor(displayAnalysis.overallScore)}`}>
+                {displayAnalysis.overallScore.toFixed(1)}/5
               </span>
-              <Badge variant="outline" className={`text-xs py-0 ${getOverallColor(analysis.overallScore)}`}>
-                {getPerformanceLevel(analysis.overallScore).label}
+              <Badge variant="outline" className={`text-xs py-0 ${getOverallColor(displayAnalysis.overallScore)}`}>
+                {getPerformanceLevel(displayAnalysis.overallScore).label}
               </Badge>
             </motion.div>
           )}
@@ -171,14 +182,14 @@ export function LiveEQAnalysis({ analysis, isLoading, hasMessages }: LiveEQAnaly
               </div>
 
               {/* Summary feedback */}
-              {analysis?.summary && (
+              {displayAnalysis?.summary && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="p-3 rounded-lg bg-muted/50 border"
                 >
                   <p className="text-sm text-muted-foreground">
-                    {analysis.summary}
+                    {displayAnalysis.summary}
                   </p>
                 </motion.div>
               )}
@@ -212,9 +223,9 @@ export function LiveEQAnalysis({ analysis, isLoading, hasMessages }: LiveEQAnaly
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                {analysis && (
+                {displayAnalysis && (
                   <span className="text-xs opacity-50">
-                    Updated: {new Date(analysis.timestamp).toLocaleTimeString()}
+                    Updated: {new Date(displayAnalysis.timestamp).toLocaleTimeString()}
                   </span>
                 )}
               </div>
@@ -234,13 +245,25 @@ interface CompactEQAnalysisProps {
 }
 
 export function CompactEQAnalysis({ analysis, isLoading, hasMessages }: CompactEQAnalysisProps) {
+  const [cachedAnalysis, setCachedAnalysis] = useState<EQAnalysisResult | null>(null);
+
+  // Cache the last valid analysis to persist during loading states
+  useEffect(() => {
+    if (analysis) {
+      setCachedAnalysis(analysis);
+    }
+  }, [analysis]);
+
+  // Use cached analysis if current analysis is undefined during loading
+  const displayAnalysis = analysis || cachedAnalysis;
+
   // Get top 3 and bottom 3 scores
-  const sortedScores = [...(analysis?.scores || [])].sort((a, b) => b.score - a.score);
+  const sortedScores = [...(displayAnalysis?.scores || [])].sort((a, b) => b.score - a.score);
   const topScores = sortedScores.slice(0, 3);
   const bottomScores = sortedScores.slice(-3).reverse();
 
-  // Empty state
-  if (!hasMessages && !analysis) {
+  // Empty state - no messages yet and no cached analysis
+  if (!hasMessages && !cachedAnalysis) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -257,8 +280,8 @@ export function CompactEQAnalysis({ analysis, isLoading, hasMessages }: CompactE
     );
   }
 
-  // Loading state
-  if (isLoading && !analysis) {
+  // Loading state - only show skeleton if we have no cached data
+  if (isLoading && !displayAnalysis) {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-2">
@@ -281,21 +304,21 @@ export function CompactEQAnalysis({ analysis, isLoading, hasMessages }: CompactE
           <Sparkles className="h-4 w-4 text-primary" />
           <h4 className="text-sm font-medium">Live EI Analysis</h4>
         </div>
-        {analysis && (
+        {displayAnalysis && (
           <Badge 
             variant="outline" 
-            className={`text-xs ${getOverallColor(analysis.overallScore)}`}
+            className={`text-xs ${getOverallColor(displayAnalysis.overallScore)}`}
           >
-            {analysis.overallScore.toFixed(1)}/5
+            {displayAnalysis.overallScore.toFixed(1)}/5
           </Badge>
         )}
       </div>
 
-      {analysis && (
+      {displayAnalysis && (
         <div className="space-y-2">
           {/* Show all metrics in a compact grid */}
           <div className="grid grid-cols-2 gap-1.5">
-            {analysis.scores.map(score => {
+            {displayAnalysis.scores.map(score => {
               const metric = eqMetrics.find(m => m.id === score.metricId);
               if (!metric) return null;
               return (

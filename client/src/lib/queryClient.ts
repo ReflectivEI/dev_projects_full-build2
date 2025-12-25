@@ -177,7 +177,10 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
+      gcTime: 1000 * 60 * 30, // Keep cache for 30 minutes (TanStack Query v5)
       retry: false,
+      // IMPORTANT: Preserve data during background updates
+      placeholderData: (previousData: any) => previousData,
     },
     mutations: {
       retry: false,
