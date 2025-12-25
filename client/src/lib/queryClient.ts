@@ -12,7 +12,8 @@ const RUNTIME_BASE =
 const API_BASE_URL =
   RUNTIME_BASE ||
   import.meta.env.VITE_WORKER_URL ||
-  "https://reflectivai-api-parity-v2.tonyabdelmalak.workers.dev";
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://reflectivai-api-parity-prod-production.tonyabdelmalak.workers.dev";
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
 const SESSION_STORAGE_KEY = "reflectivai-session-id";
