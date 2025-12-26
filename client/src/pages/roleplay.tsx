@@ -1117,7 +1117,7 @@ export default function RolePlayPage() {
               <SignalIntelligencePanel
                 signals={sessionSignals}
                 isLoading={sendResponseMutation.isPending}
-                hasActivity={isActive}
+                hasActivity={sessionSignals.length > 0}
                 compact={true}
               />
 
