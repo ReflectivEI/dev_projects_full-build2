@@ -76,6 +76,18 @@ export default {
                 return json({ status: "ok", worker: "parity-v2", time: Date.now() }, headers);
             }
 
+            // FIX: Add /api/status endpoint to match client expectations (api-status.tsx component)
+            // Client expects: { openaiConfigured: boolean, message: string }
+            if (pathname === "/api/status" && req.method === "GET") {
+                const hasProviderKey = !!(env.PROVIDER_KEY || env.PROVIDER_KEYS);
+                return json({
+                    openaiConfigured: hasProviderKey,
+                    message: hasProviderKey 
+                        ? "AI features are fully enabled" 
+                        : "AI features are in demo mode. Add your OpenAI API key for full functionality."
+                }, headers);
+            }
+
             // Chat
             if (pathname === "/api/chat/messages" && req.method === "GET") {
                 const state = await loadState(env, sessionId);
@@ -178,7 +190,8 @@ export default {
             // Roleplay
             if (pathname === "/api/roleplay/session" && req.method === "GET") {
                 const state = await loadState(env, sessionId);
-                return json({ session: state.roleplay }, headers);
+                // FIX: Return signals with session so Signal Intelligence panel can display them
+                return json({ session: state.roleplay, signals: state.signals || [] }, headers);
             }
 
             if (pathname === "/api/roleplay/start" && req.method === "POST") {
@@ -196,6 +209,8 @@ export default {
                 };
                 const state = await loadState(env, sessionId);
                 state.roleplay = roleplay;
+                // FIX: Clear signals when starting new roleplay session
+                state.signals = [];
                 await saveState(env, sessionId, state, ctx);
                 return json({ session: roleplay }, headers);
             }
@@ -209,6 +224,8 @@ export default {
                 state.roleplay.messages.push({ role: "user", content: msg, timestamp: Date.now() });
                 const reply = await roleplayReply(env, state.roleplay.messages);
                 state.roleplay.messages.push({ role: "assistant", content: reply.reply, timestamp: Date.now() });
+                // FIX: Accumulate signals in session state so they persist across requests
+                state.signals = [...(Array.isArray(state.signals) ? state.signals : []), ...(Array.isArray(reply.signals) ? reply.signals : [])].slice(-50);
                 await saveState(env, sessionId, state, ctx);
                 return json({ session: state.roleplay, eqAnalysis: reply.eqAnalysis, reply: reply.reply, signals: reply.signals }, headers);
             }
