@@ -76,6 +76,17 @@ export default {
                 return json({ status: "ok", worker: "parity-v2", time: Date.now() }, headers);
             }
 
+            // API status endpoint (required by cloudflare-worker-api.md spec)
+            if (pathname === "/api/status" && req.method === "GET") {
+                const hasProviderKey = !!(env.PROVIDER_KEY || env.PROVIDER_KEYS);
+                return json({
+                    openaiConfigured: hasProviderKey,
+                    message: hasProviderKey ? "AI features are fully enabled" : "AI provider not configured",
+                    worker: "parity-v2",
+                    time: Date.now()
+                }, headers);
+            }
+
             // Chat
             if (pathname === "/api/chat/messages" && req.method === "GET") {
                 const state = await loadState(env, sessionId);
