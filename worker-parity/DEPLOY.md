@@ -42,9 +42,23 @@ npx wrangler deploy
 
 After deployment, verify the worker is responding correctly:
 
+#### Option 1: Run Automated Test Script (Recommended)
+
+```bash
+cd worker-parity
+./test-endpoints.sh https://reflectivai-api-parity-prod.<your-subdomain>.workers.dev
+```
+
+This will test all critical endpoints including `/health`, `/api/status`, CORS, and session handling.
+
+#### Option 2: Manual Testing
+
 ```bash
 # Health check (should return worker info)
-curl https://reflectivai-api-parity-prod.<your-subdomain>.workers.dev/
+curl https://reflectivai-api-parity-prod.<your-subdomain>.workers.dev/health
+
+# API Status check (required by API spec)
+curl https://reflectivai-api-parity-prod.<your-subdomain>.workers.dev/api/status
 
 # Test CORS headers (should include Access-Control-Allow-Origin)
 curl -I -X OPTIONS https://reflectivai-api-parity-prod.<your-subdomain>.workers.dev/api/chat/send \
