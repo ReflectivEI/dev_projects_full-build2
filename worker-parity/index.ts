@@ -264,42 +264,58 @@ export default {
             return json({ response }, headers);
         }
 
-        if (pathname === "/api/coach/prompts" && (req.method === "GET" || req.method === "POST")) {
-            const body = req.method === "POST" ? await readJson(req) : undefined;
-            const diseaseState = (body?.diseaseState || body?.disease_state || url.searchParams.get("diseaseState") || "").toString();
-            const specialty = (body?.specialty || url.searchParams.get("specialty") || "").toString();
-            const hcpCategory = (body?.hcpCategory || body?.hcp_category || url.searchParams.get("hcpCategory") || "").toString();
-            const influenceDriver = (body?.influenceDriver || body?.influence_driver || url.searchParams.get("influenceDriver") || "").toString();
+        // --- STATUS HEALTH CHECK (supports both paths) ---
+if (
+  req.method === "GET" &&
+  (pathname === "/status" || pathname === "/api/status")
+) {
+  return json({
+    ok: true,
+    service: "reflectivai-api-parity",
+    timestamp: new Date().toISOString(),
+  });
+}
 
-            const state = await loadState(env, sessionId);
-            console.log(`[coach] prompts`, { sessionId, diseaseState, specialty, hcpCategory, influenceDriver });
+// --- COACH PROMPTS ---
+if (pathname === "/api/coach/prompts" && (req.method === "GET" || req.method === "POST")) {
+  const body = req.method === "POST" ? await readJson(req) : undefined;
+  const diseaseState = (body?.diseaseState || body?.disease_state || url.searchParams.get("diseaseState") || "").toString();
+  const specialty = (body?.specialty || url.searchParams.get("specialty") || "").toString();
+  const hcpCategory = (body?.hcpCategory || body?.hcp_category || url.searchParams.get("hcpCategory") || "").toString();
+  const influenceDriver = (body?.influenceDriver || body?.influence_driver || url.searchParams.get("influenceDriver") || "").toString();
 
-            let bundle;
-            try {
-                bundle = await coachPromptBundle(env, {
-                    date: new Date().toISOString().slice(0, 10),
-                    diseaseState,
-                    specialty,
-                    hcpCategory,
-                    influenceDriver,
-                    recentMessages: state.chatMessages.slice(-24),
-                    recentSignals: sanitizeSignals(state.signals).slice(-10),
-                    previous: state.lastPromptBundle,
-                });
-            } catch {
-                bundle = {
-                    conversationStarters: [
-                        "What challenges are you seeing with your accounts right now?",
-                        "What feedback have you been hearing from customers recently?"
-                    ],
-                    suggestedTopics: [
-                        "Account planning",
-                        "Objection handling",
-                        "Clinical conversations"
-                    ],
-                    timestamp: new Date().toISOString()
-                };
-            }
+  const state = await loadState(env, sessionId);
+  console.log(`[coach] prompts`, { sessionId, diseaseState, specialty, hcpCategory, influenceDriver });
+
+  let bundle;
+  try {
+    bundle = await coachPromptBundle(env, {
+      date: new Date().toISOString().slice(0, 10),
+      diseaseState,
+      specialty,
+      hcpCategory,
+      influenceDriver,
+      recentMessages: state.chatMessages.slice(-24),
+      recentSignals: sanitizeSignals(state.signals).slice(-10),
+      previous: state.lastPromptBundle,
+    });
+  } catch {
+    bundle = {
+      conversationStarters: [
+        "What challenges are you seeing with your accounts right now?",
+        "What feedback have you been hearing from customers recently?"
+      ],
+      suggestedTopics: [
+        "Account planning",
+        "Objection handling",
+        "Clinical conversations"
+      ],
+      timestamp: new Date().toISOString()
+    };
+  }
+
+  return json(bundle);
+}
 
             state.lastPromptBundle = bundle;
             await saveState(env, sessionId, state, ctx);
