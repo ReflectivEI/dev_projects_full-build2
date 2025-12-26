@@ -129,6 +129,10 @@ export default {
       }
       if (url.pathname === "/coach-metrics" && req.method === "POST") return postCoachMetrics(req, env);
 
+      if (url.pathname === "/api/roleplay/end" && req.method === "POST") {
+        return postRoleplayEnd(req, env);
+      }
+
       return json({ error: "not_found" }, 404, env, req, { "x-req-id": reqId });
     } catch (e) {
       // Log the error for debugging but don't expose details to client
@@ -808,6 +812,130 @@ async function postPlan(req, env) {
   } catch (e) {
     console.error("postPlan error:", e);
     return json({ error: "server_error", message: "Failed to create plan" }, 500, env, req);
+  }
+}
+
+/* ------------------------------ /api/roleplay/end --------------------------- */
+async function postRoleplayEnd(req, env) {
+  try {
+    const body = await readJson(req);
+
+    const {
+      sessionId,
+      transcript = [],
+      signals = [],
+      eqDeltas = {},
+      scenario = {}
+    } = body || {};
+
+    if (!sessionId || !Array.isArray(transcript)) {
+      return json(
+        { error: "bad_request", message: "sessionId and transcript are required" },
+        400,
+        env,
+        req
+      );
+    }
+
+    const synthesisPrompt = `
+You are a senior sales coach and Signal Intelligence evaluator.
+
+INPUTS:
+- Full transcript
+- Behavioral signals
+- Emotional Intelligence deltas
+- Scenario context
+
+TASK:
+Generate a FINAL post-session evaluation.
+
+RULES:
+- Output STRICT JSON only
+- No markdown
+- No explanations
+- No missing fields
+- Do not invent signals
+
+SIGNAL INTELLIGENCE CATEGORIES:
+- Intent
+- Resistance
+- Trust
+- Momentum
+- Access
+
+OUTPUT JSON SCHEMA:
+{
+  "overallScore": number,
+  "eqScore": number,
+  "technicalScore": number,
+  "strengths": [
+    { "label": string, "evidence": string, "signals": string[] }
+  ],
+  "improvements": [
+    { "label": string, "impact": string, "missedSignals": string[] }
+  ],
+  "signalSummary": [
+    {
+      "signalType": string,
+      "confidence": number,
+      "evidence": string,
+      "recommendedPivot": string
+    }
+  ],
+  "frameworksUsed": string[],
+  "nextSteps": string[]
+}
+`;
+
+    const messages = [
+      { role: "system", content: synthesisPrompt },
+      {
+        role: "user",
+        content: JSON.stringify({
+          transcript,
+          signals,
+          eqDeltas,
+          scenario
+        })
+      }
+    ];
+
+    const raw = await providerChat(env, messages, {
+      maxTokens: 900,
+      temperature: 0.1,
+      session: sessionId
+    });
+
+    let analysis;
+    try {
+      analysis = JSON.parse(raw);
+    } catch (e) {
+      return json(
+        { error: "analysis_parse_failed", raw },
+        500,
+        env,
+        req
+      );
+    }
+
+    return json(
+      {
+        sessionId,
+        status: "completed",
+        analysis
+      },
+      200,
+      env,
+      req
+    );
+  } catch (e) {
+    console.error("postRoleplayEnd error:", e);
+    return json(
+      { error: "server_error", message: "Failed to finalize session" },
+      500,
+      env,
+      req
+    );
   }
 }
 
