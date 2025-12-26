@@ -105,11 +105,8 @@ export default {
 
         const sessionId = url.searchParams.get("sessionId") || req.headers.get("x-session-id") || "";
 
-        if (pathname === "/health" && req.method === "GET") {
-            return json({ ok: true }, headers);
-        }
-
-        if (pathname === "/api/status" && req.method === "GET") {
+               // Health + status (alias both /status and /api/status)
+        if ((pathname === "/health" || pathname === "/status" || pathname === "/api/status") && req.method === "GET") {
             return json({ ok: true }, headers);
         }
 
