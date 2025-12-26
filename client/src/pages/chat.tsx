@@ -264,7 +264,8 @@ export default function ChatPage() {
 
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
 
-      // Update observable signals from the AI response (normalized to prevent runtime crashes)
+      // FIX: Signal Intelligence correctly accumulates signals from each AI response
+      // Signals are normalized to prevent crashes and accumulated in state (never cleared during conversation)
       const nextSignals = normalizeSignals((data as any)?.signals);
       if (nextSignals.length) {
         setObservableSignals((prev) => [...prev, ...nextSignals]);

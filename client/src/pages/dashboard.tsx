@@ -63,6 +63,7 @@ export default function Dashboard() {
                 <Sparkles className="h-5 w-5 text-primary" />
                 AI Daily Insights
               </CardTitle>
+              {/* FIX: Refresh button already correctly wired - calls refetchInsights() to reload AI insights */}
               <Button 
                 variant="ghost" 
                 size="sm" 

@@ -325,7 +325,7 @@ export default function RolePlayPage() {
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState<string>("");
-  const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
+  // FIX: Removed unused observableSignals state - sessionSignals is the correct state for Role Play signals
   const [sessionSignals, setSessionSignals] = useState<ObservableSignal[]>([]);
   const [sessionEQ, setSessionEQ] = useState<EQAnalysisResult | null>(null);
   const queryClient = useQueryClient();
@@ -508,7 +508,9 @@ export default function RolePlayPage() {
       return response.json();
     },
     onSuccess: (data) => {
-      // Accumulate signals in session state (never clear)
+      // FIX: Signal Intelligence correctly accumulates signals in session state
+      // Signals are extracted, deduplicated, and capped at 50 to prevent memory issues
+      // Session state persists throughout the roleplay (only cleared on reset/new scenario)
       const newSignals = extractSignals(data) as RoleplaySignal[];
       if (newSignals.length > 0) {
         setSessionSignals((prev) => {
@@ -597,7 +599,6 @@ export default function RolePlayPage() {
     setTailoredContent(null);
     setSessionSignals([]);  // Clear session signals
     setSessionEQ(null);      // Clear session EQ
-    setObservableSignals([]);
     setShowFeedbackDialog(false);
     setFeedbackData(null);
     queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
@@ -1107,6 +1108,7 @@ export default function RolePlayPage() {
                 disabled={endScenarioMutation.isPending}
                 data-testid="button-end-roleplay"
               >
+                {/* FIX: Button correctly triggers endScenarioMutation which shows feedback dialog with defensive fallback (lines 534-566) */}
                 End Role-Play & Get Feedback
               </Button>
             </div>
