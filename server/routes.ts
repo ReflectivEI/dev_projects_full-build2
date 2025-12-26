@@ -15,7 +15,8 @@ import {
   getDashboardInsights,
   generateSessionSummary,
   generateTailoredScenarioContent,
-  generateDailyFocus
+  generateDailyFocus,
+  generateCoachPrompts
 } from "./openai";
 
 // Scenario data is now passed from frontend - no server-side catalog needed
@@ -99,6 +100,23 @@ export async function registerRoutes(
       await storage.clearMessages();
       res.json({ success: true });
     } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // FIX: Add missing /api/coach/prompts endpoint to restore conversation starters and suggested topics
+  app.post("/api/coach/prompts", async (req, res) => {
+    try {
+      const { diseaseState, specialty, hcpCategory, influenceDriver } = req.body;
+      const prompts = await generateCoachPrompts({
+        diseaseState,
+        specialty,
+        hcpCategory,
+        influenceDriver
+      });
+      res.json(prompts);
+    } catch (error: any) {
+      console.error("Coach prompts error:", error);
       res.status(500).json({ error: error.message });
     }
   });

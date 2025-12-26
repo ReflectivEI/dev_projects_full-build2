@@ -1408,3 +1408,62 @@ export async function generateDailyFocus(): Promise<DailyFocus> {
     };
   }
 }
+
+// FIX: Add missing coach prompts endpoint to restore conversation starters and suggested topics
+export interface CoachPromptBundle {
+  conversationStarters: string[];
+  suggestedTopics: string[];
+  timestamp: string;
+}
+
+export async function generateCoachPrompts(context: {
+  diseaseState?: string;
+  specialty?: string;
+  hcpCategory?: string;
+  influenceDriver?: string;
+}): Promise<CoachPromptBundle> {
+  const timestamp = new Date().toISOString();
+  
+  // Fallback prompts that are context-aware
+  const baseStarters = [
+    "How can I improve my discovery question technique?",
+    "What's the best way to handle pricing objections?",
+    "Help me prepare for a challenging stakeholder meeting",
+  ];
+  
+  const baseTopics = [
+    "Active listening techniques",
+    "Building rapport with skeptical physicians",
+    "Translating clinical evidence for different audiences",
+    "Objection handling frameworks",
+    "Adaptive communication strategies",
+  ];
+
+  // Contextualize based on selections
+  const starters = [...baseStarters];
+  const topics = [...baseTopics];
+
+  if (context.diseaseState) {
+    starters.push(`What are key messages for ${context.diseaseState} discussions?`);
+    topics.push(`${context.diseaseState} clinical evidence communication`);
+  }
+
+  if (context.specialty) {
+    starters.push(`How do I engage with ${context.specialty} specialists?`);
+    topics.push(`Communication strategies for ${context.specialty}`);
+  }
+
+  if (context.hcpCategory) {
+    topics.push(`Tailoring your approach for ${context.hcpCategory} stakeholders`);
+  }
+
+  if (context.influenceDriver) {
+    topics.push(`Leveraging ${context.influenceDriver} in your messaging`);
+  }
+
+  return {
+    conversationStarters: starters.slice(0, 6),
+    suggestedTopics: topics.slice(0, 8),
+    timestamp
+  };
+}

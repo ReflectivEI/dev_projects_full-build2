@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -328,9 +328,9 @@ export function RoleplayFeedbackDialog({
                 <Award className="h-5 w-5 text-primary" />
                 Role-Play Performance Analysis
               </DialogTitle>
-              {scenarioTitle && (
-                <p className="text-sm text-muted-foreground mt-1">{scenarioTitle}</p>
-              )}
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
+                {scenarioTitle || "Detailed performance feedback and coaching recommendations"}
+              </DialogDescription>
             </div>
             <Badge 
               variant="outline" 
