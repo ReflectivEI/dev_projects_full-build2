@@ -2,6 +2,13 @@
 
 # Worker Endpoint Verification Script
 # Tests critical endpoints to ensure the worker is functioning correctly
+#
+# Usage: ./test-endpoints.sh [WORKER_URL] [ORIGIN]
+#   WORKER_URL: Worker URL to test (default: http://localhost:8787)
+#   ORIGIN: Origin for CORS testing (default: https://reflectivai-app-prod.pages.dev)
+#
+# Example:
+#   ./test-endpoints.sh https://your-worker.workers.dev https://your-app.pages.dev
 
 set -e
 
@@ -13,6 +20,7 @@ NC='\033[0m' # No Color
 
 # Get worker URL from argument or use default
 WORKER_URL="${1:-http://localhost:8787}"
+CORS_ORIGIN="${2:-https://reflectivai-app-prod.pages.dev}"
 
 echo "Testing Worker: $WORKER_URL"
 echo "================================"
@@ -66,7 +74,7 @@ echo ""
 # Test 3: CORS preflight
 echo -n "Testing CORS preflight (OPTIONS)... "
 CORS_RESPONSE=$(curl -s -w "\n%{http_code}" -X OPTIONS \
-    -H "Origin: https://reflectivai-app-prod.pages.dev" \
+    -H "Origin: $CORS_ORIGIN" \
     -H "Access-Control-Request-Method: POST" \
     -H "Access-Control-Request-Headers: Content-Type" \
     "$WORKER_URL/api/chat/send")
@@ -84,7 +92,7 @@ echo ""
 echo -n "Testing session ID handling... "
 SESSION_RESPONSE=$(curl -s -i "$WORKER_URL/health" | grep -i "x-session-id")
 
-if [ ! -z "$SESSION_RESPONSE" ]; then
+if [ -n "$SESSION_RESPONSE" ]; then
     echo -e "${GREEN}✓ PASS${NC}"
     echo "  $SESSION_RESPONSE"
 else
@@ -115,4 +123,5 @@ echo "Next steps:"
 echo "1. Deploy worker to Cloudflare: cd worker-parity && npx wrangler deploy"
 echo "2. Set VITE_WORKER_URL in Cloudflare Pages environment variables"
 echo "3. Redeploy frontend to Cloudflare Pages"
-echo "4. Run this script against production: $0 https://your-worker.workers.dev"
+echo "4. Run this script against production:"
+echo "   $0 https://your-worker.workers.dev https://your-app.pages.dev"

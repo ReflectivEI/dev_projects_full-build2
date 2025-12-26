@@ -50,7 +50,7 @@ The ReflectivAI platform consists of three main components:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/ReflectivEI/dev_projects_full-build2.git
+   git clone <your-repository-url>
    cd dev_projects_full-build2
    ```
 

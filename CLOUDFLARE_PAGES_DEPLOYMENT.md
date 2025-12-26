@@ -15,7 +15,7 @@ This document describes how to deploy the ReflectivAI frontend to Cloudflare Pag
 1. Log in to Cloudflare Dashboard
 2. Navigate to **Pages**
 3. Click **Create a project**
-4. Connect to your GitHub repository: `ReflectivEI/dev_projects_full-build2`
+4. Connect to your GitHub repository (e.g., `YourOrg/dev_projects_full-build2`)
 5. Configure build settings:
    - **Framework preset**: Vite
    - **Build command**: `npm run build`
