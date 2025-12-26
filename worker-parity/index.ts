@@ -78,13 +78,7 @@ export default {
 
             // API status endpoint (required by cloudflare-worker-api.md spec)
             if (pathname === "/api/status" && req.method === "GET") {
-                const hasProviderKey = !!(env.PROVIDER_KEY || env.PROVIDER_KEYS);
-                return json({
-                    openaiConfigured: hasProviderKey,
-                    message: hasProviderKey ? "AI features are fully enabled" : "AI provider not configured",
-                    worker: "parity-v2",
-                    time: Date.now()
-                }, headers);
+                return json({ ok: true }, headers);
             }
 
             // Chat
@@ -297,16 +291,30 @@ export default {
                 const state = await loadState(env, sessionId);
                 console.log(`[coach] prompts`, { sessionId, diseaseState, specialty, hcpCategory, influenceDriver });
 
-                const bundle = await coachPromptBundle(env, {
-                    date: new Date().toISOString().slice(0, 10),
-                    diseaseState,
-                    specialty,
-                    hcpCategory,
-                    influenceDriver,
-                    recentMessages: state.chatMessages.slice(-24),
-                    recentSignals: sanitizeSignals(state.signals).slice(-10),
-                    previous: state.lastPromptBundle,
-                });
+                // Check if provider key is available
+                const hasProviderKey = !!(env.PROVIDER_KEY || env.PROVIDER_KEYS);
+                let bundle;
+                
+                if (hasProviderKey) {
+                    try {
+                        bundle = await coachPromptBundle(env, {
+                            date: new Date().toISOString().slice(0, 10),
+                            diseaseState,
+                            specialty,
+                            hcpCategory,
+                            influenceDriver,
+                            recentMessages: state.chatMessages.slice(-24),
+                            recentSignals: sanitizeSignals(state.signals).slice(-10),
+                            previous: state.lastPromptBundle,
+                        });
+                    } catch (e: any) {
+                        console.log(`[coach] prompts error, using fallback: ${e.message}`);
+                        bundle = getFallbackPromptBundle();
+                    }
+                } else {
+                    console.log(`[coach] prompts: no provider key, using fallback`);
+                    bundle = getFallbackPromptBundle();
+                }
 
                 state.lastPromptBundle = bundle;
                 await saveState(env, sessionId, state, ctx);
@@ -1303,6 +1311,25 @@ function getFocusPresets() {
             reflection: "What did I do that increased trust in the last 2 minutes?",
         },
     ];
+}
+
+function getFallbackPromptBundle(): { conversationStarters: string[]; suggestedTopics: string[]; timestamp: string } {
+    return {
+        conversationStarters: [
+            "Help me prepare for a challenging stakeholder conversation",
+            "What's an effective opening for discussing clinical data?",
+            "How can I handle price objections with empathy?"
+        ],
+        suggestedTopics: [
+            "Active Listening Techniques",
+            "Value-Based Messaging",
+            "Discovery Questions",
+            "Objection Handling",
+            "Clinical Evidence Communication",
+            "Building Stakeholder Rapport"
+        ],
+        timestamp: new Date().toISOString(),
+    };
 }
 
 async function frameworkAdvice(env: Env, frameworkName: string, situation: string) {

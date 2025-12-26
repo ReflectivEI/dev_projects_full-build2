@@ -3,8 +3,7 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 // Get the API base URL from highest-priority runtime sources.
-// Priority: window.WORKER_URL (runtime override) -> VITE_WORKER_URL (build-time) -> VITE_API_BASE_URL (legacy) -> local backend (empty string)
-// NOTE: In production, VITE_WORKER_URL MUST be set in Cloudflare Pages environment variables
+// Priority: window.WORKER_URL (runtime override) -> VITE_WORKER_URL (build-time) -> VITE_API_BASE_URL (legacy) -> fallback to production worker
 const RUNTIME_BASE =
   typeof window !== "undefined" && (window as any)?.WORKER_URL
     ? (window as any).WORKER_URL
@@ -14,7 +13,12 @@ const API_BASE_URL =
   RUNTIME_BASE ||
   import.meta.env.VITE_WORKER_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  ""; // Empty string = use local backend (relative URLs)
+  "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev";
+
+// Log the chosen API base URL once at startup
+if (typeof window !== "undefined") {
+  console.info("[API] Using base URL:", API_BASE_URL);
+}
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
 const SESSION_STORAGE_KEY = "reflectivai-session-id";
@@ -73,15 +77,6 @@ async function ensureSessionId(): Promise<string | null> {
     return null;
   }
 }
-
-// Build-time trace for VITE_WORKER_URL (logged during build for verification).
-// eslint-disable-next-line no-console
-console.log("[queryClient] API Configuration:", {
-  VITE_WORKER_URL: import.meta.env.VITE_WORKER_URL || "(not set)",
-  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL || "(not set)",
-  RUNTIME_BASE: RUNTIME_BASE || "(not set)",
-  RESOLVED_API_BASE_URL: API_BASE_URL || "(using local backend)",
-});
 
 // Get optional API key for external backends that require authentication
 const API_KEY = import.meta.env.VITE_API_KEY || "";
