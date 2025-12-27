@@ -33,6 +33,22 @@ export default defineConfig(async ({ mode }) => {
       emptyOutDir: true,
     },
     server: {
+      proxy: {
+        // Deterministic local integration:
+        // - The frontend initializes session via GET `/health` (expects `x-session-id`)
+        // - Roleplay flow requires coherent start/respond/session/end behavior on a single backend
+        // Use the production parity API Worker for both `/health` and `/api/*`.
+        "/health": {
+          target: "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev",
+          changeOrigin: true,
+          secure: true,
+        },
+        "/api": {
+          target: "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev",
+          changeOrigin: true,
+          secure: true,
+        },
+      },
       fs: {
         strict: true,
         deny: ["**/.*"],

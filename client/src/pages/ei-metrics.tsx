@@ -11,6 +11,7 @@ import { Activity, Info, CheckCircle2, X, Radio } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { readEnabledEIMetricIds, writeEnabledEIMetricIds } from "@/lib/eiMetricSettings";
 import { 
   eqMetrics, 
   getPerformanceLevel, 
@@ -218,12 +219,29 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
 
 export default function EIMetricsPage() {
   const [selectedMetric, setSelectedMetric] = useState<MetricWithScore | null>(null);
-  const [extendedMetricState, setExtendedMetricState] = useState<Record<string, boolean>>(
-    extendedMetricsWithScores.reduce<Record<string, boolean>>((acc, m) => ({ ...acc, [m.id]: m.enabled ?? false }), {})
-  );
+  const [extendedMetricState, setExtendedMetricState] = useState<Record<string, boolean>>(() => {
+    const defaults = extendedMetricsWithScores.reduce<Record<string, boolean>>(
+      (acc, m) => ({ ...acc, [m.id]: m.enabled ?? false }),
+      {}
+    );
+    const persisted = new Set(readEnabledEIMetricIds());
+    if (persisted.size === 0) return defaults;
+    const out: Record<string, boolean> = { ...defaults };
+    for (const id of Object.keys(out)) {
+      out[id] = persisted.has(id);
+    }
+    return out;
+  });
 
   const toggleMetric = (id: string) => {
-    setExtendedMetricState(prev => ({ ...prev, [id]: !prev[id] }));
+    setExtendedMetricState(prev => {
+      const next = { ...prev, [id]: !prev[id] };
+      const enabledIds = Object.entries(next)
+        .filter(([, enabled]) => Boolean(enabled))
+        .map(([metricId]) => metricId);
+      writeEnabledEIMetricIds(enabledIds);
+      return next;
+    });
   };
 
   return (

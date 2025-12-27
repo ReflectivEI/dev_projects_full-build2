@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -24,6 +24,7 @@ import {
   X
 } from "lucide-react";
 import { eqMetrics } from "@/lib/data";
+import { readEnabledEIMetricIds, EI_METRICS_SETTINGS_EVENT } from "@/lib/eiMetricSettings";
 
 interface ComprehensiveFeedback {
   overallScore: number;
@@ -219,7 +220,14 @@ function MetricScoreCard({
   icon?: any;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const metricFromRubric = metricId ? eqMetrics.find(m => m.id === metricId) : undefined;
   const metricInfo = metricId ? metricDefinitions[metricId] : null;
+  const definitionText = metricFromRubric?.description ?? metricInfo?.definition;
+  const scoringText = metricFromRubric?.calculation ?? metricInfo?.formula;
+  const observableIndicators = Array.isArray(metricFromRubric?.sampleIndicators)
+    ? metricFromRubric!.sampleIndicators
+    : [];
+  const keyTipText = typeof metricFromRubric?.keyTip === "string" ? metricFromRubric.keyTip : undefined;
   const percentage = totalOpportunities && totalOpportunities > 0 
     ? Math.round((observedBehaviors || 0) / totalOpportunities * 100) 
     : null;
@@ -257,34 +265,56 @@ function MetricScoreCard({
             exit={{ opacity: 0, height: 0 }}
             className="mt-3 pt-3 border-t space-y-3"
           >
-            {metricInfo && (
+            {(definitionText || scoringText) && (
               <div className="space-y-2">
-                <div>
-                  <span className="text-xs font-semibold text-primary">Definition</span>
-                  <p className="text-xs text-muted-foreground">{metricInfo.definition}</p>
-                </div>
-                <div>
-                  <span className="text-xs font-semibold text-primary">Formula</span>
-                  <p className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">{metricInfo.formula}</p>
-                </div>
+                {definitionText && (
+                  <div>
+                    <span className="text-xs font-semibold text-primary">Definition</span>
+                    <p className="text-xs text-muted-foreground">{definitionText}</p>
+                  </div>
+                )}
+                {scoringText && (
+                  <div>
+                    <span className="text-xs font-semibold text-primary">Scoring Method</span>
+                    <p className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">{scoringText}</p>
+                  </div>
+                )}
               </div>
             )}
             {(observedBehaviors !== undefined && totalOpportunities !== undefined && totalOpportunities > 0) && (
-              <div className="bg-muted/50 rounded-lg p-2">
-                <span className="text-xs font-semibold text-primary">Your Calculation</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-sm font-mono">
-                    {observedBehaviors} / {totalOpportunities}
-                  </span>
-                  {percentage !== null && (
-                    <Badge variant="outline" className="text-xs">
-                      {percentage}%
-                    </Badge>
-                  )}
+              <div className="bg-muted/50 rounded-lg p-2 space-y-2">
+                <div>
+                  <span className="text-xs font-semibold text-primary">Signal Capture Rate</span>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mt-1">
+                    <span>Signals captured:</span>
+                    <span className="font-medium text-foreground">{observedBehaviors}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Total observable signals:</span>
+                    <span className="font-medium text-foreground">{totalOpportunities}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs mt-1">
+                    <span className="font-medium">Capture rate:</span>
+                    {percentage !== null ? (
+                      <Badge variant="outline" className="text-xs">
+                        {percentage}%
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </div>
                 </div>
                 {calculationNote && (
-                  <p className="text-xs text-muted-foreground mt-1">{calculationNote}</p>
+                  <p className="text-xs text-muted-foreground">{calculationNote}</p>
                 )}
+              </div>
+            )}
+            {(metricId && (observedBehaviors === undefined || totalOpportunities === undefined || totalOpportunities === 0)) && (
+              <div className="bg-muted/50 rounded-lg p-2">
+                <span className="text-xs font-semibold text-primary">Signal Capture Rate</span>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Session-specific capture counts were not provided for this metric.
+                </p>
               </div>
             )}
             {calculationNote && observedBehaviors === undefined && (
@@ -293,6 +323,28 @@ function MetricScoreCard({
                 <p className="text-xs text-muted-foreground mt-1">{calculationNote}</p>
               </div>
             )}
+
+            {observableIndicators.length > 0 && (
+              <div>
+                <span className="text-xs font-semibold text-primary">Observable Indicators</span>
+                <ul className="mt-2 space-y-1.5">
+                  {observableIndicators.map((indicator: string, idx: number) => (
+                    <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                      <span className="mt-1 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                      <span>{indicator}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {keyTipText && (
+              <div className="bg-primary/5 p-2 rounded-lg border border-primary/20">
+                <span className="text-xs font-semibold text-primary">Key Tip</span>
+                <p className="text-xs text-muted-foreground italic mt-1">{keyTipText}</p>
+              </div>
+            )}
+
             <div>
               <span className="text-xs font-semibold text-primary">Feedback</span>
               <p className="text-xs text-muted-foreground">{feedback}</p>
@@ -313,10 +365,30 @@ export function RoleplayFeedbackDialog({
 }: RoleplayFeedbackDialogProps) {
   if (!feedback) return null;
 
+  function normalizeToFive(score?: unknown): number {
+    if (typeof score !== "number" || Number.isNaN(score)) return 0;
+    if (score <= 5) {
+      const clamped = Math.min(Math.max(score, 0), 5);
+      return Math.round(clamped * 10) / 10;
+    }
+    const clamped = Math.min(Math.max(score, 0), 100);
+    return Math.round(((clamped / 100) * 5) * 10) / 10;
+  }
+
   const getMetricName = (metricId: string) => {
     const metric = eqMetrics.find(m => m.id === metricId);
     return metric?.name || metricId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
+
+  const [enabledExtras, setEnabledExtras] = useState<string[]>(() => readEnabledEIMetricIds());
+
+  // Keep in sync if the user toggles metrics elsewhere in the app.
+  // (Same-tab changes are broadcast via a custom event.)
+  useEffect(() => {
+    const handler = () => setEnabledExtras(readEnabledEIMetricIds());
+    window.addEventListener(EI_METRICS_SETTINGS_EVENT, handler);
+    return () => window.removeEventListener(EI_METRICS_SETTINGS_EVENT, handler);
+  }, []);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -328,6 +400,9 @@ export function RoleplayFeedbackDialog({
                 <Award className="h-5 w-5 text-primary" />
                 Role-Play Performance Analysis
               </DialogTitle>
+              <DialogDescription className="sr-only">
+                Detailed feedback for your role-play session.
+              </DialogDescription>
               {scenarioTitle && (
                 <p className="text-sm text-muted-foreground mt-1">{scenarioTitle}</p>
               )}
@@ -382,36 +457,87 @@ export function RoleplayFeedbackDialog({
                 <p className="text-sm text-muted-foreground mb-4">
                   <strong>Layer 1 — Emotional Intelligence:</strong> Demonstrated capabilities measured through observable behaviors. These metrics assess how effectively you perceived signals, adapted your approach, and preserved trust. Click any metric to see definition, calculation, and your specific breakdown.
                 </p>
-                {feedback.eqScores.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {feedback.eqScores.map((eq, idx) => (
-                      <motion.div
-                        key={eq.metricId}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                      >
-                        <MetricScoreCard
-                          name={getMetricName(eq.metricId)}
-                          score={eq.score}
-                          feedback={eq.feedback}
-                          metricId={eq.metricId}
-                          observedBehaviors={eq.observedBehaviors}
-                          totalOpportunities={eq.totalOpportunities}
-                          calculationNote={eq.calculationNote}
-                          icon={Brain}
-                        />
-                      </motion.div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Brain className="h-12 w-12 mb-3 opacity-30" />
-                    <p className="text-sm">
-                      EI metrics will be calculated based on your conversation
-                    </p>
-                  </div>
-                )}
+                {(() => {
+                  const root: any = (feedback as any)?.analysis ?? (feedback as any);
+
+                  const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
+                  const byId = new Map(detailedScores.map((m) => [m.metricId, m] as const));
+
+                  const aggregateScore = normalizeToFive(root?.eqScore ?? feedback.overallScore);
+
+                  const fallbackFieldByMetricId: Record<string, string> = {
+                    empathy: "empathyScore",
+                    clarity: "clarityScore",
+                    discovery: "discoveryScore",
+                    adaptability: "adaptabilityScore",
+                    resilience: "resilienceScore",
+                  };
+
+                  const coreMetricIds = eqMetrics.filter(m => m.isCore).map(m => m.id);
+                  const enabledSet = new Set(enabledExtras);
+                  const extraMetricIds = eqMetrics
+                    .filter(m => !m.isCore)
+                    .map(m => m.id)
+                    .filter(id => enabledSet.has(id));
+
+                  const metricOrder = [...coreMetricIds, ...extraMetricIds];
+
+                  const items = [
+                    {
+                      key: "eq:aggregate",
+                      metricId: undefined as string | undefined,
+                      name: "EQ Score (Aggregate)",
+                      score: aggregateScore,
+                      feedbackText: feedback.overallSummary || "Overall session summary.",
+                      observedBehaviors: undefined as number | undefined,
+                      totalOpportunities: undefined as number | undefined,
+                      calculationNote: undefined as string | undefined,
+                    },
+                    ...metricOrder.map((metricId) => {
+                      const detail = byId.get(metricId);
+                      const fallbackField = fallbackFieldByMetricId[metricId];
+                      const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;
+
+                      return {
+                        key: `eq:${metricId}`,
+                        metricId,
+                        name: getMetricName(metricId),
+                        score: typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw),
+                        feedbackText:
+                          (typeof detail?.feedback === "string" && detail.feedback.trim())
+                            ? detail.feedback
+                            : "Click to see the rubric definition, scoring method, observable indicators, and key coaching tip.",
+                        observedBehaviors: detail?.observedBehaviors,
+                        totalOpportunities: detail?.totalOpportunities,
+                        calculationNote: detail?.calculationNote,
+                      };
+                    }),
+                  ];
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {items.map((item, idx) => (
+                        <motion.div
+                          key={item.key}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <MetricScoreCard
+                            name={item.name}
+                            score={item.score}
+                            feedback={item.feedbackText}
+                            metricId={item.metricId}
+                            observedBehaviors={item.observedBehaviors}
+                            totalOpportunities={item.totalOpportunities}
+                            calculationNote={item.calculationNote}
+                            icon={Brain}
+                          />
+                        </motion.div>
+                      ))}
+                    </div>
+                  );
+                })()}
               </TabsContent>
 
               <TabsContent value="sales" className="mt-4 space-y-3">
@@ -454,47 +580,96 @@ export function RoleplayFeedbackDialog({
                 <p className="text-sm text-muted-foreground mb-4">
                   Specific moments from your conversation with analysis of what worked well or could improve.
                 </p>
-                {feedback.specificExamples.length > 0 ? (
-                  <>
-                    {feedback.specificExamples.map((example, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                      >
-                        <Card className={example.isPositive ? "border-green-500/30" : "border-orange-500/30"}>
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              <div className={`p-1.5 rounded-full ${example.isPositive ? "bg-green-500/10" : "bg-orange-500/10"}`}>
-                                {example.isPositive ? (
-                                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                ) : (
-                                  <AlertCircle className="h-4 w-4 text-orange-500" />
-                                )}
+                {(() => {
+                  const root: any = (feedback as any)?.analysis ?? (feedback as any);
+                  const out: Array<{ quote: string; analysis: string; isPositive: boolean }> = [];
+
+                  const seeded = Array.isArray(feedback.specificExamples) ? feedback.specificExamples : [];
+                  for (const ex of seeded) {
+                    if (!ex || typeof ex.quote !== "string" || typeof ex.analysis !== "string") continue;
+                    out.push({ quote: ex.quote, analysis: ex.analysis, isPositive: Boolean(ex.isPositive) });
+                  }
+
+                  if (out.length === 0) {
+                    const strength = Array.isArray(feedback.topStrengths) && feedback.topStrengths.length
+                      ? String(feedback.topStrengths[0])
+                      : "Maintained professional, constructive communication.";
+                    const improvement = Array.isArray(feedback.priorityImprovements) && feedback.priorityImprovements.length
+                      ? String(feedback.priorityImprovements[0])
+                      : "Add a discovery question before presenting your solution.";
+
+                    out.push({
+                      quote: strength,
+                      analysis: "What Worked",
+                      isPositive: true,
+                    });
+                    out.push({
+                      quote: improvement,
+                      analysis: "What Could Improve",
+                      isPositive: false,
+                    });
+                  }
+
+                  const signalSummary = Array.isArray(root?.signalSummary) ? root.signalSummary : [];
+                  for (const s of signalSummary) {
+                    const evidence = typeof s?.evidence === "string" ? s.evidence.trim() : "";
+                    if (!evidence) continue;
+                    out.push({
+                      quote: evidence,
+                      analysis: "What Could Improve",
+                      isPositive: false,
+                    });
+                  }
+
+                  const hasWorked = out.some(x => x.isPositive);
+                  const hasImprove = out.some(x => !x.isPositive);
+
+                  if (!hasWorked || !hasImprove) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                        <MessageSquareQuote className="h-12 w-12 mb-3 opacity-30" />
+                        <p className="text-sm">
+                          No specific examples were provided for this session.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <>
+                      {out.map((example, idx) => (
+                        <motion.div
+                          key={idx}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                        >
+                          <Card className={example.isPositive ? "border-green-500/30" : "border-orange-500/30"}>
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className={`p-1.5 rounded-full ${example.isPositive ? "bg-green-500/10" : "bg-orange-500/10"}`}>
+                                  {example.isPositive ? (
+                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                                  ) : (
+                                    <AlertCircle className="h-4 w-4 text-orange-500" />
+                                  )}
+                                </div>
+                                <div className="flex-1 space-y-2">
+                                  <Badge variant="outline" className={example.isPositive ? "border-green-500/30 text-green-600" : "border-orange-500/30 text-orange-600"}>
+                                    {example.isPositive ? "What Worked" : "What Could Improve"}
+                                  </Badge>
+                                  <blockquote className="text-sm italic border-l-2 border-muted-foreground/30 pl-3">
+                                    "{example.quote}"
+                                  </blockquote>
+                                </div>
                               </div>
-                              <div className="flex-1 space-y-2">
-                                <blockquote className="text-sm italic border-l-2 border-muted-foreground/30 pl-3">
-                                  "{example.quote}"
-                                </blockquote>
-                                <p className="text-sm text-muted-foreground">
-                                  {example.analysis}
-                                </p>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </motion.div>
-                    ))}
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <MessageSquareQuote className="h-12 w-12 mb-3 opacity-30" />
-                    <p className="text-sm">
-                      Specific examples will be highlighted from longer conversations
-                    </p>
-                  </div>
-                )}
+                            </CardContent>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </>
+                  );
+                })()}
               </TabsContent>
 
               <TabsContent value="growth" className="mt-4 space-y-6">
@@ -509,16 +684,17 @@ export function RoleplayFeedbackDialog({
                     <CardContent className="pt-0">
                       <ul className="space-y-2">
                         {feedback.topStrengths.map((strength, idx) => (
-                          <motion.li
-                            key={idx}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="flex items-start gap-2 text-sm"
-                          >
-                            <Sparkles className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                            <span>{strength}</span>
-                          </motion.li>
+                          <li key={idx} className="text-sm">
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.1 }}
+                              className="flex items-start gap-2"
+                            >
+                              <Sparkles className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                              <span>{strength}</span>
+                            </motion.div>
+                          </li>
                         ))}
                       </ul>
                     </CardContent>
@@ -534,16 +710,17 @@ export function RoleplayFeedbackDialog({
                     <CardContent className="pt-0">
                       <ul className="space-y-2">
                         {feedback.priorityImprovements.map((improvement, idx) => (
-                          <motion.li
-                            key={idx}
-                            initial={{ opacity: 0, x: -10 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="flex items-start gap-2 text-sm"
-                          >
-                            <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                            <span>{improvement}</span>
-                          </motion.li>
+                          <li key={idx} className="text-sm">
+                            <motion.div
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.1 }}
+                              className="flex items-start gap-2"
+                            >
+                              <AlertCircle className="h-4 w-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                              <span>{improvement}</span>
+                            </motion.div>
+                          </li>
                         ))}
                       </ul>
                     </CardContent>
@@ -560,18 +737,19 @@ export function RoleplayFeedbackDialog({
                   <CardContent className="pt-0">
                     <ul className="space-y-3">
                       {feedback.nextSteps.map((step, idx) => (
-                        <motion.li
-                          key={idx}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="flex items-start gap-3 text-sm p-3 bg-muted/50 rounded-lg"
-                        >
-                          <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
-                            {idx + 1}
-                          </span>
-                          <span>{step}</span>
-                        </motion.li>
+                        <li key={idx} className="text-sm">
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1 }}
+                            className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg"
+                          >
+                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium">
+                              {idx + 1}
+                            </span>
+                            <span>{step}</span>
+                          </motion.div>
+                        </li>
                       ))}
                     </ul>
                   </CardContent>

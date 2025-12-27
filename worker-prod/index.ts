@@ -129,6 +129,10 @@ export default {
       }
       if (url.pathname === "/coach-metrics" && req.method === "POST") return postCoachMetrics(req, env);
 
+      if (url.pathname === "/api/roleplay/respond" && req.method === "POST") {
+        return postRoleplayRespond(req, env);
+      }
+
       if (url.pathname === "/api/roleplay/end" && req.method === "POST") {
         return postRoleplayEnd(req, env);
       }
@@ -458,6 +462,20 @@ function capSentences(text, n) {
 // ───────────────────── Provider Key Rotation Utilities ──────────────────────
 function getProviderKeyPool(env) {
   const pool = [];
+  // Common single-key secret name (what we set in prod)
+  if (env.PROVIDER_API_KEY) {
+    const base = String(env.PROVIDER_API_KEY).trim();
+    if (base) pool.push(base);
+  }
+  // Optional list variant
+  if (env.PROVIDER_API_KEYS) {
+    pool.push(
+      ...String(env.PROVIDER_API_KEYS)
+        .split(/[;,]/)
+        .map(s => s.trim())
+        .filter(Boolean)
+    );
+  }
   // Comma / semicolon separated list
   if (env.PROVIDER_KEYS) {
     pool.push(
@@ -815,6 +833,182 @@ async function postPlan(req, env) {
   }
 }
 
+/* ------------------------------ /api/roleplay/respond ---------------------- */
+async function postRoleplayRespond(req, env) {
+  try {
+    const body = await readJson(req);
+    const message = String(body?.message || "").trim();
+
+    if (!message) {
+      return json(
+        { error: "bad_request", message: "message is required" },
+        400,
+        env,
+        req
+      );
+    }
+
+    const sessionId =
+      req.headers.get("x-session-id") ||
+      String(body?.sessionId || body?.session || "").trim() ||
+      cryptoRandomId();
+
+    const stateBefore = await seqGet(env, sessionId);
+    if (!stateBefore.roleplay || typeof stateBefore.roleplay !== "object") {
+      stateBefore.roleplay = { id: sessionId, messages: [] };
+    }
+    if (!Array.isArray(stateBefore.roleplay.messages)) {
+      stateBefore.roleplay.messages = [];
+    }
+
+    const history = stateBefore.roleplay.messages
+      .map(m => ({
+        role: m?.role === "user" ? "user" : "assistant",
+        content: String(m?.content || "")
+      }))
+      .filter(m => m.content);
+
+    const systemPrompt = `You are role-playing as an HCP stakeholder in a pharma sales conversation.
+
+RULES:
+- Speak as the stakeholder (first person).
+- No coaching language.
+- No headings, no bullet lists, no markdown.
+- Keep responses concise.
+
+SIGNALS:
+After your stakeholder reply, include a <coach> tag containing STRICT JSON with a "signals" array.
+The signals array MUST contain ONLY these signalType values: Intent, Resistance, Trust, Momentum, Access.
+Each signal MUST be:
+{ "signalType": string, "confidence": number (0-1), "evidence": string (quote from prior messages), "recommendedPivot": string }
+If no signals are present, return signals: []
+
+FORMAT:
+<stakeholder>...your reply...</stakeholder>
+<coach>{"signals":[...]}</coach>`;
+
+    const raw = await providerChat(env, [{ role: "system", content: systemPrompt }, ...history, { role: "user", content: message }], {
+      maxTokens: 1500,
+      temperature: 0.2,
+      session: sessionId
+    });
+
+    const { coach, clean } = extractCoach(raw);
+    let reply = clean;
+
+    // Role-play: honor optional XML wrapper if produced
+    const role = (String(raw || "").match(/<role>(.*?)<\/role>/is) || [])[1]?.trim();
+    const content = (String(raw || "").match(/<content>([\s\S]*?)<\/content>/i) || [])[1]?.trim();
+    if (role && role.toLowerCase() === "hcp" && content) {
+      reply = sanitizeLLM(content);
+    }
+
+    // Post-processing: Strip unwanted formatting for role-play mode
+    reply = reply
+      .replace(/^[\s]*Suggested Phrasing:\s*/gmi, '')
+      .replace(/^[\s]*Coach Guidance:\s*/gmi, '')
+      .replace(/^[\s]*Challenge:\s*/gmi, '')
+      .replace(/^[\s]*Rep Approach:\s*/gmi, '')
+      .replace(/^[\s]*Impact:\s*/gmi, '')
+      .replace(/^[\s]*Next-Move Planner:\s*/gmi, '')
+      .replace(/^[\s]*Risk Flags:\s*/gmi, '')
+      .replace(/^\s*[-*•]\s+/gm, '')
+      .trim();
+
+    const validation = validateModeResponse("role-play", reply, coach && typeof coach === "object" ? coach : {});
+    reply = validation.reply;
+
+    const fsm = FSM["role-play"] || FSM["sales-coach"];
+    const cap = fsm?.states?.[fsm?.start]?.capSentences || 5;
+    reply = capSentences(reply, cap);
+
+    const stateAfter = await seqGet(env, sessionId);
+    if (!stateAfter.roleplay || typeof stateAfter.roleplay !== "object") {
+      stateAfter.roleplay = stateBefore.roleplay;
+    }
+    if (!Array.isArray(stateAfter.roleplay.messages)) {
+      stateAfter.roleplay.messages = Array.isArray(stateBefore.roleplay.messages) ? stateBefore.roleplay.messages : [];
+    }
+
+    // Loop guard vs last reply
+    const candNorm = norm(reply);
+    if (stateAfter && candNorm && (candNorm === stateAfter.lastNorm)) {
+      reply = "In my clinic, we review history, adherence, and recent exposures before deciding. Follow-up timing guides next steps.";
+    }
+    stateAfter.lastNorm = norm(reply);
+
+    const userMsg = { id: cryptoRandomId(), role: "user", content: message, timestamp: Date.now() };
+    const assistantMsg = { id: cryptoRandomId(), role: "assistant", content: reply, timestamp: Date.now() };
+    stateAfter.roleplay.messages.push(userMsg, assistantMsg);
+    stateAfter.roleplay.messages = stateAfter.roleplay.messages.slice(-50);
+
+    const CONTROLLED = ["Intent", "Resistance", "Trust", "Momentum", "Access"];
+    const controlledSet = new Set(CONTROLLED);
+    const rawSignals =
+      (coach && typeof coach === "object" && (coach.signals || coach.signalSummary)) ||
+      [];
+
+    const bestByType = {};
+    if (Array.isArray(rawSignals)) {
+      for (const s of rawSignals) {
+        const signalType = String(s?.signalType || s?.type || "").trim();
+        if (!controlledSet.has(signalType)) continue;
+        const confidenceNum = Number(s?.confidence);
+        if (!Number.isFinite(confidenceNum)) continue;
+        const confidence = Math.round(Math.max(0, Math.min(1, confidenceNum)) * 100) / 100;
+        const evidence = String(s?.evidence || "").trim();
+        const recommendedPivot = String(s?.recommendedPivot || s?.suggestedResponse || "").trim();
+        if (!evidence || !recommendedPivot) continue;
+        const existing = bestByType[signalType];
+        if (!existing || confidence > existing.confidence) {
+          bestByType[signalType] = { signalType, confidence, evidence, recommendedPivot };
+        }
+      }
+    }
+
+    const signals = CONTROLLED
+      .filter(t => bestByType[t])
+      .map(t => {
+        const s = bestByType[t];
+        return {
+          id: cryptoRandomId(),
+          type: "contextual",
+          signal: s.signalType,
+          interpretation: s.evidence,
+          suggestedResponse: s.recommendedPivot,
+          timestamp: new Date().toISOString()
+        };
+      });
+
+    if (signals.length > 0) {
+      console.log("SIGNALS_EMITTED", signals.length);
+    } else {
+      console.log("SIGNALS_EMPTY");
+    }
+
+    await seqPut(env, sessionId, stateAfter);
+
+    return json(
+      {
+        reply,
+        signals,
+        session: stateAfter.roleplay
+      },
+      200,
+      env,
+      req,
+      { "x-session-id": sessionId }
+    );
+  } catch (e) {
+    return json(
+      { error: "server_error", message: "Failed to respond" },
+      500,
+      env,
+      req
+    );
+  }
+}
+
 /* ------------------------------ /api/roleplay/end --------------------------- */
 async function postRoleplayEnd(req, env) {
   try {
@@ -838,7 +1032,7 @@ async function postRoleplayEnd(req, env) {
     }
 
     const synthesisPrompt = `
-You are a senior sales coach and Signal Intelligence evaluator.
+You are a senior sales coach and evaluator.
 
 INPUTS:
 - Full transcript
@@ -849,41 +1043,46 @@ INPUTS:
 TASK:
 Generate a FINAL post-session evaluation.
 
-RULES:
-- Output STRICT JSON only
-- No markdown
-- No explanations
-- No missing fields
-- Do not invent signals
+NON-NEGOTIABLE RULES:
+- Output STRICT JSON only (single JSON object)
+- No markdown, no backticks, no explanations
+- Do not omit any required field
+- Do not invent or fabricate signals; only reference signals present in the input
 
-SIGNAL INTELLIGENCE CATEGORIES:
-- Intent
-- Resistance
-- Trust
-- Momentum
-- Access
+CRITICAL OUTPUT REQUIREMENT:
+Return a JSON object that includes the following EXACT top-level field names:
+- eqScores (array)
+- specificExamples (array)
+- topStrengths (array)
+- priorityImprovements (array)
 
 OUTPUT JSON SCHEMA:
 {
   "overallScore": number,
   "eqScore": number,
   "technicalScore": number,
-  "strengths": [
-    { "label": string, "evidence": string, "signals": string[] }
-  ],
-  "improvements": [
-    { "label": string, "impact": string, "missedSignals": string[] }
-  ],
-  "signalSummary": [
+
+  "eqScores": [
     {
-      "signalType": string,
-      "confidence": number,
-      "evidence": string,
-      "recommendedPivot": string
+      "metricId": string,
+      "score": number,
+      "observedBehaviors": number,
+      "totalOpportunities": number,
+      "calculationNote": string,
+      "evidence": string
     }
   ],
-  "frameworksUsed": string[],
-  "nextSteps": string[]
+
+  "specificExamples": [
+    {
+      "label": string,
+      "whatYouDid": string,
+      "whyItWorked": string
+    }
+  ],
+
+  "topStrengths": [string],
+  "priorityImprovements": [string]
 }
 `;
 
@@ -968,27 +1167,31 @@ OUTPUT JSON SCHEMA:
       );
     }
 
-    // --- Deterministic framework attribution ---
-    analysis.frameworksUsed = Array.isArray(analysis.frameworksUsed)
-      ? analysis.frameworksUsed
-      : [];
-
-    if (Array.isArray(analysis.signalSummary) && analysis.signalSummary.length > 0) {
-      analysis.frameworksUsed.push("Signal Intelligence");
+    const isObject =
+      analysis && typeof analysis === "object" && !Array.isArray(analysis);
+    if (!isObject) {
+      throw new Error("ROLEPLAY_END_ANALYSIS_NOT_OBJECT");
     }
 
-    if ((analysis.eqScore ?? 0) > 0 || (analysis.overallScore ?? 0) > 0) {
-      analysis.frameworksUsed.push("EI (Goleman)");
-    }
+    const requireArrayField = (obj, fieldName) => {
+      if (!Object.prototype.hasOwnProperty.call(obj, fieldName)) {
+        throw new Error(`ROLEPLAY_END_ANALYSIS_MISSING_FIELD:${fieldName}`);
+      }
+      if (!Array.isArray(obj[fieldName])) {
+        throw new Error(`ROLEPLAY_END_ANALYSIS_FIELD_NOT_ARRAY:${fieldName}`);
+      }
+    };
 
-    analysis.frameworksUsed = [...new Set(analysis.frameworksUsed)];
-    // --- End framework attribution ---
+    requireArrayField(analysis, "eqScores");
+    requireArrayField(analysis, "specificExamples");
+    requireArrayField(analysis, "topStrengths");
+    requireArrayField(analysis, "priorityImprovements");
 
     return json(
       {
+        ...analysis,
         sessionId,
-        status: "completed",
-        analysis
+        status: "completed"
       },
       200,
       env,

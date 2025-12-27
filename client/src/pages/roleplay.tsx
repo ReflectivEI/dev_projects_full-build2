@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -443,6 +443,13 @@ export default function RolePlayPage() {
   const messages = roleplayData?.messages || [];
   const isActive = messages.length > 0;
 
+  const roleplaySessionKey = isActive
+    ? `${selectedScenario?.id ?? "unknown"}:${messages[0]?.id ?? "unknown"}`
+    : null;
+
+  const endCalledForSessionRef = useRef<Set<string>>(new Set());
+  const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
+
   // REMOVE: This useEffect was resetting signals on query changes
   // useEffect(() => {
   //   if (!isActive) {
@@ -534,6 +541,9 @@ export default function RolePlayPage() {
   const endScenarioMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest("POST", "/api/roleplay/end");
+      if (!response.ok) {
+        throw new Error(`roleplay_end_http_${response.status}`);
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -541,28 +551,21 @@ export default function RolePlayPage() {
       
       // Use session state + worker feedback
       const analysis = data?.analysis || data;
-      if (analysis) {
+      if (analysis && Number.isFinite(analysis?.eqScore)) {
         const mappedFeedback = mapWorkerFeedback(analysis);
         setFeedbackData(mappedFeedback);
         setFeedbackScenarioTitle(data.scenario?.title || selectedScenario?.title || "Role-Play Session");
+        console.log("ROLEPLAY_END_RENDERED");
         setShowFeedbackDialog(true);
       } else {
-        // Defensive fallback using session state
-        setFeedbackData({
-          overallScore: sessionEQ?.overallScore || 3.0,
-          performanceLevel: "developing",
-          eqScores: [],
-          salesSkillScores: [],
-          topStrengths: ["Completed the role-play session", "Engaged with the scenario"],
-          priorityImprovements: ["Practice asking discovery questions before presenting solutions", "Reference specific clinical evidence when making claims"],
-          specificExamples: [],
-          nextSteps: ["Review session transcript", "Prepare 3 discovery questions for next session", "Practice active listening techniques"],
-          overallSummary: "Session completed. Review the conversation to identify strengths and development opportunities.",
-        });
-        setFeedbackScenarioTitle(selectedScenario?.title || "Role-Play Session");
-        setShowFeedbackDialog(true);
+        setRoleplayEndError("Unable to generate feedback. Please try again.");
+        setShowFeedbackDialog(false);
       }
     },
+    onError: () => {
+      setRoleplayEndError("Unable to end role-play. Please try again.");
+      setShowFeedbackDialog(false);
+    }
   });
 
   const clearScenarioMutation = useMutation({
@@ -591,7 +594,10 @@ export default function RolePlayPage() {
 
   const handleReset = () => {
     if (isActive) {
-      clearScenarioMutation.mutate();
+      if (roleplaySessionKey && !endCalledForSessionRef.current.has(roleplaySessionKey)) {
+        endCalledForSessionRef.current.add(roleplaySessionKey);
+        clearScenarioMutation.mutate();
+      }
     }
     setSelectedScenario(null);
     setTailoredContent(null);
@@ -600,6 +606,7 @@ export default function RolePlayPage() {
     setObservableSignals([]);
     setShowFeedbackDialog(false);
     setFeedbackData(null);
+    setRoleplayEndError(null);
     queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
   };
 
@@ -1103,12 +1110,24 @@ export default function RolePlayPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => endScenarioMutation.mutate()}
-                disabled={endScenarioMutation.isPending}
+                onClick={() => {
+                  if (typeof window !== "undefined" && !window.location.pathname.includes("roleplay")) return;
+                  if (!roleplaySessionKey) return;
+                  if (endCalledForSessionRef.current.has(roleplaySessionKey)) return;
+                  endCalledForSessionRef.current.add(roleplaySessionKey);
+                  setRoleplayEndError(null);
+                  endScenarioMutation.mutate();
+                }}
+                disabled={endScenarioMutation.isPending || (roleplaySessionKey ? endCalledForSessionRef.current.has(roleplaySessionKey) : false)}
                 data-testid="button-end-roleplay"
               >
                 End Role-Play & Get Feedback
               </Button>
+              {roleplayEndError && (
+                <div className="text-sm text-destructive" role="alert" data-testid="roleplay-end-error">
+                  {roleplayEndError}
+                </div>
+              )}
             </div>
           </div>
 

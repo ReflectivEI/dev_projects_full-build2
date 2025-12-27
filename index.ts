@@ -454,6 +454,20 @@ function capSentences(text, n) {
 // ───────────────────── Provider Key Rotation Utilities ──────────────────────
 function getProviderKeyPool(env) {
   const pool = [];
+  // Common single-key secret name (used in production)
+  if (env.PROVIDER_API_KEY) {
+    const base = String(env.PROVIDER_API_KEY).trim();
+    if (base) pool.push(base);
+  }
+  // Optional list variant
+  if (env.PROVIDER_API_KEYS) {
+    pool.push(
+      ...String(env.PROVIDER_API_KEYS)
+        .split(/[;,]/)
+        .map(s => s.trim())
+        .filter(Boolean)
+    );
+  }
   // Comma / semicolon separated list
   if (env.PROVIDER_KEYS) {
     pool.push(
