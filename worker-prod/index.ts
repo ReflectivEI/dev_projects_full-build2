@@ -42,15 +42,15 @@ export default {
       if (!globalThis.__CFG_LOGGED__) {
         const keyPool = getProviderKeyPool(env);
         const allowed = String(env.CORS_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-        
+
         // Log key pool with masked keys for debugging rotation
         const maskedKeys = keyPool.map((key, idx) => `key_${idx + 1}: ${key.substring(0, 7)}...${key.substring(key.length - 4)}`);
-        
-        console.log({ 
-          event: "startup_config", 
-          key_pool_size: keyPool.length, 
+
+        console.log({
+          event: "startup_config",
+          key_pool_size: keyPool.length,
           key_pool_masked: maskedKeys,
-          cors_allowlist_size: allowed.length, 
+          cors_allowlist_size: allowed.length,
           rotation_strategy: (env.PROVIDER_ROTATION_STRATEGY || 'round-robin')
         });
         globalThis.__CFG_LOGGED__ = true;
@@ -81,10 +81,10 @@ export default {
               // FIX: Add timeout to health check
               const controller = new AbortController();
               const timeout = setTimeout(() => controller.abort(), TIMEOUT_HEALTH_CHECK);
-              
+
               try {
                 const r = await fetch((env.PROVIDER_URL || "https://api.groq.com/openai/v1/chat/completions").replace(/\/chat\/completions$/, "/models"), {
-                  headers: { "authorization": `Bearer ${key}` }, 
+                  headers: { "authorization": `Bearer ${key}` },
                   method: "GET",
                   signal: controller.signal
                 });
@@ -482,11 +482,11 @@ function getProviderKeyPool(env) {
     const base = String(env.PROVIDER_KEY).trim();
     if (base && !pool.includes(base)) pool.push(base);
   }
-  
+
   // CRITICAL FIX: Deduplicate keys to ensure even distribution
   // Use Set to remove duplicates, then convert back to array
   const uniquePool = [...new Set(pool.filter(Boolean))];
-  
+
   // Log warning if duplicates were found
   if (pool.length !== uniquePool.length) {
     console.warn("key_pool_deduplication", {
@@ -495,7 +495,7 @@ function getProviderKeyPool(env) {
       duplicates_removed: pool.length - uniquePool.length
     });
   }
-  
+
   return uniquePool;
 }
 
@@ -513,7 +513,7 @@ if (typeof globalThis._keyUsageStats === 'undefined') {
 function selectProviderKey(env, session, excludeKeys = []) {
   const pool = getProviderKeyPool(env);
   if (!pool.length) return null;
-  
+
   // Filter out excluded keys (e.g., rate-limited keys)
   const availablePool = pool.filter(key => !excludeKeys.includes(key));
   if (!availablePool.length) {
@@ -521,21 +521,21 @@ function selectProviderKey(env, session, excludeKeys = []) {
     console.warn("All provider keys excluded, falling back to full pool");
     return pool[0];
   }
-  
+
   // ROUND-ROBIN ROTATION: Select next key in sequence
   // This ensures even distribution across all keys
   const idx = globalThis._keyRotationIndex % availablePool.length;
   globalThis._keyRotationIndex = (globalThis._keyRotationIndex + 1) % 1000000; // Reset after 1M to prevent overflow
-  
+
   const selectedKey = availablePool[idx];
-  
+
   // Track usage statistics
   const keyId = selectedKey.substring(0, 7) + "..." + selectedKey.substring(selectedKey.length - 4);
   if (!globalThis._keyUsageStats[keyId]) {
     globalThis._keyUsageStats[keyId] = 0;
   }
   globalThis._keyUsageStats[keyId]++;
-  
+
   // Log every 100th request to monitor distribution
   if (globalThis._keyRotationIndex % 100 === 0) {
     console.log({
@@ -545,7 +545,7 @@ function selectProviderKey(env, session, excludeKeys = []) {
       pool_size: availablePool.length
     });
   }
-  
+
   if (env.DEBUG_MODE === "true") {
     console.log({
       event: "round_robin_select",
@@ -556,7 +556,7 @@ function selectProviderKey(env, session, excludeKeys = []) {
       usage_count: globalThis._keyUsageStats[keyId]
     });
   }
-  
+
   return selectedKey;
 }
 
@@ -596,15 +596,15 @@ function extractCoach(raw) {
 async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2, session = "anon", providerKey } = {}) {
   const cap = Number(env.MAX_OUTPUT_TOKENS || 0);
   const finalMax = cap > 0 ? Math.min(maxTokens, cap) : maxTokens;
-  
+
   // ENHANCED ERROR HANDLING: Log provider request details for debugging
   const providerUrl = env.PROVIDER_URL;
   const providerModel = env.PROVIDER_MODEL;
-  
+
   // Get key pool for failover
   const keyPool = getProviderKeyPool(env);
   const excludedKeys = [];
-  
+
   // Try keys with automatic failover on rate limits
   for (let keyAttempt = 0; keyAttempt < Math.min(keyPool.length, 3); keyAttempt++) {
     let key;
@@ -615,29 +615,29 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
       // Select key from pool, excluding previously failed keys
       key = selectProviderKey(env, session, excludedKeys);
     }
-    
+
     if (!key) {
       throw new Error("provider_key_missing");
     }
-    
+
     if (env.DEBUG_MODE === "true") {
-      console.log({ 
-        event: "provider_key_select", 
-        session, 
-        key_len: key.length, 
+      console.log({
+        event: "provider_key_select",
+        session,
+        key_len: key.length,
         key_prefix: key.substring(0, 8) + "...",
         attempt: keyAttempt + 1,
         excluded_count: excludedKeys.length
       });
     }
-    
+
     try {
       // FIX: Add timeout to prevent worker from hanging on slow provider responses
       // Cloudflare Workers have a 30-50 second execution limit
       // Set provider timeout to 25 seconds to leave room for retries and error handling
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), TIMEOUT_PROVIDER_CHAT);
-      
+
       try {
         const r = await fetch(providerUrl, {
           method: "POST",
@@ -653,7 +653,7 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
           }),
           signal: controller.signal
         });
-        
+
         if (!r.ok) {
           const errText = await r.text();
           // Parse error response if it's JSON
@@ -664,7 +664,7 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
           } catch (e) {
             // Not JSON, use raw text
           }
-          
+
           // Enhanced error logging with more context
           console.error("provider_fetch_error", {
             status: r.status,
@@ -677,7 +677,7 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
             session,
             attempt: keyAttempt + 1
           });
-          
+
           // RATE LIMIT FAILOVER: If this key is rate-limited, try another one
           if (r.status === 429 && keyAttempt < Math.min(keyPool.length, 3) - 1) {
             console.warn("provider_rate_limited_failover", {
@@ -688,14 +688,14 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
             excludedKeys.push(key);
             continue; // Try next key
           }
-          
+
           // Throw error with both status and details
           const err = new Error(`provider_http_${r.status}`);
           err.providerStatus = r.status;
           err.providerError = errorDetails;
           throw err;
         }
-        
+
         const j = await r.json();
         return j?.choices?.[0]?.message?.content || j?.content || "";
       } finally {
@@ -715,7 +715,7 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
         err.originalError = `Request timeout after ${TIMEOUT_PROVIDER_CHAT / 1000} seconds`;
         throw err;
       }
-      
+
       // NETWORK ERROR HANDLING: Catch fetch failures (network errors, timeouts, etc.)
       if (e.providerStatus) {
         // Already a provider HTTP error, re-throw if not retryable
@@ -738,7 +738,7 @@ async function providerChat(env, messages, { maxTokens = 900, temperature = 0.2,
       throw err;
     }
   }
-  
+
   // If we get here, all keys were rate-limited
   const err = new Error("provider_http_429");
   err.providerStatus = 429;
@@ -940,8 +940,8 @@ OUTPUT JSON SCHEMA:
       typeof rawResponse === "string"
         ? rawResponse
         : rawResponse?.content ||
-          rawResponse?.message?.content ||
-          rawResponse?.choices?.[0]?.message?.content;
+        rawResponse?.message?.content ||
+        rawResponse?.choices?.[0]?.message?.content;
 
     if (!content) {
       return json(
@@ -967,6 +967,22 @@ OUTPUT JSON SCHEMA:
         req
       );
     }
+
+    // --- Deterministic framework attribution ---
+    analysis.frameworksUsed = Array.isArray(analysis.frameworksUsed)
+      ? analysis.frameworksUsed
+      : [];
+
+    if (Array.isArray(analysis.signalSummary) && analysis.signalSummary.length > 0) {
+      analysis.frameworksUsed.push("Signal Intelligence");
+    }
+
+    if ((analysis.eqScore ?? 0) > 0 || (analysis.overallScore ?? 0) > 0) {
+      analysis.frameworksUsed.push("EI (Goleman)");
+    }
+
+    analysis.frameworksUsed = [...new Set(analysis.frameworksUsed)];
+    // --- End framework attribution ---
 
     return json(
       {
@@ -1193,7 +1209,7 @@ ${siteContext.slice(0, 12000)}`;
         reply: "I'm taking a bit longer than usual. Please try again or request a demo to speak with our team."
       }, 500, env, req);
     }
-    
+
     console.error("alora_chat_error", { message: e.message, stack: e.stack });
     return json({
       error: "alora_error",
@@ -1230,7 +1246,7 @@ function fixSalesCoachContract(text, validation) {
   let fixed = text;
 
   validation.missing.forEach(section => {
-    const placeholder = section === 'Rep Approach' ? 
+    const placeholder = section === 'Rep Approach' ?
       `${section}:\n- Placeholder bullet 1\n- Placeholder bullet 2\n- Placeholder bullet 3` :
       `${section}: Placeholder content for ${section.toLowerCase()}.`;
     fixed += `\n\n${placeholder}`;
@@ -1250,7 +1266,7 @@ async function postChat(req, env) {
       console.error("chat_error", { step: "config_check", message: "NO_PROVIDER_KEYS" });
       return json({ error: "server_error", message: "No provider API keys configured" }, 500, env, req);
     }
-    
+
     // Validate PROVIDER_URL and PROVIDER_MODEL are configured
     if (!env.PROVIDER_URL) {
       console.error("chat_error", { step: "config_check", message: "NO_PROVIDER_URL" });
@@ -1271,7 +1287,7 @@ async function postChat(req, env) {
       body.user ||
       body.message ||
       (Array.isArray(body.messages) &&
-       body.messages[body.messages.length - 1]?.content) ||
+        body.messages[body.messages.length - 1]?.content) ||
       null;
 
     if (!incomingMessage || String(incomingMessage).trim() === "") {
@@ -1280,7 +1296,7 @@ async function postChat(req, env) {
         message: "User message cannot be empty or missing"
       }, 400, env, req);
     }
-          /* ---------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
     // Handle Alora site assistant separately - it needs concise, helpful answers, not coaching format
     if (body.role === 'alora') {
@@ -1346,7 +1362,7 @@ async function postChat(req, env) {
           const dOk = !disease || f.ta?.toLowerCase() === String(disease).toLowerCase();
           return dOk;
         });
-        
+
         // CONTEXT EDGE CASES: Always ensure fallback facts, never empty array
         let facts = factsRes.slice(0, 8);
         if (facts.length === 0) {
@@ -1849,9 +1865,9 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
         if (raw) break;
       } catch (e) {
         lastProviderError = e;
-        console.error("chat_error", { 
-          step: "provider_call", 
-          attempt: i + 1, 
+        console.error("chat_error", {
+          step: "provider_call",
+          attempt: i + 1,
           message: e.message,
           provider_status: e.providerStatus,
           provider_error: e.providerError,
@@ -1875,7 +1891,7 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
         mode,
         session
       });
-      
+
       // Return 502 Bad Gateway with user-friendly error message
       return json({
         error: "provider_empty_completion",
@@ -1977,29 +1993,29 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
         // Try to extract existing bullets using multiple patterns
         const existingBullets = [];
         const repText = repMatch[1];
-        
+
         // Look for different bullet formats
         const bulletPatterns = [
           /(?:^|\n)\s*•\s*(.+?)(?=\n\s*•|\n\s*\d+\.|\n\s*[-*]|\n\s*Impact:|$)/g,
           /(?:^|\n)\s*\d+\.\s*(.+?)(?=\n\s*\d+\.|\n\s*•|\n\s*[-*]|\n\s*Impact:|$)/g,
           /(?:^|\n)\s*[-*]\s*(.+?)(?=\n\s*[-*]|\n\s*•|\n\s*\d+\.|\n\s*Impact:|$)/g
         ];
-        
+
         for (const pattern of bulletPatterns) {
           let match;
           while ((match = pattern.exec(repText)) !== null) {
             existingBullets.push(match[1].trim());
           }
         }
-        
+
         // Remove duplicates and take first 3
         const uniqueBullets = [...new Set(existingBullets)].slice(0, 3);
-        
+
         // Pad with defaults if needed
         while (uniqueBullets.length < 3) {
           uniqueBullets.push(`• Reinforce evidence-based approach`);
         }
-        
+
         const newRepSection = `Rep Approach:\n• ${uniqueBullets.join('\n• ')}`;
         reply = reply.replace(/Rep Approach:.*?(?=Impact:|Suggested Phrasing:|$)/is, newRepSection + '\n\n');
       }
@@ -2143,9 +2159,9 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
     return json({ reply, coach: coachObj, plan: { id: planId || activePlan.planId } }, 200, env, req);
   } catch (e) {
     // ERROR HANDLING: Catch-all for unexpected errors during chat processing
-    console.error("chat_error", { 
-      step: "general", 
-      message: e.message, 
+    console.error("chat_error", {
+      step: "general",
+      message: e.message,
       stack: e.stack,
       provider_status: e.providerStatus,
       provider_error: e.providerError,
@@ -2165,7 +2181,7 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
     if (isProviderError) {
       // ERROR HANDLING: Provider errors - return 502 Bad Gateway with helpful diagnostics
       let errorMessage = "The AI provider is temporarily unavailable. Please try again in a moment.";
-      
+
       // Provide more specific error messages based on the error type
       if (e.message === "provider_timeout_error") {
         errorMessage = "The AI provider request timed out. Please try again with a shorter message or simpler request.";
@@ -2174,7 +2190,7 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
       } else if (e.message === "plan_generation_failed") {
         errorMessage = "Failed to generate conversation plan.";
       }
-      
+
       return json({
         error: "provider_error",
         message: errorMessage
