@@ -902,6 +902,13 @@ OUTPUT JSON SCHEMA:
 
     let rawResponse;
     try {
+      console.log("PROVIDER_ENV_CHECK", {
+        PROVIDER: env?.PROVIDER,
+        PROVIDER_MODEL: env?.PROVIDER_MODEL,
+        HAS_OPENAI_KEY: Boolean(env?.OPENAI_API_KEY),
+        HAS_ANTHROPIC_KEY: Boolean(env?.ANTHROPIC_API_KEY)
+      });
+
       rawResponse = await providerChat(env, messages, {
         maxTokens: 900,
         temperature: 0.1,
