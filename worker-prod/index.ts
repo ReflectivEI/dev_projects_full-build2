@@ -900,35 +900,66 @@ OUTPUT JSON SCHEMA:
       }
     ];
 
-    const analysis = {
-      overallScore: 3.5,
-      eqScore: 3.8,
-      technicalScore: 3.2,
-      strengths: [
+    let rawResponse;
+    try {
+      rawResponse = await providerChat(env, messages, {
+        maxTokens: 900,
+        temperature: 0.1,
+        session: sessionId
+      });
+    } catch (err) {
+      console.error("PROVIDERCHAT_ERROR", {
+        error: err?.message || err,
+        stack: err?.stack,
+        provider: env?.PROVIDER,
+        model: env?.PROVIDER_MODEL,
+        hasApiKey: Boolean(env?.OPENAI_API_KEY || env?.ANTHROPIC_API_KEY)
+      });
+
+      return json(
         {
-          label: "Established initial rapport",
-          evidence: "Opened the conversation professionally and acknowledged the discussion context",
-          signals: ["Trust"]
-        }
-      ],
-      improvements: [
+          error: "provider_chat_failed",
+          message: "providerChat threw before returning a response"
+        },
+        500,
+        env,
+        req
+      );
+    }
+
+    console.log("RAW_PROVIDER_RESPONSE", rawResponse);
+
+    let content =
+      typeof rawResponse === "string"
+        ? rawResponse
+        : rawResponse?.content ||
+          rawResponse?.message?.content ||
+          rawResponse?.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return json(
+        { error: "empty_provider_response", rawResponse },
+        500,
+        env,
+        req
+      );
+    }
+
+    let analysis;
+    try {
+      analysis = JSON.parse(content);
+    } catch (e) {
+      return json(
         {
-          label: "Probe access barriers earlier",
-          impact: "Delayed identification of decision-maker access constraints",
-          missedSignals: ["Access"]
-        }
-      ],
-      signalSummary: [
-        {
-          signalType: "Access",
-          confidence: 0.72,
-          evidence: "Conversation referenced access challenges without follow-up",
-          recommendedPivot: "Ask clarifying questions to uncover access pathway"
-        }
-      ],
-      frameworksUsed: ["Signal Intelligence", "EI (Goleman)"],
-      nextSteps: ["Practice early access qualification questions"]
-    };
+          error: "analysis_parse_failed",
+          content,
+          rawResponse
+        },
+        500,
+        env,
+        req
+      );
+    }
 
     return json(
       {
