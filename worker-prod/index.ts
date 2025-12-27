@@ -900,18 +900,40 @@ OUTPUT JSON SCHEMA:
       }
     ];
 
-    const raw = await providerChat(env, messages, {
+    const rawResponse = await providerChat(env, messages, {
       maxTokens: 900,
       temperature: 0.1,
       session: sessionId
     });
 
+    console.log("RAW_PROVIDER_RESPONSE", rawResponse);
+
+    let content =
+      typeof rawResponse === "string"
+        ? rawResponse
+        : rawResponse?.content ||
+          rawResponse?.message?.content ||
+          rawResponse?.choices?.[0]?.message?.content;
+
+    if (!content) {
+      return json(
+        { error: "empty_provider_response", rawResponse },
+        500,
+        env,
+        req
+      );
+    }
+
     let analysis;
     try {
-      analysis = JSON.parse(raw);
+      analysis = JSON.parse(content);
     } catch (e) {
       return json(
-        { error: "analysis_parse_failed", raw },
+        {
+          error: "analysis_parse_failed",
+          content,
+          rawResponse
+        },
         500,
         env,
         req
