@@ -1,0 +1,41 @@
+# Cloudflare Worker Configuration for ReflectivAI
+# Copy this file to wrangler.toml and update with your values
+
+name = "reflectivai-worker"
+main = "src/index.js"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Environment variables (non-sensitive - safe to commit)
+[vars]
+PROVIDER_URL = "https://api.groq.com/openai/v1/chat/completions"
+PROVIDER_MODEL = "llama-3.1-70b-versatile"
+MAX_OUTPUT_TOKENS = "1600"
+RATELIMIT_WINDOW_MINUTES = "1"
+RATELIMIT_MAX_REQUESTS = "10"
+RATELIMIT_RETRY_AFTER = "2"
+DEBUG_MODE = "false"
+
+# CORS origins - Add your domains here (comma-separated)
+# GitHub Pages URL
+CORS_ORIGINS = "https://reflectivei.github.io,https://yxpzdb7o9z.preview.c24.airoapp.ai"
+
+# KV namespace for session storage (optional)
+# Create with: wrangler kv:namespace create "SESS"
+# Then replace YOUR_KV_NAMESPACE_ID with the actual ID
+[[kv_namespaces]]
+binding = "SESS"
+id = "YOUR_KV_NAMESPACE_ID"
+
+# Secrets (set via wrangler secret put VARIABLE_NAME)
+# DO NOT add secrets here - use wrangler secret put instead
+# Required secrets:
+# - PROVIDER_API_KEY (your primary Groq API key)
+# - GROQ_KEY_1 (optional - additional Groq key for load balancing)
+# - GROQ_KEY_2 (optional - additional Groq key for load balancing)
+# - GROQ_KEY_3 (optional - additional Groq key for load balancing)
+
+# Example commands to set secrets:
+# wrangler secret put PROVIDER_API_KEY
+# wrangler secret put GROQ_KEY_1
+# wrangler secret put GROQ_KEY_2
