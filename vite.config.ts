@@ -47,6 +47,7 @@ export default defineConfig(({ mode }) => ({
 			nothing: "/src/fallbacks/missingModule.ts",
 			"@/api": path.resolve(__dirname, "./src/server/api"),
 			"@": path.resolve(__dirname, "./src"),
+			"@shared": path.resolve(__dirname, "./shared"),
 		},
 	},
 
