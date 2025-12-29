@@ -50,10 +50,13 @@ export async function mockApiRequest(
     return {
       status: 200,
       data: {
-        totalSessions: 42,
-        avgEQScore: 78,
-        improvementRate: 15,
-        topSkills: ['Active Listening', 'Empathy', 'Rapport Building']
+        dailyTip: 'In pharma sales, building trust takes time. Focus on understanding the HCP\'s challenges before presenting solutions.',
+        focusArea: 'Active Listening',
+        suggestedExercise: {
+          title: 'Reflective Listening Practice',
+          description: 'Practice paraphrasing what the HCP says before responding. This shows you\'re truly listening and builds rapport.'
+        },
+        motivationalQuote: 'The most important thing in communication is hearing what isn\'t said. - Peter Drucker'
       },
       headers: { 'x-session-id': mockSessionId }
     };
