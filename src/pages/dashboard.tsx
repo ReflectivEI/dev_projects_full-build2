@@ -20,7 +20,6 @@ import {
   Lightbulb,
   RotateCcw,
 } from "lucide-react";
-import reflectivAILogo from "/assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
 import { coachingModules, eqFrameworks } from "@/lib/data";
 import { useQuery } from "@tanstack/react-query";
 
@@ -140,11 +139,9 @@ export default function Dashboard() {
               <Link href="/chat">
                 <Card className="hover-elevate cursor-pointer h-full">
                   <CardContent className="p-4 flex items-start gap-4">
-                    <img 
-                      src={reflectivAILogo} 
-                      alt="ReflectivAI Logo" 
-                      className="h-12 w-12 rounded-md flex-shrink-0"
-                    />
+                    <div className="h-12 w-12 rounded-md bg-primary flex items-center justify-center flex-shrink-0">
+                      <Brain className="h-8 w-8 text-primary-foreground" />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold" data-testid="link-quick-ai-coach">AI Coach</h3>
                       <p className="text-sm text-muted-foreground">

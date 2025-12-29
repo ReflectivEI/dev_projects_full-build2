@@ -28,7 +28,6 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import reflectivAILogo from "/assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
 import { getSessionId, SESSION_ID_EVENT } from "@/lib/queryClient";
 
 interface DailyFocus {
@@ -111,11 +110,9 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-3">
-          <img
-            src={reflectivAILogo}
-            alt="ReflectivAI Logo"
-            className="h-9 w-9 rounded-md"
-          />
+          <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center">
+            <Brain className="h-6 w-6 text-primary-foreground" />
+          </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold leading-tight" data-testid="text-app-name">ReflectivAI</span>
             <span className="text-xs text-muted-foreground">Sales Enablement</span>
