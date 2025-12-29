@@ -29,7 +29,7 @@ export default defineConfig(({ mode }) => ({
 	plugins: [
 		react({
 			babel: {
-				plugins: [sourceMapperPlugin],
+				plugins: mode === 'development' ? [sourceMapperPlugin] : [],
 			},
 		}),
 		apiRoutes({
@@ -69,6 +69,7 @@ export default defineConfig(({ mode }) => ({
 	},
 
 	build: {
+		sourcemap: mode === 'development',
 		rollupOptions: {
 			// No external dependencies - bundle everything
 		},
