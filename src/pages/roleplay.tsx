@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Play, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
@@ -230,10 +231,16 @@ const difficultyColors = {
 };
 
 export default function RoleplayPage() {
+  const navigate = useNavigate();
   const [diseaseState, setDiseaseState] = useState<string>('all');
   const [specialty, setSpecialty] = useState<string>('all');
   const [hcpCategory, setHcpCategory] = useState<string>('all');
   const [influenceDriver, setInfluenceDriver] = useState<string>('all');
+
+  const handleStartScenario = (scenario: Scenario) => {
+    // Navigate to chat page with scenario context
+    navigate(`/chat?scenario=${scenario.id}&title=${encodeURIComponent(scenario.title)}`);
+  };
 
   const filteredScenarios = scenarios.filter((scenario) => {
     if (diseaseState !== 'all' && scenario.diseaseState !== diseaseState) return false;
@@ -387,7 +394,7 @@ export default function RoleplayPage() {
                       {scenario.hcpCategory.replace('-', ' ')}
                     </Badge>
                   </div>
-                  <Button className="w-full" size="sm">
+                  <Button className="w-full" size="sm" onClick={() => handleStartScenario(scenario)}>
                     <Play className="h-4 w-4 mr-2" />
                     Start Scenario
                   </Button>

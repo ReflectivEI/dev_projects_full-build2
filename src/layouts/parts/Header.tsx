@@ -9,8 +9,8 @@ export default function Header() {
   const navigation = [
     { href: '/', label: 'Platform' },
     { href: '/methodology', label: 'Signal Intelligence™' },
+    { href: '/chat', label: 'AI Coach' },
     { href: '/roleplay', label: 'Role-Play Simulator' },
-    { href: '/pricing', label: 'Pricing' },
   ];
 
   return (
