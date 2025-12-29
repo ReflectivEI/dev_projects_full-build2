@@ -7,51 +7,12 @@ export default async function handler(req: Request, res: Response) {
   res.setHeader('x-session-id', sessionId);
   
   res.json({
-    dailyTip: {
-      title: 'Master the SPIN Technique',
-      content: 'Today, focus on asking Situation questions to understand your HCP\'s current challenges. This builds the foundation for effective needs-based selling.',
-      category: 'Sales Technique'
+    dailyTip: 'Today, focus on asking Situation questions to understand your HCP\'s current challenges. This builds the foundation for effective needs-based selling.',
+    focusArea: 'Active Listening - Practice paraphrasing HCP concerns before responding',
+    suggestedExercise: {
+      title: 'Handling Price Objections',
+      description: 'Practice responding to common pricing concerns from HCPs using value-based selling techniques'
     },
-    focusAreas: [
-      {
-        title: 'Active Listening',
-        score: 72,
-        trend: 'up',
-        recommendation: 'Practice paraphrasing HCP concerns before responding'
-      },
-      {
-        title: 'Objection Handling',
-        score: 68,
-        trend: 'stable',
-        recommendation: 'Review the LAER framework for handling objections'
-      },
-      {
-        title: 'Relationship Building',
-        score: 85,
-        trend: 'up',
-        recommendation: 'Excellent progress! Keep building on your rapport skills'
-      }
-    ],
-    recentActivity: {
-      roleplaySessions: 5,
-      chatSessions: 12,
-      exercisesCompleted: 8,
-      lastActive: new Date(Date.now() - 7200000).toISOString()
-    },
-    suggestedExercises: [
-      {
-        id: 'ex-1',
-        title: 'Handling Price Objections',
-        difficulty: 'intermediate',
-        duration: '15 minutes'
-      },
-      {
-        id: 'ex-2',
-        title: 'DISC Personality Assessment',
-        difficulty: 'beginner',
-        duration: '10 minutes'
-      }
-    ],
-    timestamp: new Date().toISOString()
+    motivationalQuote: 'Success in pharmaceutical sales comes from understanding that you\'re not just selling a product - you\'re providing solutions that improve patient outcomes.'
   });
 }
