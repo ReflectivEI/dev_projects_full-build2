@@ -1,4 +1,5 @@
 import { ArrowRight, CheckCircle2, TrendingUp, Users, Target, Zap } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 
@@ -316,8 +317,8 @@ export default function HomePage() {
                 Request a Demo
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button size="lg" variant="outline" className="text-lg px-8">
-                Explore Signal Intelligence™
+              <Button size="lg" variant="outline" className="text-lg px-8" asChild>
+                <Link to="/methodology">Explore Signal Intelligence™</Link>
               </Button>
             </div>
           </div>
