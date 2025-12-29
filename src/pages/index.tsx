@@ -1,5 +1,5 @@
 import { ArrowRight, CheckCircle2, TrendingUp, Users, Target, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 

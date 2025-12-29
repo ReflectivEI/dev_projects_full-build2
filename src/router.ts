@@ -1,23 +1,26 @@
-import { Link as RouterLink, Navigate as RouterNavigate, useNavigate as useRouterNavigate, useParams as useRouterParams } from 'react-router-dom';
+import { Link as WouterLink, useLocation, useRoute } from 'wouter';
 import { Path, Params } from './routes';
 
-// Export standard React Router components with type safety
-export const Link = RouterLink;
-export const Navigate = RouterNavigate;
+// Export wouter Link component
+export const Link = WouterLink;
 
-// Export hooks with type safety
+// Export wouter hooks
 export const useNavigate = () => {
-  const navigate = useRouterNavigate();
+  const [, setLocation] = useLocation();
   return (to: Path | number, options?: { replace?: boolean; state?: any }) => {
     if (typeof to === 'number') {
-      navigate(to);
+      window.history.go(to);
     } else {
-      navigate(to, options);
+      setLocation(to, options);
     }
   };
 };
 
-export const useParams = useRouterParams<Params>;
+// Wouter doesn't have useParams, so we'll create a simple version
+export const useParams = <T extends Params = Params>(): Partial<T> => {
+  const [, params] = useRoute('/:path*');
+  return (params || {}) as Partial<T>;
+};
 
 // Export types
 export type { Path, Params };
