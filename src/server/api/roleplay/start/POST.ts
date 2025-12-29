@@ -2,12 +2,13 @@ import type { Request, Response } from 'express';
 import { randomUUID } from 'crypto';
 import { startRoleplaySession } from '../sessionStore.js';
 
-const initialMessages = [
-  "Good morning. I understand you wanted to discuss a new treatment option. I have about 15 minutes before my next patient. What can you tell me about this?",
-  "Hello. I've been hearing about this medication from a few colleagues. What makes it different from what we're currently using?",
-  "Thanks for coming in. I'm always interested in new treatment options, but I need to see solid evidence. What data do you have?",
-  "Hi there. I appreciate you taking the time. My main concern is always patient outcomes. How does this improve on current standards of care?",
-  "Good afternoon. I have to be honest - I'm quite satisfied with my current treatment protocols. What would convince me to change?"
+// Initial messages with situational cues
+const initialMessagesWithCues = [
+  "*The HCP looks up from reviewing patient charts* Good morning. I understand you wanted to discuss a new treatment option. I have about 15 minutes before my next patient. What can you tell me about this?",
+  "*Leans back in chair, arms crossed* Hello. I've been hearing about this medication from a few colleagues. What makes it different from what we're currently using?",
+  "*Sets down coffee cup* Thanks for coming in. I'm always interested in new treatment options, but I need to see solid evidence. What data do you have?",
+  "*Glances at watch* Hi there. I appreciate you taking the time. My main concern is always patient outcomes. How does this improve on current standards of care?",
+  "*Adjusts glasses, looks directly at you* Good afternoon. I have to be honest - I'm quite satisfied with my current treatment protocols. What would convince me to change?"
 ];
 
 export default async function handler(req: Request, res: Response) {
@@ -25,8 +26,15 @@ export default async function handler(req: Request, res: Response) {
     // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Select a random initial message
-    const initialMessage = initialMessages[Math.floor(Math.random() * initialMessages.length)];
+    // Use scenario-specific initial cue if provided, otherwise use random
+    let initialMessage;
+    if (scenario?.initialCue) {
+      // Use scenario's initial cue with contextual opening
+      initialMessage = `${scenario.initialCue} Good to see you. ${scenario.environmentalContext ? 'I have about 15 minutes before my next patient.' : ''} What would you like to discuss?`;
+    } else {
+      // Fallback to random initial message with cues
+      initialMessage = initialMessagesWithCues[Math.floor(Math.random() * initialMessagesWithCues.length)];
+    }
 
     // Create the session
     const session = startRoleplaySession(
