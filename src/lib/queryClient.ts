@@ -1,6 +1,7 @@
 // ⚠️ PLATFORM CONTRACT — DO NOT MODIFY WITHOUT API VERSIONING
 // API base is driven by VITE_WORKER_URL and contracts must match cloudflare-worker-api.md.
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import { isMockApiEnabled, mockApiRequest, getMockSessionId } from "./mockApi";
 
 // Get the API base URL from highest-priority runtime sources.
 // Production priority: window.WORKER_URL (runtime override) -> VITE_WORKER_URL (build-time) -> VITE_API_BASE_URL -> fallback.
@@ -30,6 +31,9 @@ let SESSION_ID: string | undefined =
 let sessionInitPromise: Promise<string> | null = null;
 
 export function getSessionId(): string | undefined {
+  if (isMockApiEnabled()) {
+    return getMockSessionId();
+  }
   return SESSION_ID;
 }
 
@@ -121,6 +125,15 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
+  // Use mock API on GitHub Pages
+  if (isMockApiEnabled()) {
+    const mockRes = await mockApiRequest(method, url, data);
+    return new Response(JSON.stringify(mockRes.data), {
+      status: mockRes.status,
+      headers: mockRes.headers
+    });
+  }
+
   if (!getSessionId()) {
     await ensureSessionId();
   }
@@ -148,10 +161,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
+      const path = queryKey.join("/") as string;
+
+      // Use mock API on GitHub Pages
+      if (isMockApiEnabled()) {
+        const mockRes = await mockApiRequest('GET', path);
+        return mockRes.data;
+      }
+
       if (!getSessionId()) {
         await ensureSessionId();
       }
-      const path = queryKey.join("/") as string;
       const fullUrl = buildUrl(path);
       const isExternalApi = !!API_BASE_URL;
 
