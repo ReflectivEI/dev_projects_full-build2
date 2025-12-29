@@ -7,6 +7,21 @@
     <title>ReflectivAi - AI-Powered Sales Enablement for Life Sciences</title>
   </head>
   <body class="fs-unmask-airo-app-builder">
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      // Single Page Apps for GitHub Pages
+      // https://github.com/rafgraph/spa-github-pages
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
     <div id="root" class="fs-unmask-airo-app-builder"></div>
     <script type="module">
       if (import.meta.env.DEV) {
