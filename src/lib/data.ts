@@ -1447,9 +1447,16 @@ export function getScoreBgColor(score: number): string {
   return "bg-red-500/10 border-red-500/30";
 }
 
-// EI Metrics Framework - Layer 1 (Core Measurement)
-// Measures DEMONSTRATED CAPABILITY through observable behaviors.
-// All metrics scored 1-5 for consistency and intuitive comparison.
+// Signal Intelligence™ Capabilities - Behavioral Metrics Framework
+// Import from authoritative source
+import { signalIntelligenceCapabilities } from './signal-intelligence-data';
+
+// Re-export for backward compatibility during migration
+export { signalIntelligenceCapabilities };
+
+// DEPRECATED: Legacy EQ metrics - DO NOT USE
+// These are kept temporarily for backward compatibility but will be removed.
+// Use signalIntelligenceCapabilities instead.
 export interface EQMetric {
   id: string;
   name: string;
@@ -1465,219 +1472,11 @@ export interface EQMetric {
   isCore: boolean;
 }
 
-export const eqMetrics: EQMetric[] = [
-  {
-    id: "empathy",
-    name: "Empathy Accuracy",
-    displayName: "Empathy Accuracy",
-    category: "interpersonal",
-    isCore: true,
-    description: "How accurately you recognized and responded to observable HCP signals. Demonstrates understanding of their clinical situation based on expressed concerns.",
-    calculation: "Observed signal responses / Total observable signals (1-5 score)",
-    sampleIndicators: [
-      "Acknowledges HCP's concerns before offering solutions",
-      "Uses phrases like 'I understand your concern about...'",
-      "Validates the emotional context of clinical decisions",
-      "Demonstrates awareness of HCP's practice pressures"
-    ],
-    keyTip: "Lead with acknowledgment before presenting data. Show you understand their patient population challenges.",
-    whatGoodLooksLike: "Rep consistently validates HCP concerns, asks about specific patient scenarios, and connects solutions to their expressed needs rather than jumping to product features.",
-    learnMoreLink: "https://www.eiconsortium.org/measures/eqi.html",
-    color: "hsl(142, 76%, 36%)"
-  },
-  {
-    id: "clarity",
-    name: "Clarity & Alignment",
-    displayName: "Clarity & Alignment",
-    category: "self-expression",
-    isCore: true,
-    description: "How well your responses aligned to the HCP's expressed needs. Demonstrates clear, relevant messaging that connects to stated concerns.",
-    calculation: "Aligned responses / Total response opportunities (1-5 score)",
-    sampleIndicators: [
-      "Uses structured frameworks (e.g., headline first, then support)",
-      "Avoids jargon when explaining complex concepts",
-      "Summarizes key points at appropriate intervals",
-      "Adapts language complexity to audience"
-    ],
-    keyTip: "Use the 'headline-evidence-summary' structure. Lead with the key message, support with data, close with the takeaway.",
-    whatGoodLooksLike: "Rep explains clinical data in 2-3 sentences that a busy HCP can immediately understand and act upon. Complex trial data is translated into practice implications.",
-    color: "hsl(221, 83%, 53%)"
-  },
-  {
-    id: "compliance",
-    name: "Compliance",
-    displayName: "Compliance",
-    category: "decision-making",
-    isCore: false,
-    description: "Observable adherence to approved labeling and appropriate redirects when faced with off-label inquiries.",
-    calculation: "Compliant statements / Total claims (1-5 score)",
-    sampleIndicators: [
-      "Uses only approved indications and claims",
-      "References approved PI/label language",
-      "Redirects off-label questions appropriately",
-      "Includes fair balance when discussing efficacy"
-    ],
-    keyTip: "When asked off-label questions, acknowledge the question and redirect to approved uses or offer to connect with Medical Affairs.",
-    whatGoodLooksLike: "Rep never makes unsupported claims. All efficacy statements reference specific trial data. Fair balance is naturally integrated. Off-label requests handled professionally.",
-    color: "hsl(262, 83%, 58%)"
-  },
-  {
-    id: "discovery",
-    name: "Discovery Depth",
-    displayName: "Discovery Depth",
-    category: "interpersonal",
-    isCore: true,
-    description: "How well you validated assumptions and surfaced meaningful information through insightful questioning.",
-    calculation: "Quality discovery questions / Opportunities to probe (1-5 score)",
-    sampleIndicators: [
-      "Asks open-ended questions about patient types",
-      "Probes for underlying concerns behind objections",
-      "Explores current treatment protocols",
-      "Inquires about formulary and access situations"
-    ],
-    keyTip: "Ask 'What would need to be true...' questions to understand decision criteria. Focus on patient outcomes, not product adoption.",
-    whatGoodLooksLike: "Rep asks 3-5 thoughtful questions before presenting. Questions reveal genuine curiosity about HCP's practice, patient mix, and treatment challenges.",
-    color: "hsl(24, 95%, 53%)"
-  },
-  {
-    id: "objection-handling",
-    name: "Objection Handling",
-    displayName: "Objection Handling",
-    category: "stress-management",
-    isCore: false,
-    description: "Demonstrated ability to acknowledge and reframe concerns with evidence and appropriate empathy.",
-    calculation: "Effective objection responses / Total objections (1-5 score)",
-    sampleIndicators: [
-      "Listens carefully before responding to objections",
-      "Reframes objections constructively",
-      "Offers evidence-based answers",
-      "Uses Feel-Felt-Found or Acknowledge-Bridge-Close frameworks"
-    ],
-    keyTip: "A response scores well if it contains both objection recognition and a compliant fact or empathetic statement.",
-    whatGoodLooksLike: "Rep welcomes objections as opportunities. Uses 'I appreciate you raising that...' then provides specific data. Never becomes defensive.",
-    learnMoreLink: "https://www.richardson.com/sales-resources/defining-the-best-sales-objection-handling-techniques/",
-    color: "hsl(340, 82%, 52%)"
-  },
-  {
-    id: "confidence",
-    name: "Confidence",
-    displayName: "Confidence",
-    category: "self-perception",
-    isCore: false,
-    description: "Demonstrated self-assurance in presenting clinical data and recommendations while remaining open to dialogue.",
-    calculation: "Confident statements / Total statements (1-5 score)",
-    sampleIndicators: [
-      "Uses declarative statements vs. hedging language",
-      "Maintains position when challenged appropriately",
-      "Avoids excessive qualifiers ('maybe', 'kind of', 'I think')",
-      "Demonstrates product and disease state expertise"
-    ],
-    keyTip: "Replace 'I think the data shows...' with 'The Phase III trial demonstrated...' Own your expertise while staying humble.",
-    whatGoodLooksLike: "Rep speaks with authority about clinical data but invites questions. Uses 'The evidence demonstrates...' rather than 'I believe...'",
-    color: "hsl(47, 96%, 53%)"
-  },
-  {
-    id: "active-listening",
-    name: "Active Listening",
-    displayName: "Active Listening",
-    category: "interpersonal",
-    isCore: false,
-    description: "Demonstrated paraphrasing and responding to what was actually said, confirming understanding.",
-    calculation: "Listening behaviors / Total exchanges (1-5 score)",
-    sampleIndicators: [
-      "Paraphrases HCP statements to check for understanding",
-      "Reacts to both words and emotions",
-      "Asks clarifying follow-up questions",
-      "References earlier points in the conversation"
-    ],
-    keyTip: "Use phrases like 'What I'm hearing is...' and 'If I understand correctly...' to demonstrate active engagement.",
-    whatGoodLooksLike: "Rep paraphrases HCP concerns before responding. Picks up on subtle cues about time pressure or skepticism. Never interrupts.",
-    color: "hsl(173, 80%, 40%)"
-  },
-  {
-    id: "adaptability",
-    name: "Adaptive Communication",
-    displayName: "Adaptive Communication",
-    category: "stress-management",
-    isCore: true,
-    description: "Demonstrated flexibility in adjusting approach based on observed signals, time constraints, and emerging concerns.",
-    calculation: "Adaptive pivots / Signal-triggered opportunities (1-5 score)",
-    sampleIndicators: [
-      "Adjusts depth of detail based on HCP interest",
-      "Pivots when sensing disengagement",
-      "Modifies communication approach based on HCP style",
-      "Respects time constraints by prioritizing key messages"
-    ],
-    keyTip: "Watch for verbal and non-verbal cues. If you sense time pressure, offer: 'I want to respect your time—shall I focus on [key point]?'",
-    whatGoodLooksLike: "Rep notices HCP is rushed and immediately offers a 'headline summary.' Switches from data-heavy to story-based approach when sensing cognitive overload.",
-    color: "hsl(291, 64%, 42%)"
-  },
-  {
-    id: "action-insight",
-    name: "Action Insight",
-    displayName: "Action Insight",
-    category: "decision-making",
-    isCore: false,
-    description: "Demonstrated ability to translate discussion into concrete next steps and commitments.",
-    calculation: "Actionable closes / Opportunities to close (1-5 score)",
-    sampleIndicators: [
-      "Proposes specific next steps",
-      "Asks for commitment to try with appropriate patients",
-      "Schedules follow-up conversations",
-      "Offers resources that match identified needs"
-    ],
-    keyTip: "Always close with a specific ask: 'Would you be open to trying [product] with your next [patient type]?'",
-    whatGoodLooksLike: "Every conversation ends with a clear mutual commitment. Rep confirms understanding of next steps and timeline before departing.",
-    color: "hsl(199, 89%, 48%)"
-  },
-  {
-    id: "resilience",
-    name: "Resilience",
-    displayName: "Resilience",
-    category: "stress-management",
-    isCore: false,
-    description: "Demonstrated composure and effectiveness when facing pushback, rejection, or difficult stakeholder dynamics.",
-    calculation: "Recovery responses / Setback moments (1-5 score)",
-    sampleIndicators: [
-      "Stays positive after rejection",
-      "Reframes 'no' as an opportunity to learn",
-      "Maintains professionalism under pressure",
-      "Seeks alternative paths forward"
-    ],
-    keyTip: "When rejected, respond with 'I appreciate your candor. What would make this worth revisiting in the future?'",
-    whatGoodLooksLike: "Rep handles a firm 'no' gracefully, thanks the HCP for their time, and asks what might change their perspective. Leaves the door open for future dialogue.",
-    color: "hsl(0, 84%, 60%)"
-  }
-];
+// DEPRECATED: Use signalIntelligenceCapabilities instead
+export const eqMetrics: EQMetric[] = [];
 
-// EQ-i 2.0 Composite categories for grouping
-export const eqCategories = {
-  "self-perception": {
-    name: "Self-Perception",
-    description: "Understanding your inner self and confidence",
-    metrics: ["confidence"]
-  },
-  "self-expression": {
-    name: "Self-Expression", 
-    description: "Expressing yourself and your ideas openly",
-    metrics: ["clarity"]
-  },
-  "interpersonal": {
-    name: "Interpersonal",
-    description: "Building and maintaining relationships",
-    metrics: ["empathy", "discovery", "active-listening"]
-  },
-  "decision-making": {
-    name: "Decision Making",
-    description: "Using emotions in problem-solving",
-    metrics: ["compliance", "action-insight"]
-  },
-  "stress-management": {
-    name: "Stress Management",
-    description: "Coping with challenging situations",
-    metrics: ["objection-handling", "adaptability", "resilience"]
-  }
-};
+// DEPRECATED: Use Signal Intelligence™ Capabilities instead
+export const eqCategories = {};
 
 export const sampleSqlQueries = [
   {

@@ -23,6 +23,7 @@ export interface ObservableSignal {
   interpretation: string;
   suggestedResponse?: string;
   timestamp?: string;
+  relatedCapability?: string; // ID of related Signal Intelligence™ Capability
 }
 
 interface SignalIntelligencePanelProps {
@@ -128,7 +129,7 @@ export function SignalIntelligencePanel({
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Radio className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-medium">Signal Intelligence</h4>
+          <h4 className="text-sm font-medium">Signal Intelligence™</h4>
         </div>
         <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
           <Radio className="h-8 w-8 mb-2 opacity-30" />
@@ -169,7 +170,7 @@ export function SignalIntelligencePanel({
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Radio className="h-4 w-4 text-primary" />
-          <h4 className="text-sm font-medium">Signal Intelligence</h4>
+          <h4 className="text-sm font-medium">Signal Intelligence™</h4>
         </div>
         <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
           <Radio className="h-8 w-8 mb-2 opacity-30" />
@@ -242,7 +243,7 @@ export function SignalIntelligencePanel({
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs">
           <p className="text-xs">
-            Signal Intelligence observes verbal, conversational, and engagement cues.
+            Signal Intelligence™ observes verbal, conversational, and engagement cues.
             These are interpretive hypotheses, not definitive conclusions about
             emotional state, personality, or intent.
           </p>
