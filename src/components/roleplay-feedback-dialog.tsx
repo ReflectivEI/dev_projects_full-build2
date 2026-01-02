@@ -23,8 +23,11 @@ import {
   ChevronUp,
   X
 } from "lucide-react";
-import { eqMetrics } from "@/lib/data";
+import { signalIntelligenceCapabilities, SIGNAL_INTELLIGENCE_DISCLAIMER } from "@/lib/signal-intelligence-data";
 import { readEnabledEIMetricIds, EI_METRICS_SETTINGS_EVENT } from "@/lib/eiMetricSettings";
+
+// DEPRECATED: Legacy eqMetrics reference - migrating to Signal Intelligence™
+import { eqMetrics } from "@/lib/data";
 
 interface ComprehensiveFeedback {
   overallScore: number;
@@ -220,14 +223,17 @@ function MetricScoreCard({
   icon?: any;
 }) {
   const [expanded, setExpanded] = useState(false);
+  // Try Signal Intelligence™ capabilities first, fallback to legacy eqMetrics
+  const capability = metricId ? signalIntelligenceCapabilities.find(c => c.id === metricId) : undefined;
   const metricFromRubric = metricId ? eqMetrics.find(m => m.id === metricId) : undefined;
   const metricInfo = metricId ? metricDefinitions[metricId] : null;
-  const definitionText = metricFromRubric?.description ?? metricInfo?.definition;
-  const scoringText = metricFromRubric?.calculation ?? metricInfo?.formula;
-  const observableIndicators = Array.isArray(metricFromRubric?.sampleIndicators)
-    ? metricFromRubric!.sampleIndicators
-    : [];
-  const keyTipText = typeof metricFromRubric?.keyTip === "string" ? metricFromRubric.keyTip : undefined;
+  
+  const definitionText = capability?.definition ?? metricFromRubric?.description ?? metricInfo?.definition;
+  const scoringText = capability?.howCalculated?.[0] ?? metricFromRubric?.calculation ?? metricInfo?.formula;
+  const observableIndicators = capability?.whatGoodLooksLike ?? 
+    (Array.isArray(metricFromRubric?.sampleIndicators) ? metricFromRubric!.sampleIndicators : []);
+  const keyTipText = capability?.howEvaluated ?? 
+    (typeof metricFromRubric?.keyTip === "string" ? metricFromRubric.keyTip : undefined);
   const percentage = totalOpportunities && totalOpportunities > 0 
     ? Math.round((observedBehaviors || 0) / totalOpportunities * 100) 
     : null;
@@ -376,8 +382,9 @@ export function RoleplayFeedbackDialog({
   }
 
   const getMetricName = (metricId: string) => {
+    const capability = signalIntelligenceCapabilities.find(c => c.id === metricId);
     const metric = eqMetrics.find(m => m.id === metricId);
-    return metric?.name || metricId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return capability?.name ?? metric?.name ?? metricId.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   };
 
   const [enabledExtras, setEnabledExtras] = useState<string[]>(() => readEnabledEIMetricIds());
@@ -419,16 +426,12 @@ export function RoleplayFeedbackDialog({
 
         <ScrollArea className="max-h-[calc(90vh-200px)]">
           <div className="p-6 space-y-6">
-            <div className="flex items-center gap-8">
-              <div className="flex-shrink-0">
-                <ScoreRing score={feedback.overallScore} />
-              </div>
-              <div className="flex-1 space-y-3">
-                <h3 className="font-semibold text-lg">Overall Assessment</h3>
-                <p className="text-muted-foreground" data-testid="text-overall-summary">
-                  {feedback.overallSummary}
-                </p>
-              </div>
+            {/* Overall Assessment - No Overall Score */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-lg">Overall Assessment</h3>
+              <p className="text-muted-foreground" data-testid="text-overall-summary">
+                {feedback.overallSummary}
+              </p>
             </div>
 
             <Separator />
@@ -437,7 +440,7 @@ export function RoleplayFeedbackDialog({
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="eq" className="flex items-center gap-2" data-testid="tab-eq-metrics">
                   <Brain className="h-4 w-4" />
-                  <span className="hidden sm:inline">EI Metrics</span>
+                  <span className="hidden sm:inline">Signal Intelligence™</span>
                 </TabsTrigger>
                 <TabsTrigger value="sales" className="flex items-center gap-2" data-testid="tab-sales-skills">
                   <Briefcase className="h-4 w-4" />
@@ -455,8 +458,14 @@ export function RoleplayFeedbackDialog({
 
               <TabsContent value="eq" className="mt-4 space-y-3">
                 <p className="text-sm text-muted-foreground mb-4">
-                  <strong>Layer 1 — Emotional Intelligence:</strong> Demonstrated capabilities measured through observable behaviors. These metrics assess how effectively you perceived signals, adapted your approach, and preserved trust. Click any metric to see definition, calculation, and your specific breakdown.
+                  <strong>Signal Intelligence™ Capabilities:</strong> Behavioral metrics measured through observable signals. These capabilities assess how effectively you perceived cues, adapted your approach, and maintained professional rapport. Click any capability to see definition, evaluation criteria, and your specific breakdown.
                 </p>
+                
+                {/* Mandatory Disclaimer */}
+                <div className="flex gap-2 p-3 rounded-lg bg-muted/50 border border-border text-xs text-muted-foreground">
+                  <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                  <p>{SIGNAL_INTELLIGENCE_DISCLAIMER.full}</p>
+                </div>
                 {(() => {
                   const root: any = (feedback as any)?.analysis ?? (feedback as any);
 
@@ -465,35 +474,22 @@ export function RoleplayFeedbackDialog({
 
                   const aggregateScore = normalizeToFive(root?.eqScore ?? feedback.overallScore);
 
+                  // Use Signal Intelligence™ Capabilities (8 total)
+                  const capabilityIds = signalIntelligenceCapabilities.map(c => c.id);
+                  
                   const fallbackFieldByMetricId: Record<string, string> = {
-                    empathy: "empathyScore",
-                    clarity: "clarityScore",
-                    discovery: "discoveryScore",
-                    adaptability: "adaptabilityScore",
-                    resilience: "resilienceScore",
+                    "trust-building": "trustBuildingScore",
+                    "active-listening": "activeListeningScore",
+                    "adaptive-communication": "adaptiveCommunicationScore",
+                    "objection-handling": "objectionHandlingScore",
+                    "discovery-depth": "discoveryDepthScore",
+                    "value-articulation": "valueArticulationScore",
+                    "compliance-awareness": "complianceAwarenessScore",
+                    "action-orientation": "actionOrientationScore",
                   };
 
-                  const coreMetricIds = eqMetrics.filter(m => m.isCore).map(m => m.id);
-                  const enabledSet = new Set(enabledExtras);
-                  const extraMetricIds = eqMetrics
-                    .filter(m => !m.isCore)
-                    .map(m => m.id)
-                    .filter(id => enabledSet.has(id));
-
-                  const metricOrder = [...coreMetricIds, ...extraMetricIds];
-
-                  const items = [
-                    {
-                      key: "eq:aggregate",
-                      metricId: undefined as string | undefined,
-                      name: "EQ Score (Aggregate)",
-                      score: aggregateScore,
-                      feedbackText: feedback.overallSummary || "Overall session summary.",
-                      observedBehaviors: undefined as number | undefined,
-                      totalOpportunities: undefined as number | undefined,
-                      calculationNote: undefined as string | undefined,
-                    },
-                    ...metricOrder.map((metricId) => {
+                  // NO AGGREGATE SCORE - display 8 capabilities only
+                  const items = capabilityIds.map((metricId) => {
                       const detail = byId.get(metricId);
                       const fallbackField = fallbackFieldByMetricId[metricId];
                       const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;

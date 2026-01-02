@@ -33,10 +33,25 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { scenarios, diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties, getPerformanceLevel } from "@/lib/data";
-import { CompactEQAnalysis, type EQAnalysisResult, type EQScore } from "@/components/live-eq-analysis";
+import { BehavioralMetricsPanel } from "@/components/behavioral-metrics-panel";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
+
+// Local type definitions for EQ analysis (migrating to Signal Intelligence™)
+interface EQScore {
+  metricId: string;
+  score: number;
+  maxScore: number;
+}
+
+interface EQAnalysisResult {
+  overallScore: number;
+  scores: EQScore[];
+  summary: string;
+  timestamp: string;
+  coachingTip?: string;
+}
 
 interface ComprehensiveFeedback {
   overallScore: number;
@@ -1133,20 +1148,68 @@ export default function RolePlayPage() {
 
           <Card className="w-80 flex-shrink-0 hidden xl:flex flex-col">
             <CardContent className="flex-1 pt-6 space-y-6">
-              <SignalIntelligencePanel
-                signals={sessionSignals}
-                isLoading={sendResponseMutation.isPending}
-                hasActivity={sessionSignals.length > 0}
-                compact={true}
-              />
+              {/* Situational Cues */}
+              {selectedScenario && (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-medium">Situational Cues</h4>
+                  </div>
+                  <div className="space-y-2 text-xs text-muted-foreground">
+                    {selectedScenario.initialCue && (
+                      <div className="p-2 rounded-md bg-muted/50">
+                        <span className="font-medium text-foreground">Initial Cue: </span>
+                        {selectedScenario.initialCue}
+                      </div>
+                    )}
+                    {selectedScenario.environmentalContext && (
+                      <div className="p-2 rounded-md bg-muted/50">
+                        <span className="font-medium text-foreground">Context: </span>
+                        {selectedScenario.environmentalContext}
+                      </div>
+                    )}
+                    {selectedScenario.hcpMood && (
+                      <div className="p-2 rounded-md bg-muted/50">
+                        <span className="font-medium text-foreground">HCP Mood: </span>
+                        {selectedScenario.hcpMood}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
 
+              {/* Signal Intelligence™ */}
               <div className="border-t pt-4">
-                <CompactEQAnalysis
-                  analysis={sessionEQ}
-                  isLoading={isEQLoading || sendResponseMutation.isPending}
-                  hasMessages={messages.filter(m => m.role === "user").length > 0}
+                <SignalIntelligencePanel
+                  signals={sessionSignals}
+                  isLoading={sendResponseMutation.isPending}
+                  hasActivity={sessionSignals.length > 0}
+                  compact={true}
                 />
               </div>
+
+              {/* Behavioral Metrics */}
+              <div className="border-t pt-4">
+                <BehavioralMetricsPanel
+                  scores={sessionEQ?.scores || []}
+                  isLoading={isEQLoading || sendResponseMutation.isPending}
+                  hasActivity={messages.filter(m => m.role === "user").length > 0}
+                  compact={true}
+                />
+              </div>
+
+              {/* Coaching Feedback */}
+              {sessionEQ?.coachingTip && (
+                <div className="border-t pt-4 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-medium">Coaching Feedback</h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {sessionEQ.coachingTip}
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
