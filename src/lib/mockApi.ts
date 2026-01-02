@@ -1,7 +1,7 @@
 // Mock API for GitHub Pages deployment (no backend available)
 // This provides mock responses for all API endpoints
 
-export const MOCK_API_ENABLED = true; // Set to false when Cloudflare Worker is deployed
+export const MOCK_API_ENABLED = false; // Cloudflare Worker is deployed and operational
 
 interface MockResponse {
   status: number;
@@ -108,5 +108,11 @@ export async function mockApiRequest(
 }
 
 export function isMockApiEnabled(): boolean {
-  return MOCK_API_ENABLED && typeof window !== 'undefined' && window.location.hostname.includes('github.io');
+  const enabled = MOCK_API_ENABLED && typeof window !== 'undefined' && window.location.hostname.includes('github.io');
+  console.log('🔍 [mockApi] isMockApiEnabled:', enabled, {
+    MOCK_API_ENABLED,
+    hostname: typeof window !== 'undefined' ? window.location.hostname : 'N/A',
+    isGitHubPages: typeof window !== 'undefined' ? window.location.hostname.includes('github.io') : false
+  });
+  return enabled;
 }
