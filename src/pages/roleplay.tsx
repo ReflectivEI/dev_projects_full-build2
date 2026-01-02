@@ -1191,7 +1191,11 @@ export default function RolePlayPage() {
               {/* Behavioral Metrics */}
               <div className="border-t pt-4">
                 <BehavioralMetricsPanel
-                  scores={sessionEQ?.scores || []}
+                  scores={(sessionEQ?.scores || []).map(s => ({
+                    capabilityId: s.metricId,
+                    score: s.score,
+                    maxScore: s.maxScore,
+                  }))}
                   isLoading={isEQLoading || sendResponseMutation.isPending}
                   hasActivity={messages.filter(m => m.role === "user").length > 0}
                   compact={true}

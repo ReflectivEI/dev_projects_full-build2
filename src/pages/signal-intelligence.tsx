@@ -217,7 +217,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
   );
 }
 
-export default function EIMetricsPage() {
+export default function SignalIntelligencePage() {
   const [selectedMetric, setSelectedMetric] = useState<MetricWithScore | null>(null);
   const [extendedMetricState, setExtendedMetricState] = useState<Record<string, boolean>>(() => {
     const defaults = extendedMetricsWithScores.reduce<Record<string, boolean>>(

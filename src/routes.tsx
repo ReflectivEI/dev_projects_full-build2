@@ -6,7 +6,7 @@ export type Path =
   | '/exercises'
   | '/modules'
   | '/frameworks'
-  | '/ei-metrics'
+  | '/signal-intelligence'
   | '/data-reports'
   | '/knowledge'
   | '/sql'

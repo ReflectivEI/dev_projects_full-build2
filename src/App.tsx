@@ -15,7 +15,7 @@ import RolePlayPage from "@/pages/roleplay";
 import ModulesPage from "@/pages/modules";
 import FrameworksPage from "@/pages/frameworks";
 import KnowledgePage from "@/pages/knowledge";
-import EIMetricsPage from "@/pages/ei-metrics";
+import SignalIntelligencePage from "@/pages/signal-intelligence";
 import ExercisesPage from "@/pages/exercises";
 import DataReportsPage from "@/pages/data-reports";
 import SqlPage from "@/pages/sql";
@@ -30,7 +30,7 @@ function Router() {
       <Route path="/exercises" component={ExercisesPage} />
       <Route path="/modules" component={ModulesPage} />
       <Route path="/frameworks" component={FrameworksPage} />
-      <Route path="/ei-metrics" component={EIMetricsPage} />
+      <Route path="/signal-intelligence" component={SignalIntelligencePage} />
       <Route path="/data-reports" component={DataReportsPage} />
       <Route path="/knowledge" component={KnowledgePage} />
       <Route path="/sql" component={SqlPage} />
