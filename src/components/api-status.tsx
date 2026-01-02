@@ -13,7 +13,7 @@ interface ApiStatus {
 
 export function ApiStatusBanner() {
   const { data: status } = useQuery<ApiStatus>({
-    queryKey: ["/api/status"],
+    queryKey: ["/api/health"],
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   });
@@ -40,7 +40,7 @@ export function ApiStatusBanner() {
 
 export function ApiStatusBadge() {
   const { data: status } = useQuery<ApiStatus>({
-    queryKey: ["/api/status"],
+    queryKey: ["/api/health"],
     refetchOnWindowFocus: false,
     staleTime: Infinity,
   });

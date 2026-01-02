@@ -27,10 +27,14 @@ export async function mockApiRequest(
   const path = url.replace(/^https?:\/\/[^\/]+/, '');
 
   // Route to appropriate mock handler
-  if (path === '/api/status' || path === '/status') {
+  if (path === '/api/health' || path === '/health' || path === '/api/status' || path === '/status') {
     return {
       status: 200,
       data: {
+        ok: true,
+        status: 'ok',
+        worker: 'mock-api',
+        aiConfigured: false,
         openaiConfigured: false,
         message: 'Demo Mode - Using mock data (GitHub Pages deployment)'
       },
