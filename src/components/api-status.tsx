@@ -15,8 +15,11 @@ export function ApiStatusBanner() {
   const { data: status } = useQuery<ApiStatus>({
     queryKey: ["/api/health"],
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: 0, // Force fresh fetch every time
+    cacheTime: 0, // Don't cache the result
   });
+  
+  console.log('🟢 [ApiStatusBanner] Query result:', status);
 
   // Check both field names for backward compatibility
   const isConfigured = status?.openaiConfigured || status?.aiConfigured;
@@ -42,8 +45,11 @@ export function ApiStatusBadge() {
   const { data: status } = useQuery<ApiStatus>({
     queryKey: ["/api/health"],
     refetchOnWindowFocus: false,
-    staleTime: Infinity,
+    staleTime: 0, // Force fresh fetch every time
+    cacheTime: 0, // Don't cache the result
   });
+  
+  console.log('🟢 [ApiStatusBadge] Query result:', status);
 
   if (!status) {
     return null;

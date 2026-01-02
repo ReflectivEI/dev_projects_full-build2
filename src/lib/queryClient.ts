@@ -171,18 +171,22 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
     async ({ queryKey }) => {
       const path = queryKey.join("/") as string;
+      console.log('🔍 [getQueryFn] Executing query for path:', path);
 
       // Use mock API on GitHub Pages
       if (isMockApiEnabled()) {
+        console.log('🔍 [getQueryFn] Using mock API');
         const mockRes = await mockApiRequest('GET', path);
         return mockRes.data;
       }
+      console.log('🔍 [getQueryFn] Using real API, calling buildUrl...');
 
       if (!getSessionId()) {
         await ensureSessionId();
       }
       const fullUrl = buildUrl(path);
       const isExternalApi = !!API_BASE_URL;
+      console.log('🔍 [getQueryFn] About to fetch:', fullUrl);
 
       const res = await fetch(fullUrl, {
         headers: getHeaders(false),
