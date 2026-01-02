@@ -507,8 +507,7 @@ export function RoleplayFeedbackDialog({
                         totalOpportunities: detail?.totalOpportunities,
                         calculationNote: detail?.calculationNote,
                       };
-                    }),
-                  ];
+                    });
 
                   return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
