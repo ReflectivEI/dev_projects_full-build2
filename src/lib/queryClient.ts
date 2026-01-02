@@ -188,10 +188,18 @@ export const getQueryFn: <T>(options: {
       const isExternalApi = !!API_BASE_URL;
       console.log('🔍 [getQueryFn] About to fetch:', fullUrl);
 
+      console.log('🚨 [getQueryFn] BEFORE FETCH - URL:', fullUrl);
+      console.log('🚨 [getQueryFn] BEFORE FETCH - Headers:', getHeaders(false));
+      console.log('🚨 [getQueryFn] BEFORE FETCH - Credentials:', isExternalApi ? "omit" : "include");
+      
       const res = await fetch(fullUrl, {
         headers: getHeaders(false),
         credentials: isExternalApi ? "omit" : "include",
       });
+      
+      console.log('🚨 [getQueryFn] AFTER FETCH - Status:', res.status);
+      console.log('🚨 [getQueryFn] AFTER FETCH - URL:', res.url);
+      console.log('🚨 [getQueryFn] AFTER FETCH - OK:', res.ok);
 
       const nextSession = res.headers.get("x-session-id");
       setSessionId(nextSession);
@@ -201,7 +209,9 @@ export const getQueryFn: <T>(options: {
       }
 
       await throwIfResNotOk(res);
-      return await res.json();
+      const jsonData = await res.json();
+      console.log('🚨 [getQueryFn] Response JSON:', jsonData);
+      return jsonData;
     };
 
 export const queryClient = new QueryClient({
