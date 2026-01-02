@@ -19,7 +19,12 @@ window.addEventListener('unhandledrejection', (event) => {
   console.error('===================================')
 });
 
-console.log('Starting app initialization...');
+console.log('🚀 Starting app initialization... [Cache Buster: 2026-01-02T02:15:00Z]');
+console.log('🔧 Environment check:', {
+  DEV: import.meta.env.DEV,
+  MODE: import.meta.env.MODE,
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL
+});
 
 try {
   const root = document.getElementById("root");

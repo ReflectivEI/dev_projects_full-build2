@@ -1,5 +1,6 @@
 // ⚠️ PLATFORM CONTRACT — DO NOT MODIFY WITHOUT API VERSIONING
 // API base is driven by VITE_WORKER_URL and contracts must match cloudflare-worker-api.md.
+// Last updated: 2026-01-02T02:15:00Z - Force browser cache refresh
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { isMockApiEnabled, mockApiRequest, getMockSessionId } from "./mockApi";
 
@@ -17,6 +18,13 @@ const API_BASE_URL =
   import.meta.env.VITE_WORKER_URL ||
   import.meta.env.VITE_API_BASE_URL ||
   "https://saleseq-coach-prod.tonyabdelmalak.workers.dev";
+
+// Debug: Log the API base URL (FORCE REFRESH v2)
+console.log('🔧 [QueryClient] API_BASE_URL:', API_BASE_URL);
+console.log('🔧 [QueryClient] import.meta.env.DEV:', import.meta.env.DEV);
+console.log('🔧 [QueryClient] import.meta.env.VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+console.log('🔧 [QueryClient] RUNTIME_BASE:', RUNTIME_BASE);
+console.log('🔧 [QueryClient] Cache buster: 2026-01-02T02:15:00Z');
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
 const SESSION_STORAGE_KEY = "reflectivai-session-id";
@@ -84,12 +92,15 @@ const API_KEY = import.meta.env.VITE_API_KEY || "";
 
 function buildUrl(path: string): string {
   if (!API_BASE_URL) {
+    console.log('[buildUrl] No API_BASE_URL, returning path as-is:', path);
     return path;
   }
   // Remove trailing slash from base and leading slash from path to avoid double slashes
   const base = API_BASE_URL.replace(/\/$/, "");
   const cleanPath = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${cleanPath}`;
+  const fullUrl = `${base}${cleanPath}`;
+  console.log('[buildUrl] Built URL:', fullUrl, 'from path:', path);
+  return fullUrl;
 }
 
 function getHeaders(includeContentType: boolean = false): HeadersInit {
