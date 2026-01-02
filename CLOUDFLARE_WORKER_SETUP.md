@@ -1,373 +1,523 @@
-# Cloudflare Worker Duplication Guide
+# Cloudflare Worker Setup Guide
+
+**Project:** ReflectivAI  
+**Worker Path:** `/worker/`  
+**Configuration File:** `worker/wrangler.toml`  
+**Main Script:** `worker/index.js`
+
+---
 
 ## Overview
 
-This guide helps you create a **development copy** of your stable Cloudflare Worker, allowing you to test API changes without affecting your production environment.
+The ReflectivAI Cloudflare Worker provides the AI-powered backend for:
+- Chat coaching with Signal Intelligence™
+- Roleplay simulations with behavioral analysis
+- Dashboard insights and daily focus
+- SQL translation
+- Knowledge base Q&A
+- Sales frameworks and heuristics
 
 ---
 
-## Why Duplicate Your Worker?
+## Prerequisites
 
-✅ **Safe Testing** - Modify API endpoints without breaking stable functionality
-✅ **Parallel Development** - Work on new features while keeping production stable
-✅ **Easy Rollback** - Keep your stable worker unchanged as a fallback
-✅ **Version Control** - Maintain separate dev and production versions
-
----
-
-## Step 1: Duplicate Your Worker in Cloudflare Dashboard
-
-### Manual Duplication Process:
-
-1. **Log into Cloudflare Dashboard**
-   - Go to https://dash.cloudflare.com
-   - Navigate to **Workers & Pages**
-
-2. **Find Your Stable Worker**
-   - Locate your existing worker (e.g., `reflectivai-api`)
-   - Click on the worker name to open it
-
-3. **Copy the Worker Code**
-   - Click **Quick Edit** or **Edit Code**
-   - Select all code (Ctrl+A / Cmd+A)
-   - Copy to clipboard (Ctrl+C / Cmd+C)
-
-4. **Create New Worker**
-   - Go back to Workers & Pages overview
-   - Click **Create Application**
-   - Select **Create Worker**
-   - Name it: `reflectivai-api-dev` (or similar)
-   - Click **Deploy**
-
-5. **Paste Your Code**
-   - Click **Quick Edit** on the new worker
-   - Delete the default code
-   - Paste your copied code (Ctrl+V / Cmd+V)
-   - Click **Save and Deploy**
-
-6. **Copy the New Worker URL**
-   - You'll see a URL like: `https://reflectivai-api-dev.your-subdomain.workers.dev`
-   - Copy this URL - you'll need it in Step 2
+1. **Cloudflare Account** - Free tier works for development
+2. **Wrangler CLI** - Cloudflare's deployment tool
+3. **Groq API Key** - Primary AI provider (free tier available)
+4. **OpenAI API Key** (optional) - Fallback provider
 
 ---
 
-## Step 2: Update Frontend Configuration
+## Step-by-Step Setup
 
-### Update `.env` File
-
-Replace the placeholder URL with your actual dev worker URL:
+### Step 1: Install Wrangler CLI
 
 ```bash
-# Before:
-VITE_API_BASE_URL=https://reflectivai-api-dev.your-subdomain.workers.dev
+# Install globally
+npm install -g wrangler
 
-# After (example):
-VITE_API_BASE_URL=https://reflectivai-api-dev.mycompany.workers.dev
+# Verify installation
+wrangler --version
 ```
 
-### Verify Configuration
+### Step 2: Login to Cloudflare
 
 ```bash
-# Check that the URL is set correctly
-cat .env | grep VITE_API_BASE_URL
+# Authenticate with Cloudflare
+wrangler login
+
+# This will open a browser window to authorize
+# Follow the prompts to complete authentication
+```
+
+### Step 3: Create KV Namespace
+
+KV (Key-Value) storage is used for session management.
+
+```bash
+# Navigate to worker directory
+cd worker
+
+# Create KV namespace
+wrangler kv:namespace create "SESS"
+
+# Output will look like:
+# ⛅️ wrangler 3.x.x
+# 🌀 Creating namespace with title "reflectivai-worker-SESS"
+# ✨ Success!
+# Add the following to your configuration file in your kv_namespaces array:
+# [[kv_namespaces]]
+# binding = "SESS"
+# id = "abc123def456ghi789jkl012mno345pq"
+```
+
+**IMPORTANT:** Copy the `id` value from the output.
+
+### Step 4: Update wrangler.toml
+
+Edit `worker/wrangler.toml` and replace `YOUR_KV_NAMESPACE_ID` with the ID from Step 3:
+
+```toml
+[[kv_namespaces]]
+binding = "SESS"
+id = "abc123def456ghi789jkl012mno345pq"  # ← Replace with your actual ID
+```
+
+### Step 5: Set API Key Secrets
+
+Secrets are encrypted environment variables that are never exposed in code.
+
+#### Option A: Single Groq API Key
+
+```bash
+# Set single API key
+wrangler secret put PROVIDER_KEY
+
+# When prompted, paste your Groq API key:
+# gsk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+#### Option B: Multiple Groq API Keys (Load Balancing)
+
+```bash
+# Set multiple keys (semicolon separated)
+wrangler secret put PROVIDER_KEYS
+
+# When prompted, paste keys separated by semicolons:
+# gsk_key1;gsk_key2;gsk_key3
+```
+
+#### Option C: OpenAI Fallback (Optional)
+
+```bash
+# Set OpenAI API key as fallback
+wrangler secret put OPENAI_API_KEY
+
+# When prompted, paste your OpenAI API key:
+# sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+```
+
+**Note:** You need either `PROVIDER_KEY` or `PROVIDER_KEYS`. `OPENAI_API_KEY` is optional.
+
+### Step 6: Update CORS Origins (Optional)
+
+If you have custom domains, add them to `wrangler.toml`:
+
+```toml
+[vars]
+CORS_ORIGINS = "https://reflectivei.github.io,https://yxpzdb7o9z.preview.c24.airoapp.ai,https://your-custom-domain.com,http://localhost:5173"
+```
+
+**Current domains configured:**
+- `https://reflectivei.github.io` - GitHub Pages
+- `https://yxpzdb7o9z.preview.c24.airoapp.ai` - Preview environment
+- `https://reflectivai-app-prod.pages.dev` - Production Cloudflare Pages
+- `https://production.reflectivai-app-prod.pages.dev` - Production subdomain
+- `http://localhost:5173` - Local development (Vite)
+- `http://localhost:3000` - Local development (alternative)
+
+### Step 7: Deploy Worker
+
+```bash
+# Deploy to Cloudflare
+wrangler deploy
+
+# Output will show:
+# ⛅️ wrangler 3.x.x
+# Total Upload: XX.XX KiB / gzip: XX.XX KiB
+# Uploaded reflectivai-worker (X.XX sec)
+# Published reflectivai-worker (X.XX sec)
+#   https://reflectivai-worker.YOUR_SUBDOMAIN.workers.dev
+# Current Deployment ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
+**IMPORTANT:** Copy the worker URL from the output.
+
+### Step 8: Test Deployment
+
+```bash
+# Set worker URL (replace with your actual URL)
+export WORKER_URL="https://reflectivai-worker.YOUR_SUBDOMAIN.workers.dev"
+
+# Test health endpoint
+curl "$WORKER_URL/health"
+
+# Expected response:
+# {"ok":true,"status":"ok","worker":"reflectivai-v2","aiConfigured":true,"message":"AI provider configured"}
+
+# Test status endpoint
+curl "$WORKER_URL/api/status"
+
+# Test dashboard insights
+curl "$WORKER_URL/api/dashboard/insights"
+```
+
+### Step 9: Update Frontend Configuration
+
+Update your frontend to use the worker URL:
+
+**Option A: Environment Variable**
+
+Create or update `.env` file:
+```bash
+VITE_API_BASE_URL=https://reflectivai-worker.YOUR_SUBDOMAIN.workers.dev
+```
+
+**Option B: Configuration File**
+
+Update `src/lib/api-client.ts` or similar:
+```typescript
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://reflectivai-worker.YOUR_SUBDOMAIN.workers.dev';
 ```
 
 ---
 
-## Step 3: Test the Connection
+## Required Environment Variables
 
-### Start the Development Server
+### Secrets (Set via `wrangler secret put`)
 
-```bash
-npm run dev
-```
+| Variable | Description | Required | Format | Example |
+|----------|-------------|----------|--------|----------|
+| `PROVIDER_KEY` | Single Groq API key | Yes* | `gsk_...` | `gsk_abc123...` |
+| `PROVIDER_KEYS` | Multiple Groq keys (semicolon separated) | Yes* | `gsk_...;gsk_...` | `gsk_key1;gsk_key2` |
+| `OPENAI_API_KEY` | OpenAI fallback key | No | `sk-...` | `sk-abc123...` |
 
-### Test API Connection
+*Either `PROVIDER_KEY` or `PROVIDER_KEYS` is required
 
-1. Open the app in your browser
-2. Navigate to the Dashboard (`/`)
-3. Check the **API Status** indicator in the header
-   - 🟢 Green = Connected to dev worker
-   - 🔴 Red = Connection failed
+### Public Variables (In `wrangler.toml`)
 
-### Test Specific Endpoints
+| Variable | Description | Default | Customizable |
+|----------|-------------|---------|-------------|
+| `PROVIDER_URL` | Groq API endpoint | `https://api.groq.com/openai/v1/chat/completions` | No |
+| `PROVIDER_MODEL` | Groq model name | `llama-3.3-70b-versatile` | Yes |
+| `CORS_ORIGINS` | Allowed origins (comma-separated) | See wrangler.toml | Yes |
 
-- **Chat**: Go to `/chat` and send a message
-- **Roleplay**: Go to `/roleplay` and start a scenario
-- **Dashboard**: Check if daily insights load
+### KV Namespace (In `wrangler.toml`)
 
----
-
-## Step 4: Modify Your Dev Worker (Optional)
-
-Now you can safely modify your dev worker without affecting the stable version.
-
-### Common Modifications:
-
-#### 1. Add New Endpoint
-
-```javascript
-// In your dev worker
-if (url.pathname === '/api/new-feature') {
-  return new Response(JSON.stringify({ message: 'New feature' }), {
-    headers: corsHeaders,
-  });
-}
-```
-
-#### 2. Modify Existing Endpoint
-
-```javascript
-// Change response structure
-if (url.pathname === '/api/chat/send') {
-  // Add new fields to response
-  return new Response(JSON.stringify({
-    message: aiResponse,
-    timestamp: Date.now(),
-    sessionId: sessionId, // New field
-  }), {
-    headers: corsHeaders,
-  });
-}
-```
-
-#### 3. Update CORS Headers
-
-```javascript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': 'https://yxpzdb7o9z.preview.c24.airoapp.ai',
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-```
+| Binding | Description | Required | Setup Command |
+|---------|-------------|----------|---------------|
+| `SESS` | Session storage | Yes | `wrangler kv:namespace create "SESS"` |
 
 ---
 
-## Step 5: Switch Between Workers
+## Getting API Keys
 
-### Use Dev Worker (Current Setup)
+### Groq API Key (Primary Provider)
 
-```bash
-# .env
-VITE_API_BASE_URL=https://reflectivai-api-dev.your-subdomain.workers.dev
-```
+1. Go to https://console.groq.com/
+2. Sign up or log in
+3. Navigate to "API Keys" section
+4. Click "Create API Key"
+5. Copy the key (starts with `gsk_`)
+6. **Free tier:** 14,400 requests/day, 30 requests/minute
 
-### Use Stable Worker (Fallback)
+### OpenAI API Key (Optional Fallback)
 
-```bash
-# .env
-VITE_API_BASE_URL=https://reflectivai-api.your-subdomain.workers.dev
-```
-
-### Quick Switch Script
-
-You can create npm scripts for easy switching:
-
-```json
-// package.json
-{
-  "scripts": {
-    "dev": "vite",
-    "dev:stable": "VITE_API_BASE_URL=https://reflectivai-api.workers.dev vite",
-    "dev:test": "VITE_API_BASE_URL=https://reflectivai-api-dev.workers.dev vite"
-  }
-}
-```
+1. Go to https://platform.openai.com/
+2. Sign up or log in
+3. Navigate to "API Keys" section
+4. Click "Create new secret key"
+5. Copy the key (starts with `sk-`)
+6. **Note:** OpenAI requires payment setup
 
 ---
 
-## Worker Environment Variables
+## Verification Checklist
 
-If your worker uses environment variables (secrets), you need to copy them to the dev worker:
+Before deploying to production, verify:
 
-### In Cloudflare Dashboard:
+- [ ] Wrangler CLI installed and authenticated
+- [ ] KV namespace created and ID added to `wrangler.toml`
+- [ ] At least one API key secret set (`PROVIDER_KEY` or `PROVIDER_KEYS`)
+- [ ] CORS origins include your production domain
+- [ ] Worker deployed successfully
+- [ ] Health endpoint returns `{"ok":true}`
+- [ ] Status endpoint returns endpoint list
+- [ ] Frontend configured with worker URL
+- [ ] Test chat endpoint works
+- [ ] Test roleplay endpoint works
 
-1. Go to your **stable worker**
-2. Click **Settings** → **Variables**
-3. Note down all environment variables
-4. Go to your **dev worker**
-5. Click **Settings** → **Variables**
-6. Add the same variables
+---
 
-### Common Variables:
+## Common Commands
 
-- `OPENAI_API_KEY` - OpenAI API key for AI responses
-- `DATABASE_URL` - Database connection string
-- `API_SECRET` - Internal API authentication
-- `SESSION_SECRET` - Session encryption key
+### Deployment
+
+```bash
+# Deploy worker
+wrangler deploy
+
+# Deploy with specific environment
+wrangler deploy --env production
+```
+
+### Secrets Management
+
+```bash
+# List all secrets
+wrangler secret list
+
+# Add/update secret
+wrangler secret put SECRET_NAME
+
+# Delete secret
+wrangler secret delete SECRET_NAME
+```
+
+### KV Management
+
+```bash
+# List KV namespaces
+wrangler kv:namespace list
+
+# List keys in namespace
+wrangler kv:key list --namespace-id YOUR_KV_NAMESPACE_ID
+
+# Get specific key value
+wrangler kv:key get "sess:SESSION_ID" --namespace-id YOUR_KV_NAMESPACE_ID
+
+# Delete key
+wrangler kv:key delete "sess:SESSION_ID" --namespace-id YOUR_KV_NAMESPACE_ID
+```
+
+### Monitoring
+
+```bash
+# View real-time logs
+wrangler tail
+
+# Filter logs by status
+wrangler tail --status error
+
+# Filter logs by method
+wrangler tail --method POST
+
+# View recent logs (last 5 minutes)
+wrangler tail --since 5m
+```
+
+### Deployments
+
+```bash
+# List deployments
+wrangler deployments list
+
+# View specific deployment
+wrangler deployments view DEPLOYMENT_ID
+
+# Rollback to previous deployment
+wrangler rollback DEPLOYMENT_ID
+```
 
 ---
 
 ## Troubleshooting
 
-### Issue: "API Status: Disconnected"
+### Issue: "KV namespace not found"
 
-**Possible Causes:**
-1. Worker URL is incorrect in `.env`
-2. Worker is not deployed
-3. CORS headers are missing
-4. Worker has runtime errors
+**Cause:** KV namespace ID not set or incorrect in `wrangler.toml`
 
-**Solutions:**
-1. Verify URL in `.env` matches your worker URL
-2. Check worker logs in Cloudflare Dashboard
-3. Add CORS headers to all responses
-4. Check worker code for syntax errors
-
-### Issue: "CORS Error"
-
-**Solution:** Add CORS headers to your worker:
-
-```javascript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Or specific domain
-  'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-};
-
-// Handle OPTIONS preflight
-if (request.method === 'OPTIONS') {
-  return new Response(null, { headers: corsHeaders });
-}
-
-// Add to all responses
-return new Response(JSON.stringify(data), {
-  headers: {
-    'Content-Type': 'application/json',
-    ...corsHeaders,
-  },
-});
-```
-
-### Issue: "Worker responds but frontend shows errors"
-
-**Possible Causes:**
-1. Response format doesn't match frontend expectations
-2. Missing required fields in response
-3. Wrong HTTP status codes
-
-**Solutions:**
-1. Check browser console for specific errors
-2. Compare response structure with `cloudflare-worker-api.md`
-3. Ensure status codes match (200 for success, 400 for errors, etc.)
-
----
-
-## Best Practices
-
-### 1. Version Your Workers
-
-```
-reflectivai-api          → Stable/Production
-reflectivai-api-dev      → Development/Testing
-reflectivai-api-staging  → Pre-production (optional)
-```
-
-### 2. Use Environment-Specific URLs
-
+**Solution:**
 ```bash
-# Development
-VITE_API_BASE_URL=https://reflectivai-api-dev.workers.dev
+# List KV namespaces
+wrangler kv:namespace list
 
-# Staging
-VITE_API_BASE_URL=https://reflectivai-api-staging.workers.dev
+# Copy the correct ID and update wrangler.toml
+# [[kv_namespaces]]
+# binding = "SESS"
+# id = "YOUR_ACTUAL_KV_NAMESPACE_ID"
 
-# Production
-VITE_API_BASE_URL=https://reflectivai-api.workers.dev
+# Redeploy
+wrangler deploy
 ```
 
-### 3. Document API Changes
+### Issue: "401 Unauthorized" from AI provider
 
-When you modify the dev worker, document changes:
+**Cause:** API key not set or invalid
 
-```markdown
-## API Changes in Dev Worker
-
-### Added Endpoints:
-- `POST /api/new-feature` - Description
-
-### Modified Endpoints:
-- `POST /api/chat/send` - Added `sessionId` field to response
-
-### Breaking Changes:
-- `GET /api/roleplay/session` - Changed response structure
-```
-
-### 4. Test Before Promoting to Stable
-
-Before copying dev worker changes to stable:
-
-- ✅ Test all endpoints
-- ✅ Verify error handling
-- ✅ Check CORS configuration
-- ✅ Test with real data
-- ✅ Review logs for errors
-
----
-
-## Promoting Dev Changes to Stable
-
-When your dev worker is ready:
-
-1. **Backup Stable Worker**
-   - Copy stable worker code to a file
-   - Save as `worker-backup-YYYY-MM-DD.js`
-
-2. **Copy Dev Worker Code**
-   - Open dev worker in Cloudflare Dashboard
-   - Copy all code
-
-3. **Update Stable Worker**
-   - Open stable worker
-   - Paste dev worker code
-   - Click **Save and Deploy**
-
-4. **Test Stable Worker**
-   - Update `.env` to use stable worker URL
-   - Run full test suite
-   - Verify all features work
-
-5. **Rollback if Needed**
-   - If issues occur, paste backup code
-   - Deploy backup version
-
----
-
-## Quick Reference
-
-### Current Configuration
-
+**Solution:**
 ```bash
-# Frontend uses DEV worker
-VITE_API_BASE_URL=https://reflectivai-api-dev.your-subdomain.workers.dev
+# Verify secrets are set
+wrangler secret list
 
-# Stable worker (reference only)
-VITE_API_BASE_URL_STABLE=https://reflectivai-api.your-subdomain.workers.dev
+# Re-add API key
+wrangler secret put PROVIDER_KEY
+# Paste your Groq API key when prompted
+
+# Redeploy
+wrangler deploy
 ```
 
-### Worker URLs
+### Issue: CORS errors in browser
 
-- **Dev Worker**: `https://reflectivai-api-dev.your-subdomain.workers.dev`
-- **Stable Worker**: `https://reflectivai-api.your-subdomain.workers.dev`
+**Cause:** Frontend domain not in CORS_ORIGINS
 
-### Testing Checklist
+**Solution:**
+```bash
+# Edit wrangler.toml and add your domain to CORS_ORIGINS
+[vars]
+CORS_ORIGINS = "https://reflectivei.github.io,https://your-domain.com"
 
-- [ ] API Status shows connected
-- [ ] Chat sends and receives messages
-- [ ] Roleplay scenarios load
-- [ ] Dashboard insights display
-- [ ] No CORS errors in console
-- [ ] All endpoints respond correctly
+# Redeploy
+wrangler deploy
+```
+
+### Issue: Worker not responding
+
+**Cause:** Deployment failed or worker crashed
+
+**Solution:**
+```bash
+# Check deployment status
+wrangler deployments list
+
+# View recent logs
+wrangler tail --since 10m
+
+# Redeploy
+wrangler deploy
+```
+
+### Issue: "Rate limit exceeded"
+
+**Cause:** Groq free tier limits reached
+
+**Solution:**
+- Use multiple API keys with `PROVIDER_KEYS` for load balancing
+- Add OpenAI as fallback with `OPENAI_API_KEY`
+- Upgrade Groq plan
+
+---
+
+## API Endpoints
+
+Once deployed, the worker provides these endpoints:
+
+### Health & Status
+- `GET /health` - Health check
+- `GET /api/status` - Detailed status with endpoint list
+
+### Chat Coaching
+- `POST /api/chat/send` - Send coaching message
+- `GET /api/chat/messages` - Get conversation history
+- `POST /api/chat/clear` - Clear chat history
+- `GET|POST /api/chat/summary` - Generate session summary
+
+### Roleplay Simulations
+- `POST /api/roleplay/start` - Start roleplay scenario
+- `POST /api/roleplay/respond` - Send rep message, get HCP response
+- `POST /api/roleplay/end` - End roleplay, get comprehensive feedback
+- `GET /api/roleplay/session` - Get active session
+
+### Dashboard & Insights
+- `GET /api/dashboard/insights` - Daily coaching insights
+- `GET /api/daily-focus` - Personalized daily focus
+
+### SQL Translation
+- `POST /api/sql/translate` - Natural language to SQL
+- `GET /api/sql/history` - Query history
+
+### Knowledge & Frameworks
+- `POST /api/knowledge/ask` - Knowledge base Q&A
+- `POST /api/frameworks/advice` - Apply sales frameworks
+- `POST /api/heuristics/customize` - Customize heuristics
+- `POST /api/modules/exercise` - Generate training exercises
+
+### Coach Prompts
+- `GET|POST /api/coach/prompts` - Context-aware conversation starters
+
+**Full API documentation:** See `worker/README.md`
+
+---
+
+## Production Deployment Checklist
+
+### Pre-Deployment
+- [ ] All secrets configured
+- [ ] KV namespace created and configured
+- [ ] CORS origins include production domain
+- [ ] Worker tested in local environment (`wrangler dev`)
+- [ ] API endpoints tested with curl/Postman
+
+### Deployment
+- [ ] Run `wrangler deploy`
+- [ ] Verify deployment URL
+- [ ] Test health endpoint
+- [ ] Test critical endpoints (chat, roleplay)
+- [ ] Update frontend with worker URL
+
+### Post-Deployment
+- [ ] Monitor logs for errors (`wrangler tail`)
+- [ ] Test end-to-end user flows
+- [ ] Verify CORS works from production domain
+- [ ] Check KV storage is working
+- [ ] Set up monitoring/alerting (optional)
+
+---
+
+## Cost Considerations
+
+### Cloudflare Workers
+- **Free tier:** 100,000 requests/day
+- **Paid tier:** $5/month for 10 million requests
+- **KV storage:** First 1GB free, then $0.50/GB/month
+- **KV reads:** First 10 million free, then $0.50/million
+- **KV writes:** First 1 million free, then $5/million
+
+### Groq API
+- **Free tier:** 14,400 requests/day, 30 requests/minute
+- **Paid tier:** Contact Groq for pricing
+
+### OpenAI API (if used as fallback)
+- **GPT-4o:** $2.50/1M input tokens, $10/1M output tokens
+- **GPT-4o-mini:** $0.15/1M input tokens, $0.60/1M output tokens
+
+**Recommendation:** Start with Groq free tier + Cloudflare free tier for development/testing.
 
 ---
 
 ## Next Steps
 
-1. **Create your dev worker** in Cloudflare Dashboard
-2. **Copy the worker URL** and update `.env`
-3. **Test the connection** by running `npm run dev`
-4. **Start modifying** your dev worker safely
+1. **Complete Setup:** Follow steps 1-9 above
+2. **Test Locally:** Use `wrangler dev` for local testing
+3. **Deploy to Production:** Run `wrangler deploy`
+4. **Update Frontend:** Configure frontend with worker URL
+5. **Monitor Usage:** Use `wrangler tail` to monitor logs
+6. **Optimize:** Add multiple API keys for load balancing
+7. **Scale:** Upgrade to paid tiers as needed
 
 ---
 
-**Your stable worker remains untouched! 🎉**
+## Support Resources
+
+- **Cloudflare Workers Docs:** https://developers.cloudflare.com/workers/
+- **Wrangler CLI Docs:** https://developers.cloudflare.com/workers/wrangler/
+- **Groq API Docs:** https://console.groq.com/docs
+- **OpenAI API Docs:** https://platform.openai.com/docs
+- **Worker README:** `worker/README.md`
+
+---
+
+**Document Created:** January 2, 2026  
+**Last Updated:** January 2, 2026  
+**Version:** 1.0.0
