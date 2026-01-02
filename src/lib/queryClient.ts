@@ -11,14 +11,12 @@ const RUNTIME_BASE =
     ? (window as any).WORKER_URL
     : undefined;
 
-const API_BASE_URL = import.meta.env.DEV
-  ? undefined
-  : (
-      RUNTIME_BASE ||
-      import.meta.env.VITE_WORKER_URL ||
-      import.meta.env.VITE_API_BASE_URL ||
-      "https://reflectivai-api-parity-prod-production.tonyabdelmalak.workers.dev"
-    );
+// ALWAYS use the worker URL (even in dev mode) since we don't have a local backend
+const API_BASE_URL =
+  RUNTIME_BASE ||
+  import.meta.env.VITE_WORKER_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://saleseq-coach-prod.tonyabdelmalak.workers.dev";
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
 const SESSION_STORAGE_KEY = "reflectivai-session-id";
