@@ -1,6 +1,8 @@
 # Cloudflare Worker Setup Guide
 
 **Project:** ReflectivAI  
+**Worker Name:** `saleseq-coach-prod`  
+**Worker URL:** `https://saleseq-coach-prod.tonyabdelmalak.workers.dev`  
 **Worker Path:** `/worker/`  
 **Configuration File:** `worker/wrangler.toml`  
 **Main Script:** `worker/index.js`
