@@ -51,7 +51,7 @@ export default function Dashboard() {
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Welcome to ReflectivAI</h1>
           <p className="text-muted-foreground">
-            Master emotional intelligence and sales excellence in Life Sciences
+            Master behavioral intelligence and sales excellence in Life Sciences
           </p>
         </div>
 
@@ -207,9 +207,9 @@ export default function Dashboard() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                EI Frameworks
+                Signal Intelligence™ Frameworks
               </CardTitle>
-              <CardDescription>Core emotional intelligence skills</CardDescription>
+              <CardDescription>Core behavioral competency skills</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {eqFrameworks.map((framework) => (
