@@ -468,11 +468,8 @@ export function RoleplayFeedbackDialog({
                 </div>
                 {(() => {
                   const root: any = (feedback as any)?.analysis ?? (feedback as any);
-
                   const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
                   const byId = new Map(detailedScores.map((m) => [m.metricId, m] as const));
-
-                  const aggregateScore = normalizeToFive(root?.eqScore ?? feedback.overallScore);
 
                   // Use Signal Intelligence™ Capabilities (8 total)
                   const capabilityIds = signalIntelligenceCapabilities.map(c => c.id);
@@ -490,24 +487,24 @@ export function RoleplayFeedbackDialog({
 
                   // NO AGGREGATE SCORE - display 8 capabilities only
                   const items = capabilityIds.map((metricId) => {
-                      const detail = byId.get(metricId);
-                      const fallbackField = fallbackFieldByMetricId[metricId];
-                      const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;
+                    const detail = byId.get(metricId);
+                    const fallbackField = fallbackFieldByMetricId[metricId];
+                    const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;
 
-                      return {
-                        key: `eq:${metricId}`,
-                        metricId,
-                        name: getMetricName(metricId),
-                        score: typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw),
-                        feedbackText:
-                          (typeof detail?.feedback === "string" && detail.feedback.trim())
-                            ? detail.feedback
-                            : "Click to see the rubric definition, scoring method, observable indicators, and key coaching tip.",
-                        observedBehaviors: detail?.observedBehaviors,
-                        totalOpportunities: detail?.totalOpportunities,
-                        calculationNote: detail?.calculationNote,
-                      };
-                    });
+                    return {
+                      key: `eq:${metricId}`,
+                      metricId,
+                      name: getMetricName(metricId),
+                      score: typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw),
+                      feedbackText:
+                        (typeof detail?.feedback === "string" && detail.feedback.trim())
+                          ? detail.feedback
+                          : "Click to see the rubric definition, scoring method, observable indicators, and key coaching tip.",
+                      observedBehaviors: detail?.observedBehaviors,
+                      totalOpportunities: detail?.totalOpportunities,
+                      calculationNote: detail?.calculationNote,
+                    };
+                  });
 
                   return (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
