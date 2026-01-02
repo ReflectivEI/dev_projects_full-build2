@@ -1196,9 +1196,8 @@ export default function RolePlayPage() {
                     score: s.score,
                     maxScore: s.maxScore,
                   }))}
-                  isLoading={isEQLoading || sendResponseMutation.isPending}
-                  hasActivity={messages.filter(m => m.role === "user").length > 0}
                   compact={true}
+                  showDisclaimer={true}
                 />
               </div>
 
