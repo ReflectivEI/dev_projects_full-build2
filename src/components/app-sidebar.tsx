@@ -67,7 +67,7 @@ const mainNavItems = [
 
 const customizationsNavItems = [
   {
-    title: "EI Metrics",
+    title: "Signal Intelligence™",
     url: "/ei-metrics",
     icon: Activity,
   },
