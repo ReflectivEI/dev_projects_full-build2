@@ -37,6 +37,7 @@ import { BehavioralMetricsPanel } from "@/components/behavioral-metrics-panel";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
+import type { EnhancedScenario } from "@/lib/enhanced-scenarios";
 
 // Local type definitions for EQ analysis (migrating to Signal Intelligence™)
 interface EQScore {
@@ -329,7 +330,7 @@ const specialtyToCategories: Record<string, string[]> = {
 };
 
 export default function RolePlayPage() {
-  const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
+  const [selectedScenario, setSelectedScenario] = useState<Scenario & Partial<EnhancedScenario> | null>(null);
   const [input, setInput] = useState("");
   // 4-dropdown state matching AI Coach
   const [selectedDiseaseState, setSelectedDiseaseState] = useState<string>("");
