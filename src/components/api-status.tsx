@@ -3,7 +3,11 @@ import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle, Sparkles } from "lucide-react";
 
 interface ApiStatus {
-  openaiConfigured: boolean;
+  ok?: boolean;
+  status?: string;
+  worker?: string;
+  aiConfigured?: boolean;
+  openaiConfigured?: boolean;
   message: string;
 }
 
@@ -14,7 +18,10 @@ export function ApiStatusBanner() {
     staleTime: Infinity,
   });
 
-  if (!status || status.openaiConfigured) {
+  // Check both field names for backward compatibility
+  const isConfigured = status?.openaiConfigured || status?.aiConfigured;
+  
+  if (!status || isConfigured) {
     return null;
   }
 
@@ -44,10 +51,10 @@ export function ApiStatusBadge() {
 
   return (
     <Badge 
-      variant={status.openaiConfigured ? "default" : "secondary"}
+      variant={(status.openaiConfigured || status.aiConfigured) ? "default" : "secondary"}
       className="gap-1"
     >
-      {status.openaiConfigured ? (
+      {(status.openaiConfigured || status.aiConfigured) ? (
         <>
           <Sparkles className="h-3 w-3" />
           AI Enabled
