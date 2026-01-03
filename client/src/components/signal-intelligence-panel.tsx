@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Radio,
+  Activity,
   ChevronDown,
   ChevronUp,
   Eye,
@@ -65,7 +65,12 @@ const signalTypeConfig = {
 };
 
 function getSafeSignalType(type: unknown): ObservableSignal["type"] {
-  if (type === "verbal" || type === "conversational" || type === "engagement" || type === "contextual") {
+  if (
+    type === "verbal" ||
+    type === "conversational" ||
+    type === "engagement" ||
+    type === "contextual"
+  ) {
     return type;
   }
   return "contextual";
@@ -106,16 +111,20 @@ function SignalCard({ signal }: { signal: ObservableSignal }) {
             </p>
           )}
 
-          {Array.isArray(signal.suggestedOptions) && signal.suggestedOptions.length > 0 && (
-            <div className="mt-2 space-y-1">
-              {signal.suggestedOptions.map((opt, i) => (
-                <div key={i} className="flex items-start gap-1.5 text-xs text-primary">
-                  <Lightbulb className="h-3 w-3 mt-0.5 flex-shrink-0" />
-                  <span>{opt}</span>
-                </div>
-              ))}
-            </div>
-          )}
+          {Array.isArray(signal.suggestedOptions) &&
+            signal.suggestedOptions.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {signal.suggestedOptions.map((opt, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-1.5 text-xs text-primary"
+                  >
+                    <Lightbulb className="h-3 w-3 mt-0.5 flex-shrink-0" />
+                    <span>{opt}</span>
+                  </div>
+                ))}
+              </div>
+            )}
         </div>
       </div>
     </motion.div>
@@ -129,6 +138,7 @@ export function SignalIntelligencePanel({
   compact = false
 }: SignalIntelligencePanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+
   const validSignals = signals.filter(
     s => s?.signal?.trim() || s?.interpretation?.trim()
   );
@@ -165,7 +175,11 @@ export function SignalIntelligencePanel({
             size="sm"
             onClick={() => setIsExpanded(!isExpanded)}
           >
-            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {isExpanded ? (
+              <ChevronUp className="h-4 w-4" />
+            ) : (
+              <ChevronDown className="h-4 w-4" />
+            )}
           </Button>
         )}
       </div>
@@ -203,10 +217,18 @@ export function SignalIntelligencePanel({
   );
 }
 
-function Header({ title, count, pulse }: { title: string; count?: number; pulse?: boolean }) {
+function Header({
+  title,
+  count,
+  pulse
+}: {
+  title: string;
+  count?: number;
+  pulse?: boolean;
+}) {
   return (
     <div className="flex items-center gap-2">
-      <Radio className={`h-4 w-4 text-primary ${pulse ? "animate-pulse" : ""}`} />
+      <Activity className={`h-4 w-4 text-primary ${pulse ? "animate-pulse" : ""}`} />
       <h4 className="text-sm font-medium">{title}</h4>
       {typeof count === "number" && count > 0 && (
         <Badge variant="secondary" className="text-xs py-0">
@@ -220,7 +242,7 @@ function Header({ title, count, pulse }: { title: string; count?: number; pulse?
 function EmptyState({ text }: { text: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
-      <Radio className="h-8 w-8 mb-2 opacity-30" />
+      <Activity className="h-8 w-8 mb-2 opacity-30" />
       <p className="text-xs">{text}</p>
     </div>
   );
