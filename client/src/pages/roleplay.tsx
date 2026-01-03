@@ -1,6 +1,6 @@
 /* =========================================================
-   ROLEPLAY.TSX — FULL DROP-IN REPLACEMENT (CORRECTED)
-   Signal Intelligence only (no EI scoring)
+   ROLEPLAY.TSX — FULL DROP-IN REPLACEMENT (DEPLOY-SAFE)
+   Signal Intelligence only (NO EI scoring)
    ========================================================= */
 
 import { useState, useEffect, useRef } from "react";
@@ -29,7 +29,7 @@ import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 
 /* -----------------------------
-   Types (Signal-only, no EI)
+   Types
 ------------------------------ */
 
 type RoleplayMessage = {
@@ -45,14 +45,20 @@ interface SessionPayload {
 }
 
 /**
- * Minimal feedback shape to keep RoleplayFeedbackDialog happy without
- * over-assuming server schema. We map when possible; otherwise provide fallbacks.
+ * IMPORTANT:
+ * RoleplayFeedbackDialog expects the *full* ComprehensiveFeedback shape.
+ * We therefore normalize into that exact structure with safe defaults.
  */
-interface RoleplayFeedback {
-  summary: string;
-  strengths: string[];
-  opportunities: string[];
-  examples: Array<{ quote: string; analysis: string }>;
+interface ComprehensiveFeedback {
+  overallScore: number;
+  performanceLevel: "exceptional" | "strong" | "developing" | "emerging" | "needs-focus";
+  eqScores: any[];
+  salesSkillScores: any[];
+  topStrengths: string[];
+  priorityImprovements: string[];
+  specificExamples: Array<{ quote: string; analysis: string; isPositive: boolean }>;
+  nextSteps: string[];
+  overallSummary: string;
 }
 
 /* -----------------------------
@@ -60,33 +66,29 @@ interface RoleplayFeedback {
 ------------------------------ */
 
 function cap50<T>(items: T[]): T[] {
-  if (!Array.isArray(items)) return [];
-  return items.slice(-50);
+  return Array.isArray(items) ? items.slice(-50) : [];
 }
 
 function stableSignalKey(signal: any): string {
-  const type = signal?.type ?? "";
-  const timestamp = signal?.timestamp ?? "";
-  const evidence = signal?.evidence ?? signal?.signal ?? "";
-  return `${type}|${timestamp}|${evidence}`;
+  return `${signal?.type ?? ""}|${signal?.timestamp ?? ""}|${signal?.evidence ?? signal?.signal ?? ""}`;
 }
 
 function dedupeByStableKey<T>(items: T[]): T[] {
-  if (!Array.isArray(items)) return [];
   const seen = new Set<string>();
   const out: T[] = [];
   for (const item of items) {
     const key = stableSignalKey(item);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    out.push(item);
+    if (!seen.has(key)) {
+      seen.add(key);
+      out.push(item);
+    }
   }
   return out;
 }
 
 function extractSignals(payload: any): ObservableSignal[] {
-  const signals = payload?.signals ?? payload?.session?.signals ?? [];
-  return Array.isArray(signals) ? signals : [];
+  const s = payload?.signals ?? payload?.session?.signals;
+  return Array.isArray(s) ? s : [];
 }
 
 function mapWorkerMessages(
@@ -100,66 +102,52 @@ function mapWorkerMessages(
   }));
 }
 
-function mapToRoleplayFeedback(raw: any): RoleplayFeedback {
+/**
+ * CRITICAL NORMALIZER
+ * Guarantees RoleplayFeedbackDialog will not crash.
+ */
+function mapToComprehensiveFeedback(raw: any): ComprehensiveFeedback {
   const root = raw?.analysis ?? raw ?? {};
 
-  // Best-effort extraction with safe fallbacks.
-  const summary =
-    String(
-      root?.summary ??
-        root?.overallSummary ??
-        root?.reflection ??
-        "Session complete. Review signals, strengths, and opportunities."
-    ) || "Session complete.";
-
-  const strengthsArr =
-    (Array.isArray(root?.strengths) && root.strengths) ||
-    (Array.isArray(root?.topStrengths) && root.topStrengths) ||
-    [];
-
-  const opportunitiesArr =
-    (Array.isArray(root?.opportunities) && root.opportunities) ||
-    (Array.isArray(root?.priorityImprovements) && root.priorityImprovements) ||
-    (Array.isArray(root?.improvements) && root.improvements) ||
-    [];
-
-  const examplesArr =
-    (Array.isArray(root?.examples) && root.examples) ||
-    (Array.isArray(root?.specificExamples) && root.specificExamples) ||
-    [];
-
-  const strengths = strengthsArr.map((s: any) => String(s)).filter(Boolean);
-  const opportunities = opportunitiesArr.map((s: any) => String(s)).filter(Boolean);
-
-  const examples = examplesArr
-    .map((ex: any) => ({
-      quote: String(ex?.quote ?? ""),
-      analysis: String(ex?.analysis ?? ex?.feedback ?? ""),
-    }))
-    .filter((x: any) => x.quote && x.analysis);
-
-  // Defensive defaults to avoid empty UI
-  const finalStrengths =
-    strengths.length > 0
-      ? strengths
-      : [
-          "Maintained professional communication throughout the session",
-          "Engaged with the stakeholder and responded to prompts",
-        ];
-
-  const finalOpportunities =
-    opportunities.length > 0
-      ? opportunities
-      : [
-          "Ask 1–2 clarifying questions before presenting information",
-          "Reflect back the stakeholder’s stated constraints before pivoting",
-        ];
-
   return {
-    summary,
-    strengths: finalStrengths,
-    opportunities: finalOpportunities,
-    examples,
+    overallScore: typeof root.overallScore === "number" ? root.overallScore : 3,
+    performanceLevel:
+      root.performanceLevel ??
+      "developing",
+
+    eqScores: Array.isArray(root.eqScores) ? root.eqScores : [],
+    salesSkillScores: Array.isArray(root.salesSkillScores) ? root.salesSkillScores : [],
+
+    topStrengths:
+      Array.isArray(root.topStrengths) && root.topStrengths.length
+        ? root.topStrengths.map(String)
+        : ["Maintained professional, compliant communication"],
+
+    priorityImprovements:
+      Array.isArray(root.priorityImprovements) && root.priorityImprovements.length
+        ? root.priorityImprovements.map(String)
+        : ["Add a clarifying question before presenting data"],
+
+    specificExamples:
+      Array.isArray(root.specificExamples) && root.specificExamples.length
+        ? root.specificExamples.map((e: any) => ({
+            quote: String(e.quote ?? ""),
+            analysis: String(e.analysis ?? ""),
+            isPositive: Boolean(e.isPositive),
+          }))
+        : [],
+
+    nextSteps:
+      Array.isArray(root.nextSteps) && root.nextSteps.length
+        ? root.nextSteps.map(String)
+        : ["Practice reflecting constraints before proposing next steps"],
+
+    overallSummary:
+      String(
+        root.overallSummary ??
+          root.summary ??
+          "Session complete. Review your observable signals and options."
+      ),
   };
 }
 
@@ -175,45 +163,11 @@ const difficultyColors: Record<string, string> = {
 
 const diseaseToCategories: Record<string, string[]> = {
   hiv: ["hiv"],
-  prep: ["hiv"],
   oncology: ["oncology"],
   cardiology: ["cardiology"],
   neurology: ["neurology"],
-  "infectious-disease": ["hiv", "vaccines", "covid"],
-  endocrinology: ["cardiology"],
-  respiratory: ["immunology"],
-  hepatology: ["hiv", "immunology"],
   vaccines: ["vaccines", "covid"],
-  "general-medicine": [
-    "hiv",
-    "oncology",
-    "cardiology",
-    "vaccines",
-    "covid",
-    "neurology",
-    "immunology",
-    "rare-disease",
-  ],
-};
-
-const specialtyToCategories: Record<string, string[]> = {
-  "Family Medicine": ["hiv", "cardiology", "vaccines", "covid"],
-  "Infectious Diseases": ["hiv", "covid", "vaccines", "immunology"],
-  "Hem/Onc": ["oncology"],
-  "Medical Oncology": ["oncology"],
-  "Surgical Oncology": ["oncology"],
-  "Radiation Oncology": ["oncology"],
-  Pediatrics: ["vaccines", "covid"],
-  "Internal Medicine": ["cardiology", "covid", "hiv"],
-  Hepatology: ["hiv", "immunology"],
-  Gastroenterology: ["immunology"],
-  Pulmonology: ["immunology"],
-  Endocrinology: ["cardiology"],
-  Neurology: ["neurology"],
-  Cardiology: ["cardiology"],
-  Psychiatry: ["neurology"],
-  "Pain Medicine": ["neurology"],
-  "Allergy/Immunology": ["immunology"],
+  "general-medicine": ["hiv", "oncology", "cardiology", "vaccines", "neurology"],
 };
 
 /* =========================================================
@@ -224,118 +178,69 @@ export default function RolePlayPage() {
   const [selectedScenario, setSelectedScenario] = useState<Scenario | null>(null);
   const [input, setInput] = useState("");
 
-  // 2-dropdown state (Disease + Specialty). Keep only what is actually rendered/used here.
-  const [selectedDiseaseState, setSelectedDiseaseState] = useState<string>("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<string>("");
-
+  const [selectedDiseaseState, setSelectedDiseaseState] = useState("");
+  const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [showAllScenarios, setShowAllScenarios] = useState(false);
 
-  // Session state (signals only)
   const [sessionSignals, setSessionSignals] = useState<ObservableSignal[]>([]);
-
-  // Feedback dialog
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
-  const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState<string>("");
-  const [feedbackData, setFeedbackData] = useState<RoleplayFeedback | null>(null);
+  const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState("");
+  const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
 
   const queryClient = useQueryClient();
+  const endCalledForSessionRef = useRef<Set<string>>(new Set());
 
-  // Derived label badges
-  const selectedDisease = diseaseStates.find((d) => d.id === selectedDiseaseState);
-
-  // Available specialties based on disease
   const availableSpecialties = selectedDiseaseState
     ? specialtiesByDiseaseState[selectedDiseaseState] || allSpecialties
     : allSpecialties;
 
-  // Clear specialty if no longer valid
   useEffect(() => {
     if (selectedSpecialty && !availableSpecialties.includes(selectedSpecialty)) {
       setSelectedSpecialty("");
     }
-  }, [selectedDiseaseState, availableSpecialties, selectedSpecialty]);
+  }, [selectedSpecialty, availableSpecialties]);
 
-  // Filter scenarios
   const filteredScenarios = (() => {
     if (showAllScenarios || !selectedDiseaseState) return scenarios;
-
-    const categories = diseaseToCategories[selectedDiseaseState];
-    if (!categories) return scenarios;
-
-    let filtered = scenarios.filter((s) => categories.includes(s.category));
-
-    if (selectedSpecialty && specialtyToCategories[selectedSpecialty]) {
-      const specialtyCategories = specialtyToCategories[selectedSpecialty];
-      filtered = filtered.filter((s) => specialtyCategories.includes(s.category));
-    }
-
-    return filtered;
+    const cats = diseaseToCategories[selectedDiseaseState];
+    if (!cats) return scenarios;
+    return scenarios.filter((s) => cats.includes(s.category));
   })();
-
-  const hasActiveFilters = Boolean(selectedDiseaseState) || Boolean(selectedSpecialty);
-  const isFiltered = hasActiveFilters && !showAllScenarios && filteredScenarios.length !== scenarios.length;
-
-  // Clear selected scenario if no longer in filtered list
-  useEffect(() => {
-    if (selectedScenario && !filteredScenarios.find((s) => s.id === selectedScenario.id)) {
-      setSelectedScenario(null);
-    }
-  }, [filteredScenarios, selectedScenario]);
-
-  // Roleplay context (send only what's available here)
-  const roleplayContext = {
-    diseaseState: selectedDiseaseState,
-    specialty: selectedSpecialty,
-  };
 
   const { data: roleplayData } = useQuery<SessionPayload>({
     queryKey: ["/api/roleplay/session"],
     queryFn: async () => {
-      const response = await apiRequest("GET", "/api/roleplay/session");
-      const data = await response.json();
-
-      const signals = extractSignals(data);
+      const res = await apiRequest("GET", "/api/roleplay/session");
+      const json = await res.json();
       return {
-        session: data?.session ?? null,
-        messages: mapWorkerMessages(data?.session?.messages),
-        signals,
+        session: json?.session ?? null,
+        messages: mapWorkerMessages(json?.session?.messages),
+        signals: extractSignals(json),
       };
     },
-    refetchOnWindowFocus: false,
     staleTime: 5000,
   });
 
-  const messages = roleplayData?.messages || [];
+  const messages = roleplayData?.messages ?? [];
   const isActive = messages.length > 0;
 
-  // Hydrate sessionSignals from server on load/refresh
   useEffect(() => {
-    const serverSignals = roleplayData?.signals;
-    if (Array.isArray(serverSignals) && serverSignals.length > 0) {
-      setSessionSignals((prev) => {
-        // Merge (server + local) and dedupe
-        const combined = [...prev, ...serverSignals];
-        return dedupeByStableKey(cap50(combined));
-      });
+    if (roleplayData?.signals?.length) {
+      setSessionSignals((prev) =>
+        dedupeByStableKey(cap50([...prev, ...roleplayData.signals]))
+      );
     }
   }, [roleplayData?.signals]);
 
-  const roleplaySessionKey = isActive
-    ? `${selectedScenario?.id ?? "unknown"}:${messages[0]?.id ?? "unknown"}`
-    : null;
-
-  const endCalledForSessionRef = useRef<Set<string>>(new Set());
-
   const startScenarioMutation = useMutation({
     mutationFn: async (scenario: Scenario) => {
-      const response = await apiRequest("POST", "/api/roleplay/start", {
+      const res = await apiRequest("POST", "/api/roleplay/start", {
         scenarioId: scenario.id,
-        difficulty: scenario.difficulty,
         scenario,
-        context: roleplayContext,
+        context: { diseaseState: selectedDiseaseState, specialty: selectedSpecialty },
       });
-      return response.json();
+      return res.json();
     },
     onSuccess: () => {
       setSessionSignals([]);
@@ -345,16 +250,15 @@ export default function RolePlayPage() {
 
   const sendResponseMutation = useMutation({
     mutationFn: async (content: string) => {
-      const response = await apiRequest("POST", "/api/roleplay/respond", { message: content });
-      return response.json();
+      const res = await apiRequest("POST", "/api/roleplay/respond", { message: content });
+      return res.json();
     },
     onSuccess: (data) => {
       const newSignals = extractSignals(data);
-      if (newSignals.length > 0) {
-        setSessionSignals((prev) => {
-          const combined = [...prev, ...newSignals];
-          return dedupeByStableKey(cap50(combined));
-        });
+      if (newSignals.length) {
+        setSessionSignals((prev) =>
+          dedupeByStableKey(cap50([...prev, ...newSignals]))
+        );
       }
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
     },
@@ -362,169 +266,80 @@ export default function RolePlayPage() {
 
   const endScenarioMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/roleplay/end");
-      if (!response.ok) throw new Error("end_failed");
-      return response.json();
+      const res = await apiRequest("POST", "/api/roleplay/end");
+      if (!res.ok) throw new Error("end_failed");
+      return res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
-
-      const analysisRaw = data?.analysis ?? data;
-      if (analysisRaw) {
-        setFeedbackScenarioTitle(data?.scenario?.title || selectedScenario?.title || "Role-Play Session");
-        setFeedbackData(mapToRoleplayFeedback(analysisRaw));
-        setShowFeedbackDialog(true);
-        setRoleplayEndError(null);
-      } else {
-        setRoleplayEndError("Unable to generate feedback.");
-      }
+      const feedback = mapToComprehensiveFeedback(data);
+      setFeedbackScenarioTitle(
+        data?.scenario?.title || selectedScenario?.title || "Role-Play Session"
+      );
+      setFeedbackData(feedback);
+      setShowFeedbackDialog(true);
+      setRoleplayEndError(null);
     },
-    onError: () => {
-      setRoleplayEndError("Unable to end role-play.");
-    },
+    onError: () => setRoleplayEndError("Unable to end role-play."),
   });
-
-  const clearScenarioMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/roleplay/end");
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
-    },
-  });
-
-  const handleStart = () => {
-    if (selectedScenario) startScenarioMutation.mutate(selectedScenario);
-  };
-
-  const handleSend = () => {
-    if (!input.trim() || sendResponseMutation.isPending) return;
-    sendResponseMutation.mutate(input);
-    setInput("");
-  };
 
   const handleReset = () => {
-    if (isActive && roleplaySessionKey && !endCalledForSessionRef.current.has(roleplaySessionKey)) {
-      endCalledForSessionRef.current.add(roleplaySessionKey);
-      clearScenarioMutation.mutate();
-    }
-
     setSelectedScenario(null);
     setSelectedDiseaseState("");
     setSelectedSpecialty("");
     setSessionSignals([]);
-    setShowFeedbackDialog(false);
     setFeedbackData(null);
-    setRoleplayEndError(null);
+    setShowFeedbackDialog(false);
+    endCalledForSessionRef.current.clear();
     queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
   };
 
+  /* -----------------------------
+     Render
+  ------------------------------ */
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="p-6 border-b flex-shrink-0">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-md bg-chart-2 flex items-center justify-center">
-              <Users className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold">Role-Play Simulator</h1>
-              <p className="text-sm text-muted-foreground">
-                Practice pharma sales scenarios with Signal Intelligence feedback
-              </p>
-            </div>
+      <div className="p-6 border-b flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-md bg-chart-2 flex items-center justify-center">
+            <Users className="h-5 w-5 text-white" />
           </div>
-
-          {isActive && (
-            <Button variant="outline" size="sm" onClick={handleReset}>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Reset
-            </Button>
-          )}
+          <div>
+            <h1 className="text-xl font-semibold">Role-Play Simulator</h1>
+            <p className="text-sm text-muted-foreground">
+              Practice with Signal Intelligence feedback
+            </p>
+          </div>
         </div>
-
-        {!isActive && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-            <Select value={selectedDiseaseState} onValueChange={setSelectedDiseaseState}>
-              <SelectTrigger>
-                <SelectValue placeholder="Disease State" />
-              </SelectTrigger>
-              <SelectContent>
-                {diseaseStates.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
-              <SelectTrigger>
-                <SelectValue placeholder="Specialty" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableSpecialties.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {(selectedDisease || selectedSpecialty) && (
-              <div className="md:col-span-2 text-xs text-muted-foreground">
-                {selectedDisease ? `Filtered by: ${selectedDisease.name}` : " "}
-                {selectedSpecialty ? ` • ${selectedSpecialty}` : ""}
-                {isFiltered ? ` • Showing ${filteredScenarios.length} scenarios` : ""}
-              </div>
-            )}
-
-            {hasActiveFilters && (
-              <div className="md:col-span-2 flex justify-end">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAllScenarios((v) => !v)}
-                >
-                  {showAllScenarios ? "Show Recommended" : "Show All"}
-                </Button>
-              </div>
-            )}
-          </div>
+        {isActive && (
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            <RotateCcw className="h-4 w-4 mr-2" />
+            Reset
+          </Button>
         )}
       </div>
 
       {!isActive ? (
-        <div className="flex-1 overflow-auto p-6 max-w-4xl mx-auto w-full">
+        <div className="flex-1 p-6 max-w-4xl mx-auto w-full">
           <Card>
             <CardHeader>
               <CardTitle>Select a Scenario</CardTitle>
-              <CardDescription>
-                Choose a structured practice scenario
-              </CardDescription>
+              <CardDescription>Choose a structured practice scenario</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Select
-                value={selectedScenario?.id || ""}
-                onValueChange={(value) =>
-                  setSelectedScenario(filteredScenarios.find((s) => s.id === value) || null)
+                value={selectedScenario?.id ?? ""}
+                onValueChange={(v) =>
+                  setSelectedScenario(filteredScenarios.find((s) => s.id === v) ?? null)
                 }
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={filteredScenarios.length > 0 ? "Choose a scenario..." : "No matching scenarios"} />
+                  <SelectValue placeholder="Choose a scenario…" />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredScenarios.map((scenario) => (
-                    <SelectItem key={scenario.id} value={scenario.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{scenario.title}</span>
-                        <span
-                          className={`ml-auto text-xs px-2 py-0.5 rounded ${difficultyColors[scenario.difficulty] ?? "bg-muted"}`}
-                        >
-                          {scenario.difficulty}
-                        </span>
-                      </div>
+                  {filteredScenarios.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.title}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -532,9 +347,8 @@ export default function RolePlayPage() {
 
               {selectedScenario && (
                 <Button
-                  onClick={handleStart}
+                  onClick={() => startScenarioMutation.mutate(selectedScenario)}
                   className="w-full"
-                  disabled={startScenarioMutation.isPending}
                 >
                   <Play className="h-4 w-4 mr-2" />
                   Start Role-Play
@@ -545,51 +359,32 @@ export default function RolePlayPage() {
         </div>
       ) : (
         <div className="flex-1 flex gap-6 p-6 overflow-hidden">
-          <div className="flex-1 flex flex-col min-w-0">
-            {selectedScenario && (
-              <div className="mb-4 p-3 bg-muted rounded-lg">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="font-medium text-sm">{selectedScenario.title}</p>
-                    <p className="text-xs text-muted-foreground">{selectedScenario.stakeholder}</p>
-                  </div>
-                  <span className={`text-xs px-2 py-0.5 rounded ${difficultyColors[selectedScenario.difficulty] ?? "bg-muted"}`}>
-                    {selectedScenario.difficulty}
-                  </span>
-                </div>
-              </div>
-            )}
-
+          <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
-                {messages.map((message) => (
+                {messages.map((m) => (
                   <div
-                    key={message.id}
-                    className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse" : ""}`}
+                    key={m.id}
+                    className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
                   >
                     <div
-                      className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        message.role === "user"
+                      className={`h-8 w-8 rounded-full flex items-center justify-center ${
+                        m.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-chart-2 text-white"
                       }`}
                     >
-                      {message.role === "user" ? (
-                        <span className="text-xs font-medium">You</span>
-                      ) : (
-                        <Users className="h-4 w-4" />
-                      )}
+                      {m.role === "user" ? "You" : <Users className="h-4 w-4" />}
                     </div>
-
-                    <div className={`flex-1 max-w-[80%] ${message.role === "user" ? "text-right" : ""}`}>
+                    <div className="max-w-[80%]">
                       <div
-                        className={`inline-block p-3 rounded-lg ${
-                          message.role === "user"
+                        className={`p-3 rounded-lg ${
+                          m.role === "user"
                             ? "bg-primary text-primary-foreground"
                             : "bg-muted"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                       </div>
                     </div>
                   </div>
@@ -605,35 +400,19 @@ export default function RolePlayPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleSend();
+                      sendResponseMutation.mutate(input);
+                      setInput("");
                     }
                   }}
-                  placeholder="Your response…"
-                  className="min-h-[60px] resize-none"
                 />
-                <Button
-                  onClick={handleSend}
-                  disabled={!input.trim() || sendResponseMutation.isPending}
-                  className="self-end"
-                >
+                <Button onClick={() => sendResponseMutation.mutate(input)}>
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
 
               <Button
                 variant="outline"
-                className="w-full"
-                onClick={() => {
-                  if (!roleplaySessionKey) return;
-                  if (endCalledForSessionRef.current.has(roleplaySessionKey)) return;
-                  endCalledForSessionRef.current.add(roleplaySessionKey);
-                  setRoleplayEndError(null);
-                  endScenarioMutation.mutate();
-                }}
-                disabled={
-                  endScenarioMutation.isPending ||
-                  (roleplaySessionKey ? endCalledForSessionRef.current.has(roleplaySessionKey) : false)
-                }
+                onClick={() => endScenarioMutation.mutate()}
               >
                 End Role-Play & Review
               </Button>
@@ -644,12 +423,12 @@ export default function RolePlayPage() {
             </div>
           </div>
 
-          <Card className="w-80 flex-shrink-0 hidden xl:flex flex-col">
-            <CardContent className="flex-1 pt-6 space-y-6">
+          <Card className="w-80 hidden xl:flex flex-col">
+            <CardContent className="flex-1 pt-6">
               <SignalIntelligencePanel
                 signals={sessionSignals}
-                isLoading={sendResponseMutation.isPending}
                 hasActivity={sessionSignals.length > 0}
+                isLoading={sendResponseMutation.isPending}
                 compact
               />
             </CardContent>
@@ -660,7 +439,7 @@ export default function RolePlayPage() {
       <RoleplayFeedbackDialog
         open={showFeedbackDialog}
         onOpenChange={setShowFeedbackDialog}
-        feedback={feedbackData as any}
+        feedback={feedbackData}
         scenarioTitle={feedbackScenarioTitle}
         onStartNew={handleReset}
       />
