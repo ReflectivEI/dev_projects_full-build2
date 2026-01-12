@@ -555,7 +555,7 @@ export function RoleplayFeedbackDialog({
 
               <TabsContent value="eq" className="mt-4 space-y-3">
                 <p className="text-sm text-muted-foreground mb-4">
-                  <strong>Layer 1 — Emotional Intelligence:</strong> Demonstrated capabilities measured through observable behaviors. Click any metric to see definition, calculation, indicators, and session-specific breakdown.
+                  <strong>Layer 1 — Signal Intelligence:</strong> Demonstrated capabilities measured through observable behaviors. Click any metric to see definition, calculation, indicators, and session-specific breakdown.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

@@ -21,8 +21,8 @@ Automatically adapt your coaching tone based on the user's question:
 
 Sense the emotional tone and urgency in the user's message and respond appropriately. Match energy—if they're stressed, be calming; if they're curious, be engaging; if they're frustrated, acknowledge and redirect constructively.
 
-## LAYER 1 — Emotional Intelligence (Core Measurement Layer)
-Emotional Intelligence refers to DEMONSTRATED CAPABILITY — how effectively a user:
+## LAYER 1 — Signal Intelligence (Core Measurement Layer)
+Signal Intelligence refers to DEMONSTRATED CAPABILITY — how effectively a user:
 - Accurately perceives observable signals from others
 - Interprets those signals appropriately in context
 - Regulates their response
@@ -111,7 +111,7 @@ As the HCP stakeholder:
 - Express realistic concerns, questions, and objections relevant to your clinical practice
 - Respond to the sales rep based on their approach and how well they communicate
 - Show appropriate skepticism or interest based on the quality of their pitch
-- React to emotional intelligence techniques (or lack thereof)
+- React to signal intelligence techniques (or lack thereof)
 - Occasionally test the rep with challenging clinical questions or objections
 
 HANDLING OFF-TOPIC OR PERSONAL QUESTIONS:
@@ -151,7 +151,7 @@ This approach shows empathy while guiding stakeholders to a value-based perspect
 2. **Lead with Value**: Share relevant clinical insights that could help their practice
 3. **Show Genuine Interest**: Ask thoughtful questions about their research
 
-Over time, this builds trust and positions you as a valuable resource rather than just a sales rep. The key Layer 1 (Emotional Intelligence) demonstrated capabilities here are Empathy Accuracy and Active Listening—observable skills that help you perceive and respond to signals from the KOL.`,
+Over time, this builds trust and positions you as a valuable resource rather than just a sales rep. The key Layer 1 (Signal Intelligence) demonstrated capabilities here are Empathy Accuracy and Active Listening—observable skills that help you perceive and respond to signals from the KOL.`,
     `${DEMO_MODE_NOTICE}Understanding communication styles helps you adapt your approach effectively. Note: DISC is an optional behavioral lens—it helps you recognize observable communication preferences, not emotional capability or personality traits.
 
 Here's how to adapt your communication approach:
@@ -677,7 +677,7 @@ export async function getFrameworkAdvice(
       messages: [
         { 
           role: "system", 
-          content: `You are an expert coach in emotional intelligence frameworks for pharma sales. Provide specific, actionable advice on applying the ${frameworkName} framework.
+          content: `You are an expert coach in signal intelligence frameworks for pharma sales. Provide specific, actionable advice on applying the ${frameworkName} framework.
 
 Respond in JSON format: { "advice": "detailed personalized advice", "practiceExercise": "specific exercise to practice", "tips": ["tip1", "tip2", "tip3"] }` 
         },
@@ -1130,7 +1130,7 @@ ${scenarioContext.challenges?.length ? `Challenges: ${scenarioContext.challenges
   }
 }
 
-// Layer 1 EI Analysis - Analyze conversation using the 10-metric emotional intelligence framework
+// Layer 1 Signal Intelligence Analysis - Analyze conversation using the 10-metric behavioral framework
 export interface EQScore {
   metricId: string;
   score: number;
@@ -1145,11 +1145,11 @@ export interface EQAnalysisResult {
   timestamp: string;
 }
 
-const EQ_ANALYSIS_PROMPT = `You are an expert sales coach using the ReflectivAI Layer 1 Emotional Intelligence framework for pharmaceutical sales. Analyze the sales rep's DEMONSTRATED CAPABILITIES based on observable behaviors in this conversation. Score on the following 10 EI metrics.
+const EQ_ANALYSIS_PROMPT = `You are an expert sales coach using the ReflectivAI Layer 1 Signal Intelligence framework for pharmaceutical sales. Analyze the sales rep's DEMONSTRATED CAPABILITIES based on observable behaviors in this conversation. Score on the following 10 behavioral metrics.
 
-IMPORTANT: EI metrics measure demonstrated capability through observable behaviors—NOT personality traits, emotional states, or intent. Frame all feedback around what was observed.
+IMPORTANT: Signal Intelligence metrics measure demonstrated capability through observable behaviors—NOT personality traits, emotional states, or intent. Frame all feedback around what was observed.
 
-## LAYER 1 — EMOTIONAL INTELLIGENCE METRICS FOR PHARMA SALES (Rate each 1-5):
+## LAYER 1 — SIGNAL INTELLIGENCE METRICS FOR PHARMA SALES (Rate each 1-5):
 
 ### INTERPERSONAL COMPOSITE:
 1. **Empathy Accuracy** (empathy): How accurately the rep recognized and responded to observable signals from the HCP. Did they acknowledge expressed concerns before offering solutions?
@@ -1329,7 +1329,7 @@ Challenges to Navigate: ${scenarioContext.challenges.join(", ")}`;
 const DAILY_FOCUS_PROMPT = `You are ReflectivAI, an AI Sales Coach for pharmaceutical sales professionals. Generate a brief, actionable daily focus tip.
 
 Focus areas should rotate between:
-- Layer 1 EI skills: empathy, discovery, clarity, adaptability, active listening, resilience, confidence, compliance, action insight, objection handling
+- Layer 1 behavioral skills: empathy, discovery, clarity, adaptability, active listening, resilience, confidence, compliance, action insight, objection handling
 - Layer 2 behavioral adaptation: DISC communication styles, stakeholder engagement approaches
 - Layer 3 coaching tools: heuristic templates, role-play practice, evidence-based messaging
 

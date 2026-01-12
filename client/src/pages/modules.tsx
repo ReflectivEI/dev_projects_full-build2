@@ -48,7 +48,7 @@ const categoryLabels: Record<string, string> = {
   clinical: "Clinical",
   objection: "Objection Handling",
   closing: "Closing",
-  eq: "Emotional Intelligence",
+  eq: "Signal Intelligence",
 };
 
 type ExerciseContent = {

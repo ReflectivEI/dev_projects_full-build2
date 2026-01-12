@@ -52,7 +52,7 @@ export default function Dashboard() {
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Welcome to ReflectivAI</h1>
           <p className="text-muted-foreground">
-            Master emotional intelligence and sales excellence in Life Sciences
+            Master signal intelligence and sales excellence in Life Sciences
           </p>
         </div>
 

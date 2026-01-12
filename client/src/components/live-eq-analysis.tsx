@@ -151,7 +151,7 @@ function Disclaimer() {
       <TooltipContent side="top" className="max-w-xs">
         <p className="text-xs">
           This panel reflects observable communication patterns only.
-          It does not score, rate, or assess emotional intelligence,
+          It does not score, rate, or assess behavioral capabilities,
           intent, or performance.
         </p>
       </TooltipContent>

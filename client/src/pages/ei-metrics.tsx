@@ -250,10 +250,10 @@ export default function EIMetricsPage() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <Activity className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold" data-testid="text-ei-metrics-title">EI Metrics</h1>
+            <h1 className="text-3xl font-bold" data-testid="text-ei-metrics-title">Signal Intelligence Metrics</h1>
           </div>
           <p className="text-muted-foreground">
-            Emotional Intelligence metrics measure <strong>demonstrated capability</strong> through observable behaviors.
+            Signal Intelligence metrics measure <strong>demonstrated capability</strong> through observable behaviors.
             Click any metric to view its definition, scoring method, and coaching guidance.
           </p>
         </div>
@@ -265,9 +265,9 @@ export default function EIMetricsPage() {
                 <span className="text-sm font-bold text-primary">1</span>
               </div>
               <div>
-                <p className="text-sm font-medium mb-1">Layer 1 - Emotional Intelligence (Core Measurement)</p>
+                <p className="text-sm font-medium mb-1">Layer 1 - Signal Intelligence (Core Measurement)</p>
                 <p className="text-sm text-muted-foreground">
-                  EI refers to <strong>demonstrated capability</strong>: how effectively you perceive observable signals, 
+                  Signal Intelligence refers to <strong>demonstrated capability</strong>: how effectively you perceive observable signals, 
                   interpret them in context, and adapt your communication. Metrics are scored 1-5 based on observable 
                   behaviors, not personality traits.
                 </p>
@@ -291,10 +291,10 @@ export default function EIMetricsPage() {
             <div>
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Core EI Metrics
+                Core Behavioral Metrics
               </h2>
               <p className="text-sm text-muted-foreground">
-                These four metrics form the foundation of EI measurement across all coaching experiences
+                These four metrics form the foundation of behavioral measurement across all coaching experiences
               </p>
             </div>
             <Badge className="bg-primary/10 text-primary border-primary/30">Always Active</Badge>
@@ -314,7 +314,7 @@ export default function EIMetricsPage() {
         <div className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-xl font-semibold">Additional EI Metrics</h2>
+              <h2 className="text-xl font-semibold">Additional Behavioral Metrics</h2>
               <p className="text-sm text-muted-foreground">
                 Toggle metrics on/off based on your coaching priorities
               </p>

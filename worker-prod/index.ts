@@ -1037,7 +1037,7 @@ You are a senior sales coach and evaluator.
 INPUTS:
 - Full transcript
 - Behavioral signals
-- Emotional Intelligence deltas
+- Signal Intelligence deltas
 - Scenario context
 
 TASK:
@@ -1344,7 +1344,7 @@ async function handleAloraChat(body, env, req) {
   // Build concise system prompt for Alora
   const systemPrompt = `${persona}
 
-You answer questions about ReflectivAI's platform, features, emotional intelligence framework, simulations, analytics, pricing, and integrations.
+You answer questions about ReflectivAI's platform, features, signal intelligence framework, simulations, analytics, pricing, and integrations.
 
 RESPONSE RULES:
 - Keep answers SHORT (2-4 sentences max)
@@ -1737,14 +1737,14 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
     ].filter(Boolean).join("\n");
 
     const eiPrompt = [
-      `You are Reflectiv Coach in Emotional Intelligence mode.`,
+      `You are Reflectiv Coach in Signal Intelligence mode.`,
       ``,
       persona ? `HCP Type: ${persona}` : '',
       disease ? `Disease context: ${disease}` : '',
       ``,
       `CRITICAL: When referencing sources or studies, use markdown hyperlink format [Name](URL). Never output plain text URLs.`,
       ``,
-      `MISSION: Help the rep develop emotional intelligence through reflective practice based on about-ei.md framework.`,
+      `MISSION: Help the rep develop signal intelligence through reflective practice based on about-ei.md framework.`,
       ``,
       eiContext || "EI knowledgebase not provided.",
       ``,

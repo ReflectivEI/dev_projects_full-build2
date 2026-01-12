@@ -213,7 +213,7 @@ export default function HeuristicsPage() {
                   </div>
 
                   <div className="flex flex-wrap gap-1 pt-2 border-t">
-                    <span className="text-xs text-muted-foreground mr-1">EI Principles:</span>
+                    <span className="text-xs text-muted-foreground mr-1">Behavioral Principles:</span>
                     {template.eqPrinciples.map((principle) => (
                       <Badge key={principle} variant="secondary" className="text-xs">
                         <Brain className="h-2 w-2 mr-1" />

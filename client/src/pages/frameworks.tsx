@@ -327,7 +327,7 @@ export default function FrameworksPage() {
               ReflectivAI is powered by Signal Intelligence — the ability to notice, interpret, and respond appropriately to observable signals during professional interactions.
             </p>
             <p>
-              Our AI highlights meaningful behavioral signals. Sales professionals apply judgment using demonstrated emotional intelligence capabilities, communication models, and coaching tools that work in real conversations.
+              Our AI highlights meaningful behavioral signals. Sales professionals apply judgment using demonstrated behavioral capabilities, communication models, and coaching tools that work in real conversations.
             </p>
           </div>
         </div>
@@ -341,7 +341,7 @@ export default function FrameworksPage() {
                   <span className="text-sm font-bold text-green-600">1</span>
                 </div>
                 <div>
-                  <p className="text-sm font-medium">Emotional Intelligence</p>
+                  <p className="text-sm font-medium">Signal Intelligence</p>
                   <p className="text-xs text-muted-foreground">Core measurement layer - what we measure and optimize</p>
                 </div>
               </div>
@@ -391,7 +391,7 @@ export default function FrameworksPage() {
                   <div>
                     <p className="text-sm font-medium text-amber-700 dark:text-amber-400">Important Distinction</p>
                     <p className="text-sm text-muted-foreground">
-                      DISC is an optional behavioral communication lens that can support emotionally intelligent interactions—but it is not an emotional intelligence framework. It describes observable communication preferences, not emotional capability or demonstrated skills.
+                      DISC is an optional behavioral communication lens that can support signal-intelligent interactions—but it is not a signal intelligence framework. It describes observable communication preferences, not emotional capability or demonstrated skills.
                     </p>
                   </div>
                 </div>
@@ -520,7 +520,7 @@ export default function FrameworksPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Why Emotional Intelligence Matters in Pharma Sales</CardTitle>
+                <CardTitle>Why Signal Intelligence Matters in Pharma Sales</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
