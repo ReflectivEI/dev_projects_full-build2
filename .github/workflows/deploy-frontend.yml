@@ -21,11 +21,27 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
     steps:
       - name: Validate confirmation
         run: |
           if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
             echo "❌ Deployment cancelled - confirmation not provided"
+            exit 1
+          fi
+
+      - name: Verify Cloudflare credentials are available
+        run: |
+          missing=0
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN secret for ${{ github.event.inputs.environment }} environment"
+            missing=1
+          fi
+          if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::error::Missing CLOUDFLARE_ACCOUNT_ID secret for ${{ github.event.inputs.environment }} environment"
+            missing=1
+          fi
+          if [ "$missing" -eq 1 ]; then
             exit 1
           fi
 
