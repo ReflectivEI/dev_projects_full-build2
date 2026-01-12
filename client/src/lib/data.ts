@@ -3,17 +3,17 @@ import type { CoachingModule, EQFramework, Scenario, HeuristicTemplate, Knowledg
 // =============================================================================
 // LAYER 2 — Behavioral Communication Models (Supporting Insight Layer)
 // =============================================================================
-// These models help sellers APPLY emotional intelligence more effectively
+// These models help sellers APPLY signal intelligence more effectively
 // by understanding observable communication preferences.
-// IMPORTANT: DISC is an OPTIONAL behavioral lens—it supports emotionally intelligent 
-// interactions but does not measure emotional intelligence.
+// IMPORTANT: DISC is an OPTIONAL behavioral lens—it supports signal-intelligent 
+// interactions but does not measure behavioral capabilities.
 // DISC describes observable communication preferences.
-// EI refers to demonstrated capability: how well someone perceives, adapts, and responds.
+// Signal Intelligence refers to demonstrated capability: how well someone perceives, adapts, and responds.
 export const communicationStyleModels: EQFramework[] = [
   {
     id: "disc",
     name: "DISC Communication Styles",
-    description: "An optional behavioral communication lens that helps adapt your approach to different stakeholder preferences. Note: DISC describes observable communication preferences, not emotional intelligence capabilities.",
+    description: "An optional behavioral communication lens that helps adapt your approach to different stakeholder preferences. Note: DISC describes observable communication preferences, not behavioral capabilities.",
     principles: [
       "Dominance (D): Direct, results-oriented, decisive",
       "Influence (I): Enthusiastic, collaborative, optimistic",
@@ -42,9 +42,9 @@ export const communicationStyleModels: EQFramework[] = [
 ];
 
 // =============================================================================
-// LAYER 1 — Emotional Intelligence (Core Measurement Layer)
+// LAYER 1 — Signal Intelligence (Core Measurement Layer)
 // =============================================================================
-// Emotional Intelligence is a DEMONSTRATED CAPABILITY in ReflectivAI.
+// Signal Intelligence is a DEMONSTRATED CAPABILITY in ReflectivAI.
 // These frameworks assess how effectively a seller perceives, interprets, and 
 // responds to observable signals in complex sales conversations.
 // Key point: EI is measured through observable behaviors, not personality traits.
@@ -53,7 +53,7 @@ export const eqFrameworks: EQFramework[] = [
   {
     id: "active-listening",
     name: "Active Listening",
-    description: "An emotional intelligence skill: developing deep listening to understand stakeholder needs and build trust",
+    description: "A signal intelligence skill: developing deep listening to understand stakeholder needs and build trust",
     principles: [
       "Give full attention without planning your response",
       "Reflect back what you hear to confirm understanding",
@@ -82,7 +82,7 @@ export const eqFrameworks: EQFramework[] = [
   {
     id: "empathy-mapping",
     name: "Empathy Mapping",
-    description: "An emotional intelligence skill: understanding stakeholder perspectives by mapping what they think, feel, say, and do",
+    description: "A signal intelligence skill: understanding stakeholder perspectives by mapping what they think, feel, say, and do",
     principles: [
       "Map what stakeholders SAY in conversations",
       "Infer what they THINK based on their questions",
@@ -111,7 +111,7 @@ export const eqFrameworks: EQFramework[] = [
   {
     id: "rapport-building",
     name: "Rapport Building",
-    description: "An emotional intelligence skill: establishing genuine connections that form the foundation of trusted partnerships",
+    description: "A signal intelligence skill: establishing genuine connections that form the foundation of trusted partnerships",
     principles: [
       "Find authentic common ground beyond business",
       "Match communication style and energy levels",
@@ -257,8 +257,8 @@ export const coachingModules: CoachingModule[] = [
   },
   {
     id: "eq-mastery",
-    title: "EI Mastery for Pharma",
-    description: "Integrate all emotional intelligence frameworks for healthcare selling",
+    title: "Behavioral Mastery for Pharma",
+    description: "Integrate all signal intelligence frameworks for healthcare selling",
     category: "eq",
     icon: "Brain",
     frameworks: ["disc", "active-listening", "empathy-mapping", "rapport-building"],
@@ -271,8 +271,8 @@ export const coachingModules: CoachingModule[] = [
       },
       {
         id: "eq2",
-        title: "EI Self-Assessment",
-        description: "Evaluate your emotional intelligence strengths",
+        title: "Behavioral Self-Assessment",
+        description: "Evaluate your signal intelligence strengths",
         type: "quiz"
       }
     ],
