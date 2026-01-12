@@ -375,7 +375,7 @@ export default function FrameworksPage() {
             </TabsTrigger>
             <TabsTrigger value="empathy" data-testid="tab-empathy-adaptation">
               <Heart className="h-4 w-4 mr-2" />
-              Layer 1: EI Frameworks
+              Layer 1: Signal Intelligence Frameworks
             </TabsTrigger>
             <TabsTrigger value="heuristics" data-testid="tab-heuristics">
               <Target className="h-4 w-4 mr-2" />
@@ -477,7 +477,7 @@ export default function FrameworksPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h3 className="font-semibold text-lg">{framework.name}</h3>
-                            <Badge variant="outline" className="text-xs text-primary border-primary/30">EI Skill</Badge>
+                            <Badge variant="outline" className="text-xs text-primary border-primary/30">Signal Intelligence Skill</Badge>
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {framework.description}
@@ -539,7 +539,7 @@ export default function FrameworksPage() {
                     </div>
                     <h4 className="font-medium mb-1">Understand Needs</h4>
                     <p className="text-sm text-muted-foreground">
-                      EI skills help uncover the real challenges and priorities of your stakeholders
+                      Signal Intelligence skills help uncover the real challenges and priorities of your stakeholders
                     </p>
                   </div>
                   <div className="text-center p-4">
@@ -665,7 +665,7 @@ export default function FrameworksPage() {
                       </div>
 
                       <div className="flex flex-wrap gap-1 pt-2 border-t">
-                        <span className="text-xs text-muted-foreground mr-1">EI Principles:</span>
+                        <span className="text-xs text-muted-foreground mr-1">Signal Intelligence Principles:</span>
                         {template.eqPrinciples.map((principle) => (
                           <Badge key={principle} variant="secondary" className="text-xs">
                             <Brain className="h-2 w-2 mr-1" />

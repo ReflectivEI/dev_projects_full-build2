@@ -444,7 +444,7 @@ export default function ModulesPage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Related EI Frameworks</CardTitle>
+                <CardTitle className="text-lg">Related Signal Intelligence Frameworks</CardTitle>
                 <CardDescription>Understanding these frameworks will help you excel</CardDescription>
               </CardHeader>
               <CardContent>
@@ -504,7 +504,7 @@ export default function ModulesPage() {
             <TabsTrigger value="clinical" data-testid="tab-clinical">Clinical</TabsTrigger>
             <TabsTrigger value="objection" data-testid="tab-objection">Objection</TabsTrigger>
             <TabsTrigger value="closing" data-testid="tab-closing">Closing</TabsTrigger>
-            <TabsTrigger value="eq" data-testid="tab-eq">EI</TabsTrigger>
+            <TabsTrigger value="eq" data-testid="tab-eq">Signal Intelligence</TabsTrigger>
           </TabsList>
         </Tabs>
 

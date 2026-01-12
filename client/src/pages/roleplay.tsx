@@ -1,6 +1,6 @@
 /* =========================================================
    ROLEPLAY.TSX — FULL DROP-IN REPLACEMENT (DEPLOY-SAFE)
-   Signal Intelligence only (NO EI scoring)
+   Signal Intelligence only (no emotional intelligence scoring)
    ========================================================= */
 
 import { useState, useEffect, useRef } from "react";
