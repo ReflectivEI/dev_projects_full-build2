@@ -77,16 +77,16 @@ function normalizeSignals(raw: unknown): ObservableSignal[] {
     const obj = s as any;
     const signal = typeof obj.signal === "string" ? obj.signal.trim() : "";
     const interpretation = typeof obj.interpretation === "string" ? obj.interpretation.trim() : "";
-    const suggestedResponse = typeof obj.suggestedResponse === "string" ? obj.suggestedResponse.trim() : undefined;
+    const suggestedOptions = Array.isArray(obj.suggestedOptions) ? obj.suggestedOptions : (typeof obj.suggestedResponse === "string" && obj.suggestedResponse.trim()) ? [obj.suggestedResponse.trim()] : undefined;
     const type: ObservableSignal["type"] = isValidSignalType(obj.type) ? obj.type : "contextual";
-    if (!signal && !interpretation && !suggestedResponse) continue;
+    if (!signal && !interpretation && !suggestedOptions) continue;
 
     out.push({
       id: typeof obj.id === "string" && obj.id ? obj.id : `signal-${now}-${i}`,
       type,
       signal,
       interpretation,
-      suggestedResponse,
+      suggestedOptions,
       timestamp: typeof obj.timestamp === "string" && obj.timestamp ? obj.timestamp : ts,
     });
   }

@@ -196,7 +196,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
               Observable Indicators
             </h4>
             <ul className="space-y-1.5">
-              {metric.sampleIndicators.map((indicator, idx) => (
+              {metric.sampleIndicators?.map((indicator, idx) => (
                 <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
                   <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
                   {indicator}
