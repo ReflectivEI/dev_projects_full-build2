@@ -1450,7 +1450,7 @@ export function getScoreBgColor(score: number): string {
 // EI Metrics Framework - Layer 1 (Core Measurement)
 // Measures DEMONSTRATED CAPABILITY through observable behaviors.
 // All metrics scored 1-5 for consistency and intuitive comparison.
-export interface EQMetric {
+export interface SignalCapability {
   id: string;
   name: string;
   displayName: string;
@@ -1465,7 +1465,7 @@ export interface EQMetric {
   isCore: boolean;
 }
 
-export const eqMetrics: EQMetric[] = [
+export const signalCapabilities: SignalCapability[] = [
   {
     id: "empathy",
     name: "Empathy Accuracy",
@@ -1753,3 +1753,7 @@ export const allSpecialties = [
   "Surgical Oncology",
   "Radiation Oncology",
 ];
+
+// Backward compatibility exports (deprecated - use SignalCapability instead)
+export type EQMetric = SignalCapability;
+export const eqMetrics = signalCapabilities;
