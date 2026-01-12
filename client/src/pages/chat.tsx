@@ -77,7 +77,7 @@ function normalizeSignals(raw: unknown): ObservableSignal[] {
     const obj = s as any;
     const signal = typeof obj.signal === "string" ? obj.signal.trim() : "";
     const interpretation = typeof obj.interpretation === "string" ? obj.interpretation.trim() : "";
-    const suggestedOptions = Array.isArray(obj.suggestedOptions) ? obj.suggestedOptions : (typeof obj.suggestedResponse === "string" && obj.suggestedResponse.trim()) ? [obj.suggestedResponse.trim()] : undefined;
+    const suggestedOptions = Array.isArray(obj.suggestedOptions) ? obj.suggestedOptions : undefined;
     const type: ObservableSignal["type"] = isValidSignalType(obj.type) ? obj.type : "contextual";
     if (!signal && !interpretation && !suggestedOptions) continue;
 
