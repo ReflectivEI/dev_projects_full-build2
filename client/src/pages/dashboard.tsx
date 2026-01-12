@@ -21,7 +21,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import reflectivAILogo from "@assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
-import { coachingModules, eqFrameworks } from "@/lib/data";
+import { coachingModules, signalCapabilities } from "@/lib/data";
 import { useQuery } from "@tanstack/react-query";
 
 const moduleIcons: Record<string, any> = {
@@ -210,16 +210,16 @@ export default function Dashboard() {
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
-                EI Frameworks
+                Signal Intelligence Capabilities
               </CardTitle>
-              <CardDescription>Core emotional intelligence skills</CardDescription>
+              <CardDescription>8 core capabilities for sales excellence</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {eqFrameworks.map((framework) => (
-                <Link href="/frameworks" key={framework.id}>
-                  <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-framework-${framework.id}`}>
-                    <div className={`h-2 w-2 rounded-full bg-${framework.color}`} />
-                    <span className="text-sm font-medium flex-1">{framework.name}</span>
+              {signalCapabilities.map((capability) => (
+                <Link href="/ei-metrics" key={capability.id}>
+                  <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-capability-${capability.id}`}>
+                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: capability.color }} />
+                    <span className="text-sm font-medium flex-1">{capability.name}</span>
                     <ChevronRight className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </Link>
