@@ -68,7 +68,7 @@ const mainNavItems = [
 
 const customizationsNavItems = [
   {
-    title: "EI Metrics",
+    title: "Behavioral Metrics",
     url: "/ei-metrics",
     icon: Activity,
   },

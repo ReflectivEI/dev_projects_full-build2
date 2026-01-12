@@ -446,7 +446,7 @@ export default function ChatPage() {
                 <p className="text-xs">
                   Enable DISC behavioral communication lens. When on, the AI coach may reference
                   communication style preferences (D-I-S-C) to help you adapt your approach.
-                  Note: DISC describes observable preferences, not personality or EI capability.
+                  Note: DISC describes observable preferences, not personality or behavioral capability.
                 </p>
               </TooltipContent>
             </Tooltip>
@@ -507,7 +507,7 @@ export default function ChatPage() {
                   </div>
                   <h3 className="text-lg font-semibold mb-2">Start a Conversation</h3>
                   <p className="text-muted-foreground max-w-md mb-6">
-                    Ask me anything about pharma sales, emotional intelligence frameworks,
+                    Ask me anything about pharma sales, signal intelligence frameworks,
                     objection handling, or clinical evidence communication.
                   </p>
                   <div className="flex flex-wrap gap-2 justify-center max-w-lg">
@@ -565,7 +565,7 @@ export default function ChatPage() {
                             <div className="flex items-center gap-2 mb-2">
                               <Brain className="h-4 w-4 text-primary" />
                               <span className="text-sm font-medium">
-                                EQ Score: {message.feedback.eqScore}
+                                Signal Intelligence Score: {message.feedback.eqScore}
                               </span>
                             </div>
                           )}
@@ -622,7 +622,7 @@ export default function ChatPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask about sales techniques, EI frameworks, objection handling..."
+                placeholder="Ask about sales techniques, behavioral frameworks, objection handling..."
                 className="min-h-[60px] resize-none"
                 data-testid="input-chat-message"
               />
