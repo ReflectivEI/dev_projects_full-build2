@@ -462,7 +462,7 @@ export function RoleplayFeedbackDialog({
       {
         key: "eq:aggregate",
         metricId: undefined,
-        name: "EQ Score (Aggregate)",
+        name: "Signal Intelligence Score (Aggregate)",
         score: aggregateScore,
         feedbackText: feedback.overallSummary || "Overall session summary.",
       },
@@ -537,7 +537,7 @@ export function RoleplayFeedbackDialog({
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="eq" className="flex items-center gap-2" data-testid="tab-eq-metrics">
                   <Brain className="h-4 w-4" />
-                  <span className="hidden sm:inline">EI Metrics</span>
+                  <span className="hidden sm:inline">Behavioral Metrics</span>
                 </TabsTrigger>
                 <TabsTrigger value="sales" className="flex items-center gap-2" data-testid="tab-sales-skills">
                   <Briefcase className="h-4 w-4" />
