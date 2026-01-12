@@ -1037,7 +1037,7 @@ You are a senior sales coach and evaluator.
 INPUTS:
 - Full transcript
 - Behavioral signals
-- Emotional Intelligence deltas
+- Signal Intelligence deltas
 - Scenario context
 
 TASK:
@@ -1737,7 +1737,7 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
     ].filter(Boolean).join("\n");
 
     const eiPrompt = [
-      `You are Reflectiv Coach in Emotional Intelligence mode.`,
+      `You are Reflectiv Coach in Signal Intelligence mode.`,
       ``,
       persona ? `HCP Type: ${persona}` : '',
       disease ? `Disease context: ${disease}` : '',

@@ -1354,7 +1354,7 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
     ].filter(Boolean).join("\n");
 
     const eiPrompt = [
-      `You are Reflectiv Coach in Emotional Intelligence mode.`,
+      `You are Reflectiv Coach in Signal Intelligence mode.`,
       ``,
       persona ? `HCP Type: ${persona}` : '',
       disease ? `Disease context: ${disease}` : '',
