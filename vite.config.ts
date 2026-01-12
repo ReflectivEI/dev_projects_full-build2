@@ -27,7 +27,7 @@ export default defineConfig(async ({ mode }) => {
       },
     },
     root,
-    base: process.env.GITHUB_PAGES ? "/dev_projects_full-build2/" : "/",
+    base: "/",
     build: {
       outDir: "dist",
       emptyOutDir: true,
