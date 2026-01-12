@@ -111,7 +111,7 @@ As the HCP stakeholder:
 - Express realistic concerns, questions, and objections relevant to your clinical practice
 - Respond to the sales rep based on their approach and how well they communicate
 - Show appropriate skepticism or interest based on the quality of their pitch
-- React to emotional intelligence techniques (or lack thereof)
+- React to signal intelligence techniques (or lack thereof)
 - Occasionally test the rep with challenging clinical questions or objections
 
 HANDLING OFF-TOPIC OR PERSONAL QUESTIONS:
@@ -677,7 +677,7 @@ export async function getFrameworkAdvice(
       messages: [
         { 
           role: "system", 
-          content: `You are an expert coach in emotional intelligence frameworks for pharma sales. Provide specific, actionable advice on applying the ${frameworkName} framework.
+          content: `You are an expert coach in signal intelligence frameworks for pharma sales. Provide specific, actionable advice on applying the ${frameworkName} framework.
 
 Respond in JSON format: { "advice": "detailed personalized advice", "practiceExercise": "specific exercise to practice", "tips": ["tip1", "tip2", "tip3"] }` 
         },
@@ -1149,7 +1149,7 @@ const EQ_ANALYSIS_PROMPT = `You are an expert sales coach using the ReflectivAI 
 
 IMPORTANT: Signal Intelligence metrics measure demonstrated capability through observable behaviors—NOT personality traits, emotional states, or intent. Frame all feedback around what was observed.
 
-## LAYER 1 — EMOTIONAL INTELLIGENCE METRICS FOR PHARMA SALES (Rate each 1-5):
+## LAYER 1 — SIGNAL INTELLIGENCE METRICS FOR PHARMA SALES (Rate each 1-5):
 
 ### INTERPERSONAL COMPOSITE:
 1. **Empathy Accuracy** (empathy): How accurately the rep recognized and responded to observable signals from the HCP. Did they acknowledge expressed concerns before offering solutions?

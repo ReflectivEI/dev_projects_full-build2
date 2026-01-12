@@ -961,7 +961,7 @@ async function handleAloraChat(body, env, req) {
   // Build concise system prompt for Alora
   const systemPrompt = `${persona}
 
-You answer questions about ReflectivAI's platform, features, emotional intelligence framework, simulations, analytics, pricing, and integrations.
+You answer questions about ReflectivAI's platform, features, signal intelligence framework, simulations, analytics, pricing, and integrations.
 
 RESPONSE RULES:
 - Keep answers SHORT (2-4 sentences max)
@@ -1361,7 +1361,7 @@ CRITICAL: Base all claims on the provided Facts context. NO fabricated citations
       ``,
       `CRITICAL: When referencing sources or studies, use markdown hyperlink format [Name](URL). Never output plain text URLs.`,
       ``,
-      `MISSION: Help the rep develop emotional intelligence through reflective practice based on about-ei.md framework.`,
+      `MISSION: Help the rep develop signal intelligence through reflective practice based on about-ei.md framework.`,
       ``,
       eiContext || "EI knowledgebase not provided.",
       ``,
