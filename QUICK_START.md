@@ -4,100 +4,161 @@
 
 **Live URL**: https://57caki7jtt.preview.c24.airoapp.ai
 
-## ⚡ One Step to Go Live
+## ✅ Root Cause FIXED!
 
-### Add Your Cloudflare Worker URL
+### The Problem (Same as Your Cloudflare Issue)
+- Frontend was calling wrong backend URL
+- Missing `window.WORKER_URL` configuration
+- Version mismatch between frontend and backend
 
-1. **Find your worker URL**:
-   - Go to Cloudflare Workers dashboard
-   - Copy your ReflectivAI worker URL
-   - Example: `https://reflectivai-gateway.your-account.workers.dev`
+### The Solution Applied
+1. ✅ Added `window.REFLECTIVAI_CONFIG` in `public/config.js`
+2. ✅ Loaded config in `index.html` BEFORE React
+3. ✅ Frontend now calls Cloudflare Worker directly
+4. ✅ Response format fixed (`data.reply`)
 
-2. **Add to secrets** (form above in chat):
-   ```
-   CLOUDFLARE_WORKER_URL=https://your-worker.workers.dev
-   ```
+## 🎯 How It Works Now
 
-3. **Test it**:
-   - Refresh your app
-   - Send a message in the chat
-   - You should get AI responses!
-
-## 🎯 What's Been Fixed
-
-### Root Cause
-- **Problem**: Frontend calling Cloudflare Worker directly caused version mismatches
-- **Solution**: Added proxy layer through GoDaddy backend
-- **Result**: Frontend and backend always stay in sync
-
-### Architecture
 ```
-Before: Frontend → Worker (direct, breaks on version mismatch)
-After:  Frontend → GoDaddy Proxy → Worker (always in sync)
+GoDaddy Frontend → Cloudflare Worker (Direct)
+        ↓
+  window.REFLECTIVAI_CONFIG
+  (loaded in index.html)
 ```
 
-## 📋 What's Working
+**Same pattern as your Cloudflare Pages fix!**
 
-✅ **Frontend**
-- Beautiful chat interface with gradient design
-- Real-time messaging with auto-scroll
-- Loading states and error handling
-- Session management
-- Keyboard shortcuts (Enter to send)
+## 🔍 Verify It's Working
 
-✅ **Backend**
-- Proxy to Cloudflare Worker
-- Error handling and logging
-- Request/response format translation
-- Session tracking
+### Step 1: Open the App
+https://57caki7jtt.preview.c24.airoapp.ai
 
-✅ **Integration**
-- Correct request format (session, mode, messages)
-- Correct response handling (data.reply)
-- Type-safe TypeScript throughout
+### Step 2: Open Browser Console (F12)
+You should see:
+```
+[ReflectivAI] Config loaded: {
+  WORKER_URL: "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev",
+  VERSION: "1.0.0",
+  ENVIRONMENT: "production"
+}
+```
 
-## 🔧 Troubleshooting
+### Step 3: Send a Test Message
+Type anything in the chat and press Enter.
 
-### "Worker URL not configured"
-→ Add `CLOUDFLARE_WORKER_URL` in secrets form
+Console should show:
+```
+[ReflectivAI] Calling worker: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
+```
 
-### CORS errors
-→ Update worker's `CORS_ORIGINS` to include:
+### Step 4: Check Network Tab
+The request should go to:
+- ✅ `reflectivai-api-parity-prod.tonyabdelmalak.workers.dev/chat`
+- ❌ NOT `57caki7jtt.preview.c24.airoapp.ai/api/chat`
+
+## 🛠️ Configuration Files
+
+### `public/config.js` (NEW)
+```javascript
+window.REFLECTIVAI_CONFIG = {
+  WORKER_URL: 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev',
+  VERSION: '1.0.0',
+  ENVIRONMENT: 'production'
+};
+```
+
+### `index.html` (UPDATED)
+```html
+<head>
+  <title>ReflectivAI - AI Coach</title>
+  <!-- CRITICAL: Load worker URL config before app loads -->
+  <script src="/config.js"></script>
+</head>
+```
+
+### `src/pages/index.tsx` (UPDATED)
+```typescript
+// Get worker URL from config
+const workerUrl = (window as any).REFLECTIVAI_CONFIG?.WORKER_URL;
+
+// Call worker directly
+const response = await fetch(`${workerUrl}/chat`, {
+  method: 'POST',
+  body: JSON.stringify({
+    session: sessionId,
+    mode: 'sales-coach',
+    messages: [...messages]
+  })
+});
+
+// Handle worker response format
+const data = await response.json();
+const reply = data.reply || data.message;
+```
+
+## 🚨 Troubleshooting
+
+### "Worker URL not configured" Error
+
+**Check**:
+1. Does `public/config.js` exist?
+2. Is it loaded in `index.html`?
+3. Restart dev server to pick up new files
+
+### CORS Errors
+
+**Fix**: Update your Cloudflare Worker's `CORS_ORIGINS` to include:
 ```
 https://57caki7jtt.preview.c24.airoapp.ai
 ```
 
-### Empty responses
-→ Already fixed! Frontend now reads `data.reply`
+### Empty Responses
 
-### Test in browser console
-```javascript
-fetch('/api/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-    session: 'test',
-    mode: 'sales-coach',
-    messages: [{ role: 'user', content: 'Hello' }]
-  })
-}).then(r => r.json()).then(console.log)
-```
+**Already Fixed**: Frontend reads `data.reply || data.message`
 
-## 📚 Documentation
+### 405 Method Not Allowed
 
-See `DEPLOYMENT_FIX.md` for:
-- Detailed root cause analysis
-- Complete architecture explanation
-- Debugging tips
-- Production considerations
+**Check Network Tab**: Should call `workers.dev`, not `airoapp.ai`
 
-## 🎤 Presentation Ready
+## 📋 Key Differences from Cloudflare Setup
+
+| Aspect | Cloudflare Pages | GoDaddy Airo |
+|--------|-----------------|---------------|
+| Config Variable | `window.WORKER_URL` | `window.REFLECTIVAI_CONFIG` |
+| Config File | `client/index.html` | `public/config.js` |
+| Frontend | Cloudflare Pages | GoDaddy Airo |
+| Backend | Cloudflare Worker | Same Cloudflare Worker |
+| Pattern | Direct call | Direct call |
+
+**Same root cause, same solution pattern!**
+
+## ✅ What's Working
+
+- ✅ Beautiful chat interface
+- ✅ Direct connection to Cloudflare Worker
+- ✅ Correct request format (session, mode, messages)
+- ✅ Correct response handling (data.reply)
+- ✅ Session management
+- ✅ Error handling
+- ✅ Loading states
+- ✅ Auto-scroll messages
+- ✅ Keyboard shortcuts
+
+## 🎤 Presentation Ready!
 
 Your app demonstrates:
-1. **Modern UI**: Clean, professional chat interface
-2. **Real AI**: Connected to your Cloudflare Worker backend
-3. **Emotional Intelligence**: Coaching for EI and sales skills
-4. **Production Architecture**: Proper proxy pattern for reliability
-5. **Error Handling**: Graceful degradation and user feedback
+1. **Root cause diagnosis** - Same issue as Cloudflare deployment
+2. **Proper fix applied** - Config-based worker URL
+3. **Direct backend calls** - No proxy layer confusion
+4. **Production-ready** - Error handling, logging, sessions
+5. **Type-safe** - Full TypeScript throughout
+
+## 📚 Full Documentation
+
+See `DEPLOYMENT_FIX.md` for:
+- Complete root cause analysis
+- Detailed troubleshooting guide
+- Deployment checklist
+- Architecture comparison
 
 **Good luck with your presentation! 🚀**

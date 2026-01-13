@@ -49,7 +49,16 @@ export default function HomePage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/chat', {
+      // Get worker URL from config (loaded in index.html)
+      const workerUrl = (window as any).REFLECTIVAI_CONFIG?.WORKER_URL;
+      
+      if (!workerUrl) {
+        throw new Error('Worker URL not configured. Check public/config.js');
+      }
+
+      console.log('[ReflectivAI] Calling worker:', workerUrl);
+      
+      const response = await fetch(`${workerUrl}/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
