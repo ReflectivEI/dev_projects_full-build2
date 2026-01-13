@@ -15,27 +15,9 @@ const getWorkerUrl = () => {
   return null;
 };
 
-// Force runtime evaluation by using a dynamic property access
-const API_BASE_URL = (() => {
-  // Development: use Vite proxy
-  const isDev = import.meta.env.DEV;
-  if (isDev) {
-    console.log('[queryClient] DEV mode - using proxy');
-    return undefined;
-  }
-  
-  // Production: check runtime first
-  const runtimeUrl = getWorkerUrl();
-  if (runtimeUrl) {
-    console.log('[queryClient] Using runtime WORKER_URL:', runtimeUrl);
-    return runtimeUrl;
-  }
-  
-  // Fallback to hardcoded URL
-  const fallback = 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev';
-  console.log('[queryClient] Using fallback URL:', fallback);
-  return fallback;
-})();
+// NUCLEAR OPTION: Hardcode the Worker URL - NO CONDITIONALS
+// Vite cannot tree-shake a simple string constant
+const API_BASE_URL = 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev';
 
 console.log('[queryClient] Final API_BASE_URL:', API_BASE_URL);
 
