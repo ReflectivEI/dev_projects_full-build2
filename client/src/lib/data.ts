@@ -47,7 +47,7 @@ export const communicationStyleModels: EQFramework[] = [
 // Signal Intelligence is a DEMONSTRATED CAPABILITY in ReflectivAI.
 // These frameworks assess how effectively a seller perceives, interprets, and 
 // responds to observable signals in complex sales conversations.
-// Key point: EI is measured through observable behaviors, not personality traits.
+// Key point: Signal Intelligence is measured through observable behaviors, not personality traits.
 // It is NOT personality-based, NOT behavioral labeling, and NOT diagnostic.
 export const eqFrameworks: EQFramework[] = [
   {
@@ -1400,9 +1400,9 @@ export function getHcpConcernTag(profile: typeof hcpProfiles[0]): string {
 }
 
 // =============================================================================
-// UNIFIED EI SCORING SYSTEM
+// UNIFIED SIGNAL INTELLIGENCE SCORING SYSTEM
 // =============================================================================
-// All EI metrics use a consistent 1-5 scoring scale with performance levels.
+// All Signal Intelligence metrics use a consistent 1-5 scoring scale with performance levels.
 // This ensures intuitive, comparable evaluation across all coaching experiences.
 
 export type PerformanceLevel = "exceptional" | "strong" | "developing" | "emerging" | "needs-focus";
@@ -1447,7 +1447,7 @@ export function getScoreBgColor(score: number): string {
   return "bg-red-500/10 border-red-500/30";
 }
 
-// EI Metrics Framework - Layer 1 (Core Measurement)
+// Signal Intelligence Metrics Framework - Layer 1 (Core Measurement)
 // Measures DEMONSTRATED CAPABILITY through observable behaviors.
 // All metrics scored 1-5 for consistency and intuitive comparison.
 export interface SignalCapability {

@@ -8,7 +8,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 
 /**
  * Signal-aligned replacement for LiveEQAnalysis.
- * EI scoring, metrics, and labels are intentionally removed.
+ * Signal Intelligence scoring, metrics, and labels are intentionally removed.
  * This component now acts as a Signal Reflection panel.
  */
 
