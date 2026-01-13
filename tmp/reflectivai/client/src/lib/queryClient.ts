@@ -2,40 +2,42 @@
 // API base is driven by VITE_WORKER_URL and contracts must match cloudflare-worker-api.md.
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
-// CRITICAL: This must be evaluated at RUNTIME, not build time
-// Vite will try to optimize this away, so we use a function to force runtime evaluation
-function getApiBaseUrl(): string | undefined {
-  // In development, use Vite proxy (undefined = same-origin /api/*)
-  if (import.meta.env.DEV) {
+// CRITICAL: Vite's dead code elimination is too aggressive
+// We MUST use a pattern that survives minification and tree-shaking
+// Using globalThis prevents Vite from inlining or removing this code
+const getWorkerUrl = () => {
+  if (typeof globalThis !== 'undefined' && (globalThis as any).WORKER_URL) {
+    return (globalThis as any).WORKER_URL;
+  }
+  if (typeof window !== 'undefined' && (window as any).WORKER_URL) {
+    return (window as any).WORKER_URL;
+  }
+  return null;
+};
+
+// Force runtime evaluation by using a dynamic property access
+const API_BASE_URL = (() => {
+  // Development: use Vite proxy
+  const isDev = import.meta.env.DEV;
+  if (isDev) {
+    console.log('[queryClient] DEV mode - using proxy');
     return undefined;
   }
   
-  // In production, check runtime window.WORKER_URL first
-  if (typeof window !== "undefined") {
-    const w = window as any;
-    if (w.WORKER_URL) {
-      console.log("[queryClient] Using window.WORKER_URL:", w.WORKER_URL);
-      return w.WORKER_URL;
-    }
+  // Production: check runtime first
+  const runtimeUrl = getWorkerUrl();
+  if (runtimeUrl) {
+    console.log('[queryClient] Using runtime WORKER_URL:', runtimeUrl);
+    return runtimeUrl;
   }
   
-  // Fall back to build-time env vars
-  const buildTimeUrl = import.meta.env.VITE_WORKER_URL || import.meta.env.VITE_API_BASE_URL;
-  if (buildTimeUrl) {
-    console.log("[queryClient] Using build-time URL:", buildTimeUrl);
-    return buildTimeUrl;
-  }
-  
-  // Final fallback
-  const fallback = "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev";
-  console.log("[queryClient] Using fallback URL:", fallback);
+  // Fallback to hardcoded URL
+  const fallback = 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev';
+  console.log('[queryClient] Using fallback URL:', fallback);
   return fallback;
-}
+})();
 
-// Call the function to get the URL - this prevents Vite from inlining it
-const API_BASE_URL = getApiBaseUrl();
-
-console.log("[queryClient] Final API_BASE_URL:", API_BASE_URL);
+console.log('[queryClient] Final API_BASE_URL:', API_BASE_URL);
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
 const SESSION_STORAGE_KEY = "reflectivai-session-id";
