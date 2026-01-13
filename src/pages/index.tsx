@@ -24,6 +24,7 @@ export default function HomePage() {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [sessionId] = useState(() => `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -52,6 +53,8 @@ export default function HomePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          session: sessionId,
+          mode: 'sales-coach',
           messages: [...messages, userMessage].map(m => ({
             role: m.role,
             content: m.content
@@ -67,7 +70,7 @@ export default function HomePage() {
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: data.message || 'I apologize, but I encountered an error. Please try again.',
+        content: data.reply || data.message || 'I apologize, but I encountered an error. Please try again.',
         timestamp: Date.now()
       };
 
