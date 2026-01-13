@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-export interface ObservableSignal {
+export interface Signal Intelligence capability {
   id?: string;
   type: "verbal" | "conversational" | "engagement" | "contextual";
   signal: string;
@@ -27,7 +27,7 @@ export interface ObservableSignal {
 }
 
 interface SignalIntelligencePanelProps {
-  signals: ObservableSignal[];
+  signals: Signal Intelligence capability[];
   isLoading?: boolean;
   hasActivity?: boolean;
   compact?: boolean;
@@ -64,7 +64,7 @@ const signalTypeConfig = {
   }
 };
 
-function getSafeSignalType(type: unknown): ObservableSignal["type"] {
+function getSafeSignalType(type: unknown): Signal Intelligence capability["type"] {
   if (
     type === "verbal" ||
     type === "conversational" ||
@@ -80,7 +80,7 @@ function getSignalConfig(type: unknown) {
   return signalTypeConfig[getSafeSignalType(type)];
 }
 
-function SignalCard({ signal }: { signal: ObservableSignal }) {
+function SignalCard({ signal }: { signal: Signal Intelligence capability }) {
   const config = getSignalConfig(signal.type);
   const Icon = config.icon ?? TrendingUp;
 

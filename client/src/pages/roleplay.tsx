@@ -24,7 +24,7 @@ import {
   specialtiesByDiseaseState,
   allSpecialties,
 } from "@/lib/data";
-import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
+import { SignalIntelligencePanel, type Signal Intelligence capability } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 
@@ -41,7 +41,7 @@ type RoleplayMessage = {
 interface SessionPayload {
   session: any | null;
   messages: RoleplayMessage[];
-  signals: ObservableSignal[];
+  signals: Signal Intelligence capability[];
 }
 
 /**
@@ -86,7 +86,7 @@ function dedupeByStableKey<T>(items: T[]): T[] {
   return out;
 }
 
-function extractSignals(payload: any): ObservableSignal[] {
+function extractSignals(payload: any): Signal Intelligence capability[] {
   const s = payload?.signals ?? payload?.session?.signals;
   return Array.isArray(s) ? s : [];
 }
@@ -182,7 +182,7 @@ export default function RolePlayPage() {
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [showAllScenarios, setShowAllScenarios] = useState(false);
 
-  const [sessionSignals, setSessionSignals] = useState<ObservableSignal[]>([]);
+  const [sessionSignals, setSessionSignals] = useState<Signal Intelligence capability[]>([]);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState("");
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
