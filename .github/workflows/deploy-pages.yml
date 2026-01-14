@@ -1,17 +1,25 @@
-# DISABLED - Use deploy-frontend.yml for manual deployments
-# This workflow was causing conflicts with multiple auto-deployments
-
-name: Deploy Pages (DISABLED)
+name: Deploy to GitHub Pages
 
 on:
+  push:
+    branches: ["main"]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  disabled:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Workflow Disabled
-        run: |
-          echo "This workflow has been disabled."
-          echo "Use deploy-frontend.yml for manual Cloudflare Pages deployments."
-          exit 1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: cd client && npm ci && npm run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./client/dist
+      - uses: actions/deploy-pages@v4
