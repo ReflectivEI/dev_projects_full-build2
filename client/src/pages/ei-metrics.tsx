@@ -1,17 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { Activity, Info, CheckCircle2, X, Radio } from "lucide-react";
+import { Activity, CheckCircle2, X, Radio } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { readEnabledEIMetricIds, writeEnabledEIMetricIds } from "@/lib/eiMetricSettings";
 import { 
   eqMetrics, 
   getPerformanceLevel, 
@@ -23,38 +21,10 @@ import {
 
 interface MetricWithScore extends EQMetric {
   score: number;
-  signalsCaptured?: number;
-  totalSignals?: number;
-  enabled?: boolean;
 }
-
-const coreMetricsWithScores: MetricWithScore[] = eqMetrics
-  .filter(m => m.isCore)
-  .map(m => ({
-    ...m,
-    score: m.id === "empathy" ? 4.2 : m.id === "clarity" ? 4.5 : m.id === "discovery" ? 3.8 : 4.0,
-    signalsCaptured: m.id === "empathy" ? 7 : m.id === "clarity" ? 11 : m.id === "discovery" ? 7 : 17,
-    totalSignals: m.id === "empathy" ? 8 : m.id === "clarity" ? 12 : m.id === "discovery" ? 9 : 20,
-  }));
-
-const extendedMetricsWithScores: MetricWithScore[] = eqMetrics
-  .filter(m => !m.isCore)
-  .map(m => ({
-    ...m,
-    score: m.id === "compliance" ? 5.0 : m.id === "active-listening" ? 4.3 : m.id === "objection-handling" ? 4.1 : 
-           m.id === "confidence" ? 3.9 : m.id === "action-insight" ? 3.7 : 3.5,
-    signalsCaptured: m.id === "compliance" ? 15 : m.id === "active-listening" ? 9 : m.id === "objection-handling" ? 17 :
-                     m.id === "confidence" ? 8 : m.id === "action-insight" ? 9 : 7,
-    totalSignals: m.id === "compliance" ? 15 : m.id === "active-listening" ? 10 : m.id === "objection-handling" ? 20 :
-                  m.id === "confidence" ? 10 : m.id === "action-insight" ? 11 : 9,
-    enabled: ["compliance", "active-listening", "objection-handling", "action-insight"].includes(m.id),
-  }));
 
 function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () => void }) {
   const performanceLevel = getPerformanceLevel(metric.score);
-  const signalRate = metric.signalsCaptured && metric.totalSignals 
-    ? Math.round((metric.signalsCaptured / metric.totalSignals) * 100) 
-    : null;
   
   return (
     <div
@@ -65,18 +35,11 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {metric.displayName}
+            {metric.displayName || metric.name}
           </span>
-          <div className="flex items-center gap-1">
-            <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
-              Behavioral Metric
-            </Badge>
-            {metric.isCore && (
-              <Badge variant="outline" className="text-xs py-0 bg-primary/10 text-primary border-primary/30">
-                Core
-              </Badge>
-            )}
-          </div>
+          <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
+            Behavioral Metric
+          </Badge>
         </div>
         
         <div className="flex items-baseline gap-2">
@@ -85,25 +48,12 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
           </span>
           <span className="text-sm text-muted-foreground">/5</span>
         </div>
-        <p className="text-xs text-muted-foreground">Sample score for demonstration purposes</p>
+        <p className="text-xs text-muted-foreground">Not yet scored — connect to a Role Play transcript to calculate</p>
         
         <div className="flex items-center gap-2">
           <Badge className={`text-xs ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
             {performanceLevel.label}
           </Badge>
-          {signalRate !== null && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="text-xs text-muted-foreground flex items-center gap-1 cursor-help">
-                  <Radio className="h-3 w-3" />
-                  {signalRate}%
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="text-xs">Signal Capture Rate: {metric.signalsCaptured}/{metric.totalSignals} signals observed</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
         </div>
       </div>
     </div>
@@ -118,9 +68,6 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
   if (!metric) return null;
   
   const performanceLevel = getPerformanceLevel(metric.score);
-  const signalRate = metric.signalsCaptured && metric.totalSignals 
-    ? Math.round((metric.signalsCaptured / metric.totalSignals) * 100) 
-    : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -128,7 +75,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
         <DialogHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-xl">{metric.displayName}</DialogTitle>
+              <DialogTitle className="text-xl">{metric.displayName || metric.name}</DialogTitle>
               <div className="flex items-center gap-2 mt-2">
                 <span className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
                   {metric.score.toFixed(1)}/5
@@ -164,37 +111,10 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
             </h4>
             <div className="bg-muted/50 p-3 rounded-lg">
               <code className="text-sm font-mono">
-                {metric.calculation}
+                {metric.calculation || 'Not specified'}
               </code>
             </div>
           </div>
-
-          {signalRate !== null && (
-            <div>
-              <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
-                <Radio className="h-4 w-4 text-primary" />
-                Observed Signal Coverage
-              </h4>
-              <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Signals captured:</span>
-                  <span className="font-semibold">{metric.signalsCaptured}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Total observable signals:</span>
-                  <span className="font-semibold">{metric.totalSignals}</span>
-                </div>
-                <div className="border-t pt-2 mt-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">Capture rate:</span>
-                    <code className={`text-sm font-bold px-2 py-1 rounded ${getScoreColor(metric.score)}`}>
-                      {signalRate}%
-                    </code>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
 
           <div>
             <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
@@ -252,7 +172,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
           <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
             <h4 className="font-semibold text-sm mb-1">Key Tip</h4>
             <p className="text-sm text-muted-foreground italic">
-              {metric.keyTip}
+              {metric.keyTip || 'Focus on observable behaviors and adjust your approach based on customer cues.'}
             </p>
           </div>
 
@@ -269,30 +189,11 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
 
 export default function EIMetricsPage() {
   const [selectedMetric, setSelectedMetric] = useState<MetricWithScore | null>(null);
-  const [extendedMetricState, setExtendedMetricState] = useState<Record<string, boolean>>(() => {
-    const defaults = extendedMetricsWithScores.reduce<Record<string, boolean>>(
-      (acc, m) => ({ ...acc, [m.id]: m.enabled ?? false }),
-      {}
-    );
-    const persisted = new Set(readEnabledEIMetricIds());
-    if (persisted.size === 0) return defaults;
-    const out: Record<string, boolean> = { ...defaults };
-    for (const id of Object.keys(out)) {
-      out[id] = persisted.has(id);
-    }
-    return out;
-  });
 
-  const toggleMetric = (id: string) => {
-    setExtendedMetricState(prev => {
-      const next = { ...prev, [id]: !prev[id] };
-      const enabledIds = Object.entries(next)
-        .filter(([, enabled]) => Boolean(enabled))
-        .map(([metricId]) => metricId);
-      writeEnabledEIMetricIds(enabledIds);
-      return next;
-    });
-  };
+  const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
+    ...m,
+    score: 3.0
+  }));
 
   return (
     <div className="h-full overflow-auto">
@@ -352,7 +253,7 @@ export default function EIMetricsPage() {
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            {[...coreMetricsWithScores, ...extendedMetricsWithScores].map((metric) => (
+            {metricsWithScores.map((metric) => (
               <MetricCard 
                 key={metric.id} 
                 metric={metric} 
