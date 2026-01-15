@@ -211,6 +211,44 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
             </ul>
           </div>
 
+          <div>
+            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+              <Radio className="h-4 w-4 text-primary" />
+              Signals observed during Role Play
+            </h4>
+            <p className="text-sm text-muted-foreground mb-2">
+              During Role Play and real-world conversations, Signal Intelligence is informed by observable cues that vary by scenario and customer behavior.
+            </p>
+            <p className="text-sm text-muted-foreground mb-2">
+              These signals reflect what is happening in the interaction and provide context for how a Behavioral Metric is demonstrated.
+            </p>
+            <ul className="space-y-1.5 mb-2">
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Changes in tone or pacing
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Interruptions or shortened responses
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Hesitation or delayed replies
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Follow-up questions after new information
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Shifts from openness to resistance (or vice versa)
+              </li>
+            </ul>
+            <p className="text-xs text-muted-foreground italic">
+              Signals support reflection and coaching. They do not independently determine outcomes, intent, or capability.
+            </p>
+          </div>
+
           <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
             <h4 className="font-semibold text-sm mb-1">Key Tip</h4>
             <p className="text-sm text-muted-foreground italic">
@@ -305,81 +343,22 @@ export default function EIMetricsPage() {
             <div>
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Core Behavioral Metrics
+                Behavioral Metrics (Always Active)
               </h2>
               <p className="text-sm text-muted-foreground">
-                These four metrics form the foundation of behavioral measurement across all coaching experiences
+                These eight Behavioral Metrics are foundational to Signal Intelligence and are consistently applied across coaching, Role Play, and evaluation.
               </p>
             </div>
-            <Badge className="bg-primary/10 text-primary border-primary/30">Always Active</Badge>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            {coreMetricsWithScores.map((metric) => (
+            {[...coreMetricsWithScores, ...extendedMetricsWithScores].map((metric) => (
               <MetricCard 
                 key={metric.id} 
                 metric={metric} 
                 onClick={() => setSelectedMetric(metric)}
               />
             ))}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Additional Behavioral Metrics</h2>
-              <p className="text-sm text-muted-foreground">
-                Toggle metrics on/off based on your coaching priorities
-              </p>
-            </div>
-            <Badge variant="outline">Configurable</Badge>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {extendedMetricsWithScores.map((metric) => {
-              const isEnabled = extendedMetricState[metric.id];
-              const performanceLevel = getPerformanceLevel(metric.score);
-              
-              return (
-                <div
-                  key={metric.id}
-                  className={`rounded-xl border p-4 transition-all ${isEnabled ? 'opacity-100' : 'opacity-50'} ${getScoreBgColor(metric.score)}`}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div 
-                      className="flex-1 cursor-pointer" 
-                      onClick={() => setSelectedMetric({...metric, enabled: isEnabled})}
-                    >
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {metric.displayName}
-                        </span>
-                        <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
-                          Behavioral Metric
-                        </Badge>
-                      </div>
-                      <div className="flex items-baseline gap-1 mt-1">
-                        <span className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
-                          {metric.score.toFixed(1)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">/5</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">Sample score for demonstration purposes</p>
-                      <Badge className={`text-xs mt-2 ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
-                        {performanceLevel.label}
-                      </Badge>
-                    </div>
-                    <Switch
-                      checked={isEnabled}
-                      onCheckedChange={() => toggleMetric(metric.id)}
-                      data-testid={`switch-metric-${metric.id}`}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{metric.description}</p>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
