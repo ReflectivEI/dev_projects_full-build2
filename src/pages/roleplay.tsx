@@ -205,7 +205,7 @@ export default function RolePlayPage() {
   }, [selectedSpecialty, availableSpecialties]);
 
   const filteredScenarios = (() => {
-    if (showAllScenarios || !selectedDiseaseState) return scenarios;
+    if (!selectedDiseaseState) return scenarios;
     const cats = diseaseToCategories[selectedDiseaseState];
     if (!cats) return scenarios;
     return scenarios.filter((s) => cats.includes(s.category));
