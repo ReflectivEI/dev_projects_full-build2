@@ -77,7 +77,7 @@ export function overlap(tokens1: string[], tokens2: string[]): number {
   if (tokens1.length === 0 || tokens2.length === 0) return 0;
   const set1 = new Set(tokens1);
   const set2 = new Set(tokens2);
-  const intersection = [...set1].filter(t => set2.has(t));
+  const intersection = Array.from(set1).filter(t => set2.has(t));
   return intersection.length / Math.max(set1.size, set2.size);
 }
 
