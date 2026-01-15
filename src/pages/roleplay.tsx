@@ -321,27 +321,120 @@ export default function RolePlayPage() {
 
       {!isActive ? (
         <div className="flex-1 p-6 overflow-auto">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-6">
-              <h2 className="text-2xl font-semibold mb-2">Select a Scenario</h2>
-              <p className="text-muted-foreground">Choose a structured practice scenario to begin</p>
+          <div className="max-w-7xl mx-auto space-y-6">
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Disease State</label>
+                <Select value={selectedDiseaseState} onValueChange={setSelectedDiseaseState}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Disease States" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Disease States</SelectItem>
+                    {diseaseStates.map((ds) => (
+                      <SelectItem key={ds} value={ds}>
+                        {ds}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Specialty</label>
+                <Select
+                  value={selectedSpecialty}
+                  onValueChange={setSelectedSpecialty}
+                  disabled={!selectedDiseaseState || selectedDiseaseState === "all"}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Specialties" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Specialties</SelectItem>
+                    {availableSpecialties.map((spec) => (
+                      <SelectItem key={spec} value={spec}>
+                        {spec}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Scenario Type</label>
+                <Select value={showAllScenarios ? "all" : "filtered"} onValueChange={(v) => setShowAllScenarios(v === "all")}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="filtered">Filtered</SelectItem>
+                    <SelectItem value="all">All Scenarios</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Difficulty</label>
+                <Select defaultValue="all">
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Levels" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
+            {/* Scenario Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredScenarios.map((scenario) => (
-                <Card
-                  key={scenario.id}
-                  className="cursor-pointer transition-all hover:shadow-lg hover:border-primary"
-                  onClick={() => startScenarioMutation.mutate(scenario)}
-                >
+                <Card key={scenario.id} className="flex flex-col">
                   <CardHeader>
-                    <CardTitle className="text-lg">{scenario.title}</CardTitle>
-                    <CardDescription className="line-clamp-2">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <CardTitle className="text-base leading-tight">{scenario.title}</CardTitle>
+                      {scenario.difficulty && (
+                        <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary capitalize shrink-0">
+                          {scenario.difficulty}
+                        </span>
+                      )}
+                    </div>
+                    <CardDescription className="text-sm line-clamp-2">
                       {scenario.description}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <Button className="w-full" size="sm">
+                  <CardContent className="flex-1 space-y-3">
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Stakeholder</p>
+                      <p className="text-sm">{scenario.stakeholder}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Objective</p>
+                      <p className="text-sm line-clamp-2">{scenario.objective}</p>
+                    </div>
+                    {scenario.challenges && scenario.challenges.length > 0 && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Key Challenges</p>
+                        <ul className="text-xs space-y-1">
+                          {scenario.challenges.slice(0, 2).map((challenge, idx) => (
+                            <li key={idx} className="flex items-start gap-1">
+                              <span className="text-muted-foreground mt-1">•</span>
+                              <span className="line-clamp-1">{challenge}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <Button
+                      className="w-full mt-auto"
+                      size="sm"
+                      onClick={() => startScenarioMutation.mutate(scenario)}
+                    >
                       <Play className="h-4 w-4 mr-2" />
                       Start Scenario
                     </Button>
@@ -349,6 +442,12 @@ export default function RolePlayPage() {
                 </Card>
               ))}
             </div>
+
+            {filteredScenarios.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No scenarios match your filters. Try adjusting your selection.</p>
+              </div>
+            )}
           </div>
         </div>
       ) : (
