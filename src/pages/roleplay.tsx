@@ -320,42 +320,36 @@ export default function RolePlayPage() {
       </div>
 
       {!isActive ? (
-        <div className="flex-1 p-6 max-w-4xl mx-auto w-full">
-          <Card>
-            <CardHeader>
-              <CardTitle>Select a Scenario</CardTitle>
-              <CardDescription>Choose a structured practice scenario</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Select
-                value={selectedScenario?.id ?? ""}
-                onValueChange={(v) =>
-                  setSelectedScenario(filteredScenarios.find((s) => s.id === v) ?? null)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a scenario…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {filteredScenarios.map((s) => (
-                    <SelectItem key={s.id} value={s.id}>
-                      {s.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <div className="flex-1 p-6 overflow-auto">
+          <div className="max-w-7xl mx-auto">
+            <div className="mb-6">
+              <h2 className="text-2xl font-semibold mb-2">Select a Scenario</h2>
+              <p className="text-muted-foreground">Choose a structured practice scenario to begin</p>
+            </div>
 
-              {selectedScenario && (
-                <Button
-                  onClick={() => startScenarioMutation.mutate(selectedScenario)}
-                  className="w-full"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredScenarios.map((scenario) => (
+                <Card
+                  key={scenario.id}
+                  className="cursor-pointer transition-all hover:shadow-lg hover:border-primary"
+                  onClick={() => startScenarioMutation.mutate(scenario)}
                 >
-                  <Play className="h-4 w-4 mr-2" />
-                  Start Role-Play
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">{scenario.title}</CardTitle>
+                    <CardDescription className="line-clamp-2">
+                      {scenario.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button className="w-full" size="sm">
+                      <Play className="h-4 w-4 mr-2" />
+                      Start Scenario
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="flex-1 flex gap-6 p-6 overflow-hidden">
