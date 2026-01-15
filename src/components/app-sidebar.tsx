@@ -28,7 +28,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import reflectivAILogo from "@assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
+// Logo removed - using text instead
 import { getSessionId, SESSION_ID_EVENT } from "@/lib/queryClient";
 
 interface DailyFocus {
