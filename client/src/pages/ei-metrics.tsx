@@ -9,7 +9,7 @@ import {
 import { Activity, CheckCircle2, X, Radio } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+
 import { 
   eqMetrics, 
   getPerformanceLevel, 
