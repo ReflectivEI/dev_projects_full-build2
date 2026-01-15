@@ -213,6 +213,9 @@ export default function Dashboard() {
                 Signal Intelligence Capabilities
               </CardTitle>
               <CardDescription>8 core capabilities for sales excellence</CardDescription>
+              <p className="text-xs text-muted-foreground mt-2">
+                Insights are based on observable interaction patterns. AI supports interpretation; humans decide responses.
+              </p>
             </CardHeader>
             <CardContent className="space-y-3">
               {signalCapabilities.map((capability) => (

@@ -67,11 +67,16 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
           <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
             {metric.displayName}
           </span>
-          {metric.isCore && (
-            <Badge variant="outline" className="text-xs py-0 bg-primary/10 text-primary border-primary/30">
-              Core
+          <div className="flex items-center gap-1">
+            <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
+              Behavioral Metric
             </Badge>
-          )}
+            {metric.isCore && (
+              <Badge variant="outline" className="text-xs py-0 bg-primary/10 text-primary border-primary/30">
+                Core
+              </Badge>
+            )}
+          </div>
         </div>
         
         <div className="flex items-baseline gap-2">
@@ -80,6 +85,7 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
           </span>
           <span className="text-sm text-muted-foreground">/5</span>
         </div>
+        <p className="text-xs text-muted-foreground">Sample score for demonstration purposes</p>
         
         <div className="flex items-center gap-2">
           <Badge className={`text-xs ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
@@ -154,7 +160,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
           <div>
             <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-primary" />
-              Scoring Method
+              Behavioral Measurement Method
             </h4>
             <div className="bg-muted/50 p-3 rounded-lg">
               <code className="text-sm font-mono">
@@ -167,7 +173,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
             <div>
               <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
                 <Radio className="h-4 w-4 text-primary" />
-                Signal Capture Rate
+                Observed Signal Coverage
               </h4>
               <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
                 <div className="flex items-center justify-between text-sm">
@@ -211,6 +217,12 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
               {metric.keyTip}
             </p>
           </div>
+
+          <div className="pt-2 border-t">
+            <p className="text-xs text-muted-foreground italic">
+              Metrics reflect observable behaviors, not traits, intent, or personality.
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
@@ -250,11 +262,13 @@ export default function EIMetricsPage() {
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-3">
             <Activity className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold" data-testid="text-ei-metrics-title">Signal Intelligence Metrics</h1>
+            <h1 className="text-3xl font-bold" data-testid="text-ei-metrics-title">Behavioral Metrics Overview</h1>
           </div>
           <p className="text-muted-foreground">
-            Signal Intelligence metrics measure <strong>demonstrated capability</strong> through observable behaviors.
-            Click any metric to view its definition, scoring method, and coaching guidance.
+            Observable behaviors derived from Signal Intelligence capabilities. Scores shown are illustrative.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Click any metric to view its definition, measurement method, and coaching guidance.
           </p>
         </div>
 
@@ -337,15 +351,21 @@ export default function EIMetricsPage() {
                       className="flex-1 cursor-pointer" 
                       onClick={() => setSelectedMetric({...metric, enabled: isEnabled})}
                     >
-                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                        {metric.displayName}
-                      </span>
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                          {metric.displayName}
+                        </span>
+                        <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
+                          Behavioral Metric
+                        </Badge>
+                      </div>
                       <div className="flex items-baseline gap-1 mt-1">
                         <span className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
                           {metric.score.toFixed(1)}
                         </span>
                         <span className="text-sm text-muted-foreground">/5</span>
                       </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">Sample score for demonstration purposes</p>
                       <Badge className={`text-xs mt-2 ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
                         {performanceLevel.label}
                       </Badge>
