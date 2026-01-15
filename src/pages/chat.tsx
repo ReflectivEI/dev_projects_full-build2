@@ -41,7 +41,7 @@ import {
   Radio,
   HelpCircle,
 } from "lucide-react";
-import reflectivAILogo from "@assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
+// Logo removed - using text/icon instead
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
