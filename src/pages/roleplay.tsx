@@ -23,6 +23,8 @@ import {
   diseaseStates,
   specialtiesByDiseaseState,
   allSpecialties,
+  hcpCategories,
+  influenceDrivers,
 } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
@@ -180,7 +182,8 @@ export default function RolePlayPage() {
 
   const [selectedDiseaseState, setSelectedDiseaseState] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
-  const [showAllScenarios, setShowAllScenarios] = useState(false);
+  const [selectedHcpCategory, setSelectedHcpCategory] = useState("");
+  const [selectedInfluenceDriver, setSelectedInfluenceDriver] = useState("");
 
   const [sessionSignals, setSessionSignals] = useState<SignalIntelligenceCapability[]>([]);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
@@ -286,6 +289,8 @@ export default function RolePlayPage() {
     setSelectedScenario(null);
     setSelectedDiseaseState("");
     setSelectedSpecialty("");
+    setSelectedHcpCategory("");
+    setSelectedInfluenceDriver("");
     setSessionSignals([]);
     setFeedbackData(null);
     setShowFeedbackDialog(false);
@@ -322,73 +327,59 @@ export default function RolePlayPage() {
       {!isActive ? (
         <div className="flex-1 p-6 overflow-auto">
           <div className="max-w-7xl mx-auto space-y-6">
-            {/* Filter Controls */}
+            {/* Filter Controls - Matching AI Coach Page */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Disease State</label>
-                <Select value={selectedDiseaseState} onValueChange={setSelectedDiseaseState}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Disease States" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Disease States</SelectItem>
-                    {diseaseStates.map((ds) => (
-                      <SelectItem key={ds} value={ds}>
-                        {ds}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={selectedDiseaseState} onValueChange={setSelectedDiseaseState}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Disease State" />
+                </SelectTrigger>
+                <SelectContent>
+                  {diseaseStates.map((disease) => (
+                    <SelectItem key={disease.id} value={disease.id}>
+                      {disease.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Specialty</label>
-                <Select
-                  value={selectedSpecialty}
-                  onValueChange={setSelectedSpecialty}
-                  disabled={!selectedDiseaseState || selectedDiseaseState === "all"}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Specialties" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Specialties</SelectItem>
-                    {availableSpecialties.map((spec) => (
-                      <SelectItem key={spec} value={spec}>
-                        {spec}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={selectedSpecialty} onValueChange={setSelectedSpecialty}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Specialty" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSpecialties.map((specialty) => (
+                    <SelectItem key={specialty} value={specialty}>
+                      {specialty}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Scenario Type</label>
-                <Select value={showAllScenarios ? "all" : "filtered"} onValueChange={(v) => setShowAllScenarios(v === "all")}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="filtered">Filtered</SelectItem>
-                    <SelectItem value="all">All Scenarios</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={selectedHcpCategory} onValueChange={setSelectedHcpCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="HCP Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {hcpCategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
-              <div>
-                <label className="text-sm font-medium mb-2 block">Difficulty</label>
-                <Select defaultValue="all">
-                  <SelectTrigger>
-                    <SelectValue placeholder="All Levels" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Levels</SelectItem>
-                    <SelectItem value="beginner">Beginner</SelectItem>
-                    <SelectItem value="intermediate">Intermediate</SelectItem>
-                    <SelectItem value="advanced">Advanced</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <Select value={selectedInfluenceDriver} onValueChange={setSelectedInfluenceDriver}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Influence Driver" />
+                </SelectTrigger>
+                <SelectContent>
+                  {influenceDrivers.map((driver) => (
+                    <SelectItem key={driver.id} value={driver.id}>
+                      {driver.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Scenario Grid */}
