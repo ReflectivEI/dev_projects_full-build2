@@ -331,11 +331,9 @@ export default function ChatPage() {
       <div className="p-6 border-b flex-shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <img
-              src={reflectivAILogo}
-              alt="ReflectivAI Logo"
-              className="h-10 w-10 rounded-md"
-            />
+            <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+              R
+            </div>
             <div>
               <h1 className="text-xl font-semibold" data-testid="text-chat-title">AI Coach</h1>
               <p className="text-sm text-muted-foreground">
@@ -544,7 +542,7 @@ export default function ChatPage() {
                       {message.role === "user" ? (
                         <span className="text-sm font-medium">You</span>
                       ) : (
-                        <img src={reflectivAILogo} alt="AI" className="h-8 w-8 rounded-full" />
+                        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">R</div>
                       )}
                     </div>
                     <div
@@ -596,8 +594,7 @@ export default function ChatPage() {
               )}
               {sendMessageMutation.isPending && (
                 <div className="flex gap-3">
-                  <div className="h-8 w-8 rounded-full overflow-hidden relative">
-                    <img src={reflectivAILogo} alt="AI" className="h-8 w-8 rounded-full" />
+                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm relative">R
                     <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full">
                       <Loader2 className="h-5 w-5 text-primary animate-spin" />
                     </div>

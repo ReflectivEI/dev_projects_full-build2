@@ -140,11 +140,9 @@ export default function Dashboard() {
               <Link href="/chat">
                 <Card className="hover-elevate cursor-pointer h-full">
                   <CardContent className="p-4 flex items-start gap-4">
-                    <img 
-                      src={reflectivAILogo} 
-                      alt="ReflectivAI Logo" 
-                      className="h-12 w-12 rounded-md flex-shrink-0"
-                    />
+                    <div className="h-12 w-12 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl flex-shrink-0">
+                      R
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold" data-testid="link-quick-ai-coach">AI Coach</h3>
                       <p className="text-sm text-muted-foreground">
