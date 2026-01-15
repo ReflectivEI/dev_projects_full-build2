@@ -343,81 +343,22 @@ export default function EIMetricsPage() {
             <div>
               <h2 className="text-xl font-semibold flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Core Behavioral Metrics
+                Behavioral Metrics (Always Active)
               </h2>
               <p className="text-sm text-muted-foreground">
-                These four metrics form the foundation of behavioral measurement across all coaching experiences
+                These eight Behavioral Metrics are foundational to Signal Intelligence and are consistently applied across coaching, Role Play, and evaluation.
               </p>
             </div>
-            <Badge className="bg-primary/10 text-primary border-primary/30">Always Active</Badge>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            {coreMetricsWithScores.map((metric) => (
+            {[...coreMetricsWithScores, ...extendedMetricsWithScores].map((metric) => (
               <MetricCard 
                 key={metric.id} 
                 metric={metric} 
                 onClick={() => setSelectedMetric(metric)}
               />
             ))}
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold">Additional Behavioral Metrics</h2>
-              <p className="text-sm text-muted-foreground">
-                Toggle metrics on/off based on your coaching priorities
-              </p>
-            </div>
-            <Badge variant="outline">Configurable</Badge>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {extendedMetricsWithScores.map((metric) => {
-              const isEnabled = extendedMetricState[metric.id];
-              const performanceLevel = getPerformanceLevel(metric.score);
-              
-              return (
-                <div
-                  key={metric.id}
-                  className={`rounded-xl border p-4 transition-all ${isEnabled ? 'opacity-100' : 'opacity-50'} ${getScoreBgColor(metric.score)}`}
-                >
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div 
-                      className="flex-1 cursor-pointer" 
-                      onClick={() => setSelectedMetric({...metric, enabled: isEnabled})}
-                    >
-                      <div className="flex items-center gap-1 mb-1">
-                        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                          {metric.displayName}
-                        </span>
-                        <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
-                          Behavioral Metric
-                        </Badge>
-                      </div>
-                      <div className="flex items-baseline gap-1 mt-1">
-                        <span className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
-                          {metric.score.toFixed(1)}
-                        </span>
-                        <span className="text-sm text-muted-foreground">/5</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">Sample score for demonstration purposes</p>
-                      <Badge className={`text-xs mt-2 ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
-                        {performanceLevel.label}
-                      </Badge>
-                    </div>
-                    <Switch
-                      checked={isEnabled}
-                      onCheckedChange={() => toggleMetric(metric.id)}
-                      data-testid={`switch-metric-${metric.id}`}
-                    />
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">{metric.description}</p>
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>
