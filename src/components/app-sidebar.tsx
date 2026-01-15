@@ -111,11 +111,9 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="p-4">
         <Link href="/" className="flex items-center gap-3">
-          <img
-            src={reflectivAILogo}
-            alt="ReflectivAI Logo"
-            className="h-9 w-9 rounded-md"
-          />
+          <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+            R
+          </div>
           <div className="flex flex-col">
             <span className="text-sm font-semibold leading-tight" data-testid="text-app-name">ReflectivAI</span>
             <span className="text-xs text-muted-foreground">Sales Enablement</span>
