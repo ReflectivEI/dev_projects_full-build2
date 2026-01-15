@@ -285,7 +285,15 @@ export default function RolePlayPage() {
     onError: () => setRoleplayEndError("Unable to end role-play."),
   });
 
-  const handleReset = () => {
+  const handleReset = async () => {
+    // Clear backend session first
+    try {
+      await apiRequest("POST", "/api/roleplay/end");
+    } catch (error) {
+      console.warn("Reset: Failed to end session on backend", error);
+    }
+    
+    // Clear all local state
     setSelectedScenario(null);
     setSelectedDiseaseState("");
     setSelectedSpecialty("");
@@ -294,8 +302,12 @@ export default function RolePlayPage() {
     setSessionSignals([]);
     setFeedbackData(null);
     setShowFeedbackDialog(false);
+    setInput("");
     endCalledForSessionRef.current.clear();
-    queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+    
+    // Force refetch to get empty session
+    await queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+    await queryClient.refetchQueries({ queryKey: ["/api/roleplay/session"] });
   };
 
   /* -----------------------------
