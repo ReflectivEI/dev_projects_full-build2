@@ -211,6 +211,44 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
             </ul>
           </div>
 
+          <div>
+            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+              <Radio className="h-4 w-4 text-primary" />
+              Signals observed during Role Play
+            </h4>
+            <p className="text-sm text-muted-foreground mb-2">
+              During Role Play and real-world conversations, Signal Intelligence is informed by observable cues that vary by scenario and customer behavior.
+            </p>
+            <p className="text-sm text-muted-foreground mb-2">
+              These signals reflect what is happening in the interaction and provide context for how a Behavioral Metric is demonstrated.
+            </p>
+            <ul className="space-y-1.5 mb-2">
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Changes in tone or pacing
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Interruptions or shortened responses
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Hesitation or delayed replies
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Follow-up questions after new information
+              </li>
+              <li className="text-sm text-muted-foreground flex items-start gap-2">
+                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                Shifts from openness to resistance (or vice versa)
+              </li>
+            </ul>
+            <p className="text-xs text-muted-foreground italic">
+              Signals support reflection and coaching. They do not independently determine outcomes, intent, or capability.
+            </p>
+          </div>
+
           <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
             <h4 className="font-semibold text-sm mb-1">Key Tip</h4>
             <p className="text-sm text-muted-foreground italic">
