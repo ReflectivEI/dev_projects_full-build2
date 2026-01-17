@@ -304,12 +304,6 @@ export default function RolePlayPage() {
       }));
       const scoredMetrics = scoreConversation(transcript);
       setMetricResults(scoredMetrics);
-      // Persist to localStorage for Behavioral Metrics page
-      try {
-        localStorage.setItem('latestMetricResults', JSON.stringify(scoredMetrics));
-      } catch (e) {
-        console.warn('Failed to persist metric results', e);
-      }
 
       const feedback = mapToComprehensiveFeedback(data, scoredMetrics);
       setFeedbackScenarioTitle(
