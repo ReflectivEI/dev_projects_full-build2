@@ -109,16 +109,40 @@ function mapWorkerMessages(
  * CRITICAL NORMALIZER
  * Guarantees RoleplayFeedbackDialog will not crash.
  */
-function mapToComprehensiveFeedback(raw: any): ComprehensiveFeedback {
+function mapToComprehensiveFeedback(raw: any, metricResults?: MetricResult[]): ComprehensiveFeedback {
   const root = raw?.analysis ?? raw ?? {};
 
+  // Compute aggregate score from MetricResult[]
+  let computedOverallScore = 3;
+  if (metricResults && metricResults.length > 0) {
+    const applicableScores = metricResults
+      .filter(m => !m.not_applicable && m.overall_score !== null)
+      .map(m => m.overall_score!);
+    if (applicableScores.length > 0) {
+      const sum = applicableScores.reduce((acc, s) => acc + s, 0);
+      computedOverallScore = Math.round((sum / applicableScores.length) * 10) / 10;
+    }
+  }
+
+  // Map MetricResult[] to eqScores format
+  const eqScores = metricResults && metricResults.length > 0
+    ? metricResults.map(m => ({
+        metricId: m.id,
+        score: m.overall_score ?? 3,
+        feedback: '',
+        observedBehaviors: undefined,
+        totalOpportunities: undefined,
+        calculationNote: m.not_applicable ? 'Not applicable to this conversation' : undefined,
+      }))
+    : (Array.isArray(root.eqScores) ? root.eqScores : []);
+
   return {
-    overallScore: typeof root.overallScore === "number" ? root.overallScore : 3,
+    overallScore: metricResults && metricResults.length > 0 ? computedOverallScore : (typeof root.overallScore === "number" ? root.overallScore : 3),
     performanceLevel:
       root.performanceLevel ??
       "developing",
 
-    eqScores: Array.isArray(root.eqScores) ? root.eqScores : [],
+    eqScores,
     salesSkillScores: Array.isArray(root.salesSkillScores) ? root.salesSkillScores : [],
 
     topStrengths:
