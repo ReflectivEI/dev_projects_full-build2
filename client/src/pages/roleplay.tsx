@@ -27,6 +27,7 @@ import {
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
+import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
 
 /* -----------------------------
    Types
@@ -106,16 +107,40 @@ function mapWorkerMessages(
  * CRITICAL NORMALIZER
  * Guarantees RoleplayFeedbackDialog will not crash.
  */
-function mapToComprehensiveFeedback(raw: any): ComprehensiveFeedback {
+function mapToComprehensiveFeedback(raw: any, metricResults?: MetricResult[]): ComprehensiveFeedback {
   const root = raw?.analysis ?? raw ?? {};
 
+  // Compute aggregate score from MetricResult[]
+  let computedOverallScore = 3;
+  if (metricResults && metricResults.length > 0) {
+    const applicableScores = metricResults
+      .filter(m => !m.not_applicable && m.overall_score !== null)
+      .map(m => m.overall_score!);
+    if (applicableScores.length > 0) {
+      const sum = applicableScores.reduce((acc, s) => acc + s, 0);
+      computedOverallScore = Math.round((sum / applicableScores.length) * 10) / 10;
+    }
+  }
+
+  // Map MetricResult[] to eqScores format
+  const eqScores = metricResults && metricResults.length > 0
+    ? metricResults.map(m => ({
+        metricId: m.id,
+        score: m.overall_score ?? 3,
+        feedback: '',
+        observedBehaviors: undefined,
+        totalOpportunities: undefined,
+        calculationNote: m.not_applicable ? 'Not applicable to this conversation' : undefined,
+      }))
+    : (Array.isArray(root.eqScores) ? root.eqScores : []);
+
   return {
-    overallScore: typeof root.overallScore === "number" ? root.overallScore : 3,
+    overallScore: metricResults && metricResults.length > 0 ? computedOverallScore : (typeof root.overallScore === "number" ? root.overallScore : 3),
     performanceLevel:
       root.performanceLevel ??
       "developing",
 
-    eqScores: Array.isArray(root.eqScores) ? root.eqScores : [],
+    eqScores,
     salesSkillScores: Array.isArray(root.salesSkillScores) ? root.salesSkillScores : [],
 
     topStrengths:
@@ -185,6 +210,7 @@ export default function RolePlayPage() {
   const [sessionSignals, setSessionSignals] = useState<SignalIntelligenceCapability[]>([]);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState("");
+  const [metricResults, setMetricResults] = useState<MetricResult[]>([]);
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
 
@@ -271,7 +297,21 @@ export default function RolePlayPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      const feedback = mapToComprehensiveFeedback(data);
+      // Execute scoring on transcript
+      const transcript: Transcript = messages.map((msg) => ({
+        speaker: msg.role === 'user' ? 'rep' : 'customer',
+        text: msg.content,
+      }));
+      const scoredMetrics = scoreConversation(transcript);
+      setMetricResults(scoredMetrics);
+      // Persist to localStorage for Behavioral Metrics page
+      try {
+        localStorage.setItem('latestMetricResults', JSON.stringify(scoredMetrics));
+      } catch (e) {
+        console.warn('Failed to persist metric results', e);
+      }
+
+      const feedback = mapToComprehensiveFeedback(data, scoredMetrics);
       setFeedbackScenarioTitle(
         data?.scenario?.title || selectedScenario?.title || "Role-Play Session"
       );
@@ -430,6 +470,7 @@ export default function RolePlayPage() {
                 hasActivity={sessionSignals.length > 0}
                 isLoading={sendResponseMutation.isPending}
                 compact
+                metricResults={metricResults}
               />
             </CardContent>
           </Card>
