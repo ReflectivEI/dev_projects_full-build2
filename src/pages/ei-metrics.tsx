@@ -17,6 +17,7 @@ import {
   performanceLevels,
   type EQMetric 
 } from "@/lib/data";
+import { getMetricUIData } from "@/lib/metrics-ui-adapter";
 
 interface MetricWithScore extends EQMetric {
   score: number;
@@ -95,44 +96,86 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div>
-            <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              Definition
-            </h4>
-            <p className="text-sm text-muted-foreground">{metric.description}</p>
-          </div>
+          {(() => {
+            const uiData = getMetricUIData(metric.id);
+            if (!uiData) {
+              return (
+                <div className="text-sm text-muted-foreground">
+                  Metric data not available
+                </div>
+              );
+            }
+            return (
+              <>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    Definition
+                  </h4>
+                  <p className="text-sm text-muted-foreground">{uiData.definition}</p>
+                </div>
 
-          <div>
-            <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              Behavioral Measurement Method
-            </h4>
-            <div className="bg-muted/50 p-3 rounded-lg">
-              <code className="text-sm font-mono">
-                {metric.calculation || 'Not specified'}
-              </code>
-            </div>
-          </div>
+                <div>
+                  <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    Behavioral Measurement Method
+                  </h4>
+                  <div className="bg-muted/50 p-3 rounded-lg">
+                    <p className="text-sm text-muted-foreground">
+                      {uiData.measurementMethod}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                    Observable Indicators
+                  </h4>
+                  <ul className="space-y-1.5">
+                    {uiData.indicators.map((indicator, idx) => (
+                      <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
+                        <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                        {indicator}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-primary" />
+                    How This Is Evaluated
+                  </h4>
+                  <div className="bg-muted/50 p-3 rounded-lg space-y-2">
+                    {uiData.heuristicsExplanation.split('\n\n').map((section, idx) => {
+                      const parts = section.split(': ');
+                      if (parts.length === 2) {
+                        return (
+                          <div key={idx} className="text-xs">
+                            <div className="font-semibold text-foreground mb-1">{parts[0]}</div>
+                            <div className="text-muted-foreground">{parts[1]}</div>
+                          </div>
+                        );
+                      }
+                      return (
+                        <div key={idx} className="text-xs text-muted-foreground">
+                          {section}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+
+        <div className="space-y-4">
 
           <div>
             <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              Observable Indicators
-            </h4>
-            <ul className="space-y-1.5">
-              {Array.isArray(metric.sampleIndicators) && metric.sampleIndicators.map((indicator, idx) => (
-                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                  {indicator}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <Radio className="h-4 w-4 text-primary" />
+              <Radio className="h-4 w-4 text-muted-foreground" />
               Signals observed during Role Play
             </h4>
             <p className="text-sm text-muted-foreground mb-2">
