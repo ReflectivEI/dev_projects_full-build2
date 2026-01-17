@@ -7,8 +7,9 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Activity, CheckCircle2, X, Radio } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import type { MetricResult } from "@/lib/signal-intelligence/scoring";
 
 import { 
   eqMetrics, 
@@ -232,10 +233,32 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
 
 export default function EIMetricsPage() {
   const [selectedMetric, setSelectedMetric] = useState<MetricWithScore | null>(null);
+  const [metricResults, setMetricResults] = useState<MetricResult[]>([]);
+
+  // Load latest metric results from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('latestMetricResults');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setMetricResults(Array.isArray(parsed) ? parsed : []);
+      }
+    } catch (e) {
+      console.warn('Failed to load metric results', e);
+    }
+  }, []);
+
+  // Map metric results to scores
+  const scoreMap = new Map<string, number>();
+  metricResults.forEach(m => {
+    if (!m.not_applicable && m.overall_score !== null) {
+      scoreMap.set(m.id, m.overall_score);
+    }
+  });
 
   const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
     ...m,
-    score: 3.0
+    score: scoreMap.get(m.id) ?? 3.0
   }));
 
   return (
