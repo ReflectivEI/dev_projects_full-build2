@@ -30,6 +30,9 @@ import { SignalIntelligencePanel, type ObservableSignal } from "@/components/sig
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
+import { detectObservableCues } from "@/lib/observable-cues";
+import { CueBadgeGroup } from "@/components/CueBadge";
+import { Eye, EyeOff } from "lucide-react";
 
 /* -----------------------------
    Types
@@ -216,6 +219,7 @@ export default function RolePlayPage() {
   const [metricResults, setMetricResults] = useState<MetricResult[]>([]);
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
+  const [showCues, setShowCues] = useState(true);
 
   const queryClient = useQueryClient();
   const endCalledForSessionRef = useRef<Set<string>>(new Set());
@@ -493,33 +497,39 @@ export default function RolePlayPage() {
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
-                {messages.map((m) => (
-                  <div
-                    key={m.id}
-                    className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
-                  >
+                {messages.map((m) => {
+                  const cues = showCues ? detectObservableCues(m.content, m.role) : [];
+                  return (
                     <div
-                      className={`h-8 w-8 rounded-full flex items-center justify-center ${
-                        m.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-chart-2 text-white"
-                      }`}
+                      key={m.id}
+                      className={`flex gap-3 ${m.role === "user" ? "flex-row-reverse" : ""}`}
                     >
-                      {m.role === "user" ? "You" : <Users className="h-4 w-4" />}
-                    </div>
-                    <div className="max-w-[80%]">
                       <div
-                        className={`p-3 rounded-lg ${
+                        className={`h-8 w-8 rounded-full flex items-center justify-center ${
                           m.role === "user"
                             ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            : "bg-chart-2 text-white"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">{m.content}</p>
+                        {m.role === "user" ? "You" : <Users className="h-4 w-4" />}
+                      </div>
+                      <div className="max-w-[80%]">
+                        <div
+                          className={`p-3 rounded-lg ${
+                            m.role === "user"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          }`}
+                        >
+                          <p className="text-sm whitespace-pre-wrap">{m.content}</p>
+                        </div>
+                        {cues.length > 0 && (
+                          <CueBadgeGroup cues={cues} maxVisible={3} size="sm" />
+                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
 
@@ -541,12 +551,23 @@ export default function RolePlayPage() {
                 </Button>
               </div>
 
-              <Button
-                variant="outline"
-                onClick={() => endScenarioMutation.mutate()}
-              >
-                End Role-Play & Review
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => endScenarioMutation.mutate()}
+                >
+                  End Role-Play & Review
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowCues(!showCues)}
+                  title={showCues ? "Hide observable cues" : "Show observable cues"}
+                >
+                  {showCues ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                </Button>
+              </div>
 
               {roleplayEndError && (
                 <div className="text-sm text-destructive">{roleplayEndError}</div>
