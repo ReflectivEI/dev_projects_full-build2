@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { MetricResult } from "@/lib/signal-intelligence/scoring";
 
 export interface SignalIntelligenceCapability {
   id?: string;
@@ -31,6 +32,7 @@ interface SignalIntelligencePanelProps {
   isLoading?: boolean;
   hasActivity?: boolean;
   compact?: boolean;
+  metricResults?: MetricResult[];
 }
 
 const signalTypeConfig = {
@@ -135,13 +137,16 @@ export function SignalIntelligencePanel({
   signals,
   isLoading,
   hasActivity,
-  compact = false
+  compact = false,
+  metricResults = []
 }: SignalIntelligencePanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const validSignals = signals.filter(
     s => s?.signal?.trim() || s?.interpretation?.trim()
   );
+
+  const hasMetrics = metricResults.length > 0;
 
   if (!hasActivity && validSignals.length === 0) {
     return (
@@ -167,6 +172,22 @@ export function SignalIntelligencePanel({
 
   return (
     <div className="space-y-3">
+      {hasMetrics && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold">Behavioral Metrics</h4>
+          <div className="space-y-1.5">
+            {metricResults
+              .filter(m => !m.not_applicable && m.overall_score !== null)
+              .map(m => (
+                <div key={m.id} className="flex items-center justify-between text-xs">
+                  <span className="text-muted-foreground">{m.metric}</span>
+                  <span className="font-medium">{m.overall_score?.toFixed(1)}</span>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <Header title="Signal Intelligence" count={displaySignals.length} />
         {!compact && (
