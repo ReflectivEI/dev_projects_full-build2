@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { MetricResult } from "@/lib/signal-intelligence/scoring";
 
 export interface SignalIntelligenceCapability {
   id?: string;
@@ -31,6 +32,7 @@ interface SignalIntelligencePanelProps {
   isLoading?: boolean;
   hasActivity?: boolean;
   compact?: boolean;
+  metricResults?: MetricResult[];
 }
 
 const signalTypeConfig = {
