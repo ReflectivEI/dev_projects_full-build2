@@ -29,6 +29,7 @@ import {
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
+import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
 
 /* -----------------------------
    Types
@@ -188,6 +189,7 @@ export default function RolePlayPage() {
   const [sessionSignals, setSessionSignals] = useState<SignalIntelligenceCapability[]>([]);
   const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
   const [feedbackScenarioTitle, setFeedbackScenarioTitle] = useState("");
+  const [metricResults, setMetricResults] = useState<MetricResult[]>([]);
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
 
@@ -274,7 +276,15 @@ export default function RolePlayPage() {
       return res.json();
     },
     onSuccess: (data) => {
-      const feedback = mapToComprehensiveFeedback(data);
+      // Execute scoring on transcript
+      const transcript: Transcript = messages.map((msg) => ({
+        speaker: msg.role === 'user' ? 'rep' : 'customer',
+        text: msg.content,
+      }));
+      const scoredMetrics = scoreConversation(transcript);
+      setMetricResults(scoredMetrics);
+
+      const feedback = mapToComprehensiveFeedback(data, scoredMetrics);
       setFeedbackScenarioTitle(
         data?.scenario?.title || selectedScenario?.title || "Role-Play Session"
       );
@@ -301,6 +311,7 @@ export default function RolePlayPage() {
     setSelectedInfluenceDriver("");
     setSessionSignals([]);
     setFeedbackData(null);
+    setMetricResults([]);
     setShowFeedbackDialog(false);
     setInput("");
     endCalledForSessionRef.current.clear();
