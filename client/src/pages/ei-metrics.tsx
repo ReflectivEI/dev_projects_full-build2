@@ -7,9 +7,8 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Activity, CheckCircle2, X, Radio } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import type { MetricResult } from "@/lib/signal-intelligence/scoring";
 
 import { 
   eqMetrics, 
