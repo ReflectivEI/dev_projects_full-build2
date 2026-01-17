@@ -328,6 +328,7 @@ export default function RolePlayPage() {
     setSelectedSpecialty("");
     setSessionSignals([]);
     setFeedbackData(null);
+    setMetricResults([]);
     setShowFeedbackDialog(false);
     endCalledForSessionRef.current.clear();
     queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
