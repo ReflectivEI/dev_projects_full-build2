@@ -561,6 +561,7 @@ export default function RolePlayPage() {
                 hasActivity={sessionSignals.length > 0}
                 isLoading={sendResponseMutation.isPending}
                 compact
+                metricResults={metricResults}
               />
             </CardContent>
           </Card>
