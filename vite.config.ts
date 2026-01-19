@@ -53,36 +53,37 @@ export default defineConfig(({ mode, command }) => {
 		plugins.push(devToolsPlugin() as Plugin, fullStoryPlugin());
 	}
 	
-	return {
-		plugins,
+		return {
+			plugins,
 
-	resolve: {
-		alias: {
-			nothing: "/src/fallbacks/missingModule.ts",
-			"@/api": path.resolve(__dirname, "./src/server/api"),
-			"@": path.resolve(__dirname, "./src"),
-		},
-	},
+			resolve: {
+				alias: {
+					nothing: "/src/fallbacks/missingModule.ts",
+					"@/api": path.resolve(__dirname, "./src/server/api"),
+					"@": path.resolve(__dirname, "./src"),
+				},
+			},
 
-	server: {
-		host: "0.0.0.0",
-		port: parseInt(process.env.PORT || "5173"),
-		strictPort: !!process.env.PORT,
-		allowedHosts,
-		cors: {
-			origin: allowedHosts,
-			credentials: true,
-			methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-			allowedHeaders: ["Content-Type", "Authorization", "Accept", "User-Agent"],
-		},
-		hmr: {
-			overlay: false,
-		},
-	},
+			server: {
+				host: "0.0.0.0",
+				port: parseInt(process.env.PORT || "5173"),
+				strictPort: !!process.env.PORT,
+				allowedHosts,
+				cors: {
+					origin: allowedHosts,
+					credentials: true,
+					methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+					allowedHeaders: ["Content-Type", "Authorization", "Accept", "User-Agent"],
+				},
+				hmr: {
+					overlay: false,
+				},
+			},
 
-	build: {
-		rollupOptions: {
-			// No external dependencies - bundle everything
-		},
-	},
-}));
+			build: {
+				rollupOptions: {
+					// No external dependencies - bundle everything
+				},
+			},
+		};
+	});
