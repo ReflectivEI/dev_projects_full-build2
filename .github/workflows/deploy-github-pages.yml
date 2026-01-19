@@ -41,10 +41,19 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Verify dist directory exists
+        run: |
+          echo "Checking dist directory..."
+          ls -la ./dist/
+          echo "Checking index.html..."
+          ls -la ./dist/index.html
+          echo "✅ Build output verified!"
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
+          retention-days: 1
 
   deploy:
     environment:
