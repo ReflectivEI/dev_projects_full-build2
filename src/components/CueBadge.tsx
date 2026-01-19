@@ -22,6 +22,7 @@ import {
 import type { ObservableCue, CueType } from "@/lib/observable-cues";
 import { getCueColorClass } from "@/lib/observable-cues";
 import { cn } from "@/lib/utils";
+import { getMetricsForCue } from "@/lib/observable-cue-to-metric-map";
 
 interface CueBadgeProps {
   cue: ObservableCue;
@@ -79,6 +80,24 @@ export function CueBadge({ cue, size = 'sm', showIcon = true }: CueBadgeProps) {
         <TooltipContent side="top" className="max-w-xs">
           <p className="font-medium mb-1">{cue.label}</p>
           <p className="text-xs text-muted-foreground">{description}</p>
+          {(() => {
+            const mappings = getMetricsForCue(cue.type);
+            if (mappings.length > 0) {
+              const metricNames = [...new Set(mappings.map(m => {
+                // Convert metric ID to readable name
+                return m.metricId
+                  .split('_')
+                  .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                  .join(' ');
+              }))].slice(0, 3);
+              return (
+                <p className="text-xs text-primary mt-2 font-medium">
+                  Impacts: {metricNames.join(', ')}
+                </p>
+              );
+            }
+            return null;
+          })()}
           <p className="text-xs text-muted-foreground mt-1">
             Confidence: <span className="capitalize">{cue.confidence}</span>
           </p>
