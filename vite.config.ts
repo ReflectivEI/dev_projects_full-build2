@@ -80,10 +80,13 @@ export default defineConfig(({ mode, command }) => {
 				},
 			},
 
-			build: {
-				rollupOptions: {
-					// No external dependencies - bundle everything
-				},
+		build: {
+			rollupOptions: {
+				// No external dependencies - bundle everything
 			},
+		},
+
+		// Set base path for GitHub Pages deployment
+		base: isStaticBuild ? '/dev_projects_full-build2/' : '/',
 		};
 	});
