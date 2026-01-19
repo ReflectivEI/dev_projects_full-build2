@@ -61,6 +61,7 @@ jobs:
         run: npm run build
         env:
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
+          # Don't set STATIC_BUILD - we want the full build with server for Cloudflare
 
       - name: Verify build output
         run: |
