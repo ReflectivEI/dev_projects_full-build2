@@ -145,7 +145,7 @@ export function SignalIntelligencePanel({
   hasActivity,
   compact = false,
   metricResults = [],
-  detectedCues
+  detectedCues = []
 }: SignalIntelligencePanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
