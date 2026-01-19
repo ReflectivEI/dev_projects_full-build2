@@ -238,6 +238,7 @@ function MetricScoreCard({
   totalOpportunities,
   calculationNote,
   icon: Icon,
+  detectedCues,
 }: {
   name: string;
   score: number;
@@ -247,6 +248,7 @@ function MetricScoreCard({
   totalOpportunities?: number;
   calculationNote?: string;
   icon?: any;
+  detectedCues?: ObservableCue[];
 }) {
   const [expanded, setExpanded] = useState(false);
 
