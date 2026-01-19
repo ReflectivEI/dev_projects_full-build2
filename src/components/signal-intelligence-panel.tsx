@@ -22,7 +22,7 @@ import { getCuesForMetric } from "@/lib/observable-cue-to-metric-map";
 import type { ObservableCue } from "@/lib/observable-cues";
 import { CueBadge } from "@/components/CueBadge";
 
-export interface SignalIntelligenceCapability {
+export type SignalIntelligenceCapability = {
   id?: string;
   type: "verbal" | "conversational" | "engagement" | "contextual";
   signal: string;
@@ -32,7 +32,7 @@ export interface SignalIntelligenceCapability {
   timestamp?: string;
 }
 
-interface SignalIntelligencePanelProps {
+type SignalIntelligencePanelProps = {
   signals: SignalIntelligenceCapability[];
   isLoading?: boolean;
   hasActivity?: boolean;
