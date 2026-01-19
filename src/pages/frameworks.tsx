@@ -871,39 +871,43 @@ Return ONLY the JSON object, no other text.`,
                     Generated for this session • Content clears on navigation
                   </AlertDescription>
                 </Alert>
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="text-sm font-medium">Customized Template:</h4>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleCopyCustomized(customization.customizedTemplate)}
-                      data-testid="button-copy-customized"
-                    >
-                      {copiedId === "customized" ? (
-                        <>
-                          <Check className="h-4 w-4 mr-1 text-green-500" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="h-4 w-4 mr-1" />
-                          Copy
-                        </>
-                      )}
-                    </Button>
+                {customization.customizedTemplate && (
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="text-sm font-medium">Customized Template:</h4>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopyCustomized(customization.customizedTemplate)}
+                        data-testid="button-copy-customized"
+                      >
+                        {copiedId === "customized" ? (
+                          <>
+                            <Check className="h-4 w-4 mr-1 text-green-500" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4 mr-1" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                    <div className="p-3 bg-primary/5 rounded-lg border-l-2 border-primary">
+                      <p className="text-sm whitespace-pre-wrap">{customization.customizedTemplate}</p>
+                    </div>
                   </div>
-                  <div className="p-3 bg-primary/5 rounded-lg border-l-2 border-primary">
-                    <p className="text-sm whitespace-pre-wrap">{customization.customizedTemplate}</p>
-                  </div>
-                </div>
+                )}
 
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Example Dialogue:</h4>
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm text-muted-foreground italic">"{customization.example}"</p>
+                {customization.example && (
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Example Dialogue:</h4>
+                    <div className="p-3 bg-muted rounded-lg">
+                      <p className="text-sm text-muted-foreground italic">"{customization.example}"</p>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {customization.tips && customization.tips.length > 0 && (
                   <div>
