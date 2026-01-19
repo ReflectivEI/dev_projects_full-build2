@@ -94,7 +94,15 @@ Return ONLY the JSON object, no other text.`,
       
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        setAiAnswer(parsed);
+        // Defensive guard: ensure all expected fields exist
+        if (parsed && typeof parsed === 'object') {
+          setAiAnswer({
+            answer: parsed.answer || '',
+            relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
+          });
+        } else {
+          throw new Error("Invalid AI response format");
+        }
       } else {
         throw new Error("Could not parse AI response");
       }
