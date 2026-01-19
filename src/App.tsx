@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router as WouterRouter } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -19,20 +19,25 @@ import EIMetricsPage from "@/pages/ei-metrics";
 import ExercisesPage from "@/pages/exercises";
 import DataReportsPage from "@/pages/data-reports";
 
+// Get base path from Vite config (for GitHub Pages deployment)
+const basePath = import.meta.env.BASE_URL || '/';
+
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/chat" component={ChatPage} />
-      <Route path="/roleplay" component={RolePlayPage} />
-      <Route path="/exercises" component={ExercisesPage} />
-      <Route path="/modules" component={ModulesPage} />
-      <Route path="/frameworks" component={FrameworksPage} />
-      <Route path="/ei-metrics" component={EIMetricsPage} />
-      <Route path="/data-reports" component={DataReportsPage} />
-      <Route path="/knowledge" component={KnowledgePage} />
-      <Route component={NotFound} />
-    </Switch>
+    <WouterRouter base={basePath}>
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/chat" component={ChatPage} />
+        <Route path="/roleplay" component={RolePlayPage} />
+        <Route path="/exercises" component={ExercisesPage} />
+        <Route path="/modules" component={ModulesPage} />
+        <Route path="/frameworks" component={FrameworksPage} />
+        <Route path="/ei-metrics" component={EIMetricsPage} />
+        <Route path="/data-reports" component={DataReportsPage} />
+        <Route path="/knowledge" component={KnowledgePage} />
+        <Route component={NotFound} />
+      </Switch>
+    </WouterRouter>
   );
 }
 
