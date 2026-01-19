@@ -309,15 +309,17 @@ Return ONLY the JSON object, no other text.`,
                       </div>
                     )}
 
-                    <div className="p-3 bg-background rounded-lg border">
-                      <h4 className="font-medium mb-2 flex items-center gap-2">
-                        <Target className="h-4 w-4 text-chart-2" />
-                        Practice Exercise
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {aiAdvice.practiceExercise}
-                      </p>
-                    </div>
+                    {aiAdvice.practiceExercise && (
+                      <div className="p-3 bg-background rounded-lg border">
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <Target className="h-4 w-4 text-chart-2" />
+                          Practice Exercise
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {aiAdvice.practiceExercise}
+                        </p>
+                      </div>
+                    )}
 
                     {aiAdvice.tips && aiAdvice.tips.length > 0 && (
                       <div>
