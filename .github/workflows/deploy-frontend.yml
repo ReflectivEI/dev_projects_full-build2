@@ -21,7 +21,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
     steps:
       - name: Validate confirmation
         run: |
@@ -34,14 +33,15 @@ jobs:
         run: |
           missing=0
           if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
-            echo "::error::Missing CLOUDFLARE_API_TOKEN secret for ${{ github.event.inputs.environment }} environment"
+            echo "::error::Missing CLOUDFLARE_API_TOKEN secret"
             missing=1
           fi
           if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
-            echo "::error::Missing CLOUDFLARE_ACCOUNT_ID secret for ${{ github.event.inputs.environment }} environment"
+            echo "::error::Missing CLOUDFLARE_ACCOUNT_ID secret"
             missing=1
           fi
           if [ "$missing" -eq 1 ]; then
+            echo "::error::Please add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to repository secrets"
             exit 1
           fi
 
@@ -61,7 +61,6 @@ jobs:
         run: npm run build
         env:
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
-          # Don't set STATIC_BUILD - we want the full build with server for Cloudflare
 
       - name: Verify build output
         run: |
