@@ -623,6 +623,7 @@ export function RoleplayFeedbackDialog({
                         totalOpportunities={item.totalOpportunities}
                         calculationNote={item.calculationNote}
                         icon={Brain}
+                        detectedCues={detectedCues}
                       />
                     </motion.div>
                   ))}
