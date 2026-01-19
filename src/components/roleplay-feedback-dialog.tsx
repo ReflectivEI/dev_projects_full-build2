@@ -33,6 +33,16 @@ import { readEnabledEIMetricIds, EI_METRICS_SETTINGS_EVENT } from "@/lib/eiMetri
 import { getCuesForMetric, type CueMetricMapping } from "@/lib/observable-cue-to-metric-map";
 import { CueBadge } from "@/components/CueBadge";
 import type { ObservableCue } from "@/lib/observable-cues";
+import type { MetricResult } from "@/lib/signal-intelligence/scoring";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ComprehensiveFeedback {
   overallScore: number;
@@ -68,6 +78,7 @@ interface RoleplayFeedbackDialogProps {
   scenarioTitle?: string;
   onStartNew?: () => void;
   detectedCues?: ObservableCue[];
+  metricResults?: MetricResult[];
 }
 
 function getPerformanceBadgeColor(level: string): string {
@@ -239,6 +250,7 @@ function MetricScoreCard({
   calculationNote,
   icon: Icon,
   detectedCues,
+  metricResult,
 }: {
   name: string;
   score: number;
@@ -249,6 +261,7 @@ function MetricScoreCard({
   calculationNote?: string;
   icon?: any;
   detectedCues?: ObservableCue[];
+  metricResult?: MetricResult;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -306,6 +319,87 @@ function MetricScoreCard({
             exit={{ opacity: 0, height: 0 }}
             className="mt-3 pt-3 border-t space-y-3"
           >
+            {metricResult && metricResult.components && metricResult.components.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-semibold text-primary">How this score was derived</span>
+                <p className="text-xs text-muted-foreground">
+                  {safeScore === 3.0 && metricResult.components.filter(c => c.applicable).length === 0
+                    ? "Limited observable data resulted in a neutral baseline score."
+                    : "This score reflects how consistently observable behaviors aligned with this metric during the conversation."}
+                </p>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-xs font-semibold">Component</TableHead>
+                        <TableHead className="text-xs font-semibold text-center w-20">Weight</TableHead>
+                        <TableHead className="text-xs font-semibold text-center w-20">Score</TableHead>
+                        <TableHead className="text-xs font-semibold">Evidence</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {metricResult.components.map((component, idx) => {
+                        const evidenceItems = component.rationale ? [component.rationale] : [];
+                        const displayEvidence = evidenceItems.slice(0, 3);
+                        const hasMore = evidenceItems.length > 3;
+                        
+                        return (
+                          <TableRow key={idx} className={!component.applicable ? "opacity-50" : ""}>
+                            <TableCell className="text-xs font-medium">
+                              {component.name}
+                              {!component.applicable && (
+                                <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">N/A</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-xs text-center">
+                              {Math.round(component.weight * 100)}%
+                            </TableCell>
+                            <TableCell className="text-xs text-center font-medium">
+                              {component.score !== null ? `${component.score.toFixed(1)} / 5` : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {displayEvidence.length > 0 ? (
+                                <div className="space-y-1">
+                                  {displayEvidence.map((evidence, eIdx) => (
+                                    <div key={eIdx} className="flex items-start gap-1.5">
+                                      <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                                      <span className="text-muted-foreground">{evidence}</span>
+                                    </div>
+                                  ))}
+                                  {hasMore && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button className="text-primary hover:underline text-[10px]">
+                                            +{evidenceItems.length - 3} more
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-xs">
+                                          <div className="space-y-1">
+                                            {evidenceItems.slice(3).map((evidence, eIdx) => (
+                                              <div key={eIdx} className="text-xs">
+                                                • {evidence}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground italic">No observable evidence detected in this session.</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
             {(definitionText || scoringText) && (
               <div className="space-y-2">
                 {definitionText && (
@@ -453,6 +547,7 @@ export function RoleplayFeedbackDialog({
   scenarioTitle,
   onStartNew,
   detectedCues,
+  metricResults,
 }: RoleplayFeedbackDialogProps) {
   if (!feedback) return null;
 
@@ -497,6 +592,10 @@ export function RoleplayFeedbackDialog({
 
     const metricOrder = [...coreMetricIds, ...extraMetricIds];
 
+    const metricResultsMap = new Map(
+      (metricResults || []).map(mr => [mr.id, mr])
+    );
+
     const items: Array<{
       key: string;
       metricId?: string;
@@ -506,6 +605,7 @@ export function RoleplayFeedbackDialog({
       observedBehaviors?: number;
       totalOpportunities?: number;
       calculationNote?: string;
+      metricResult?: MetricResult;
     }> = [
       {
         key: "eq:aggregate",
@@ -519,6 +619,7 @@ export function RoleplayFeedbackDialog({
         const fallbackField = fallbackFieldByMetricId[metricId];
         const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;
 
+        const metricResult = metricResultsMap.get(metricId);
         return {
           key: `eq:${metricId}`,
           metricId,
@@ -531,6 +632,7 @@ export function RoleplayFeedbackDialog({
           observedBehaviors: detail?.observedBehaviors,
           totalOpportunities: detail?.totalOpportunities,
           calculationNote: detail?.calculationNote,
+          metricResult,
         };
       }),
     ];
@@ -624,6 +726,7 @@ export function RoleplayFeedbackDialog({
                         calculationNote={item.calculationNote}
                         icon={Brain}
                         detectedCues={detectedCues}
+                        metricResult={item.metricResult}
                       />
                     </motion.div>
                   ))}

@@ -609,6 +609,7 @@ export default function RolePlayPage() {
         scenarioTitle={feedbackScenarioTitle}
         onStartNew={handleReset}
         detectedCues={allDetectedCues}
+        metricResults={metricResults}
       />
     </div>
   );
