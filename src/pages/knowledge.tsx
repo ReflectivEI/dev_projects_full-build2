@@ -261,12 +261,14 @@ Return ONLY the JSON object, no other text.`,
                             Session reference — not saved
                           </AlertDescription>
                         </Alert>
-                        <div className="flex items-start gap-2">
-                          <MessageSquare className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                          <div className="text-sm text-muted-foreground whitespace-pre-wrap">
-                            {aiAnswer.answer}
+                        {aiAnswer.answer && (
+                          <div className="flex items-start gap-2">
+                            <MessageSquare className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+                              {aiAnswer.answer}
+                            </div>
                           </div>
-                        </div>
+                        )}
                         {aiAnswer.relatedTopics && aiAnswer.relatedTopics.length > 0 && (
                           <div>
                             <p className="text-xs font-medium mb-2">Related Topics:</p>
