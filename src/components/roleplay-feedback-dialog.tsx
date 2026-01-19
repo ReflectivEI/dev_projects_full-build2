@@ -343,13 +343,35 @@ function MetricScoreCard({
                         const displayEvidence = evidenceItems.slice(0, 3);
                         const hasMore = evidenceItems.length > 3;
                         
+                        // Determine performance level
+                        const componentScore = component.score ?? 0;
+                        const performanceBadge = componentScore <= 2.5 
+                          ? { label: "Needs Attention", color: "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400", icon: "🔴" }
+                          : componentScore >= 4.0
+                          ? { label: "Strength", color: "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400", icon: "🟢" }
+                          : null;
+                        
                         return (
                           <TableRow key={idx} className={!component.applicable ? "opacity-50" : ""}>
                             <TableCell className="text-xs font-medium">
-                              {component.name}
-                              {!component.applicable && (
-                                <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">N/A</Badge>
-                              )}
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  {component.name}
+                                  {!component.applicable && (
+                                    <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">N/A</Badge>
+                                  )}
+                                  {performanceBadge && component.applicable && (
+                                    <Badge className={`text-[10px] px-1.5 py-0 ${performanceBadge.color} border-0`}>
+                                      {performanceBadge.icon} {performanceBadge.label}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {component.applicable && component.rationale && (
+                                  <p className="text-[10px] text-muted-foreground italic">
+                                    This score was influenced by: {component.rationale.split('.')[0]}.
+                                  </p>
+                                )}
+                              </div>
                             </TableCell>
                             <TableCell className="text-xs text-center">
                               {Math.round(component.weight * 100)}%
