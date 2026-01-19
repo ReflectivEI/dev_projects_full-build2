@@ -6,7 +6,7 @@ import {
   DialogHeader, 
   DialogTitle 
 } from "@/components/ui/dialog";
-import { Activity, CheckCircle2, X, Radio } from "lucide-react";
+import { Activity, CheckCircle2, X, Radio, Lightbulb } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { 
@@ -18,6 +18,8 @@ import {
   type EQMetric 
 } from "@/lib/data";
 import { getMetricUIData } from "@/lib/metrics-ui-adapter";
+import { getAllImprovementTipsForMetric } from "@/lib/metric-improvement-guidance";
+import type { BehavioralMetricId } from "@/lib/signal-intelligence/metrics-spec";
 
 interface MetricWithScore extends EQMetric {
   score: number;
@@ -216,6 +218,55 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
             <p className="text-sm text-muted-foreground italic">
               {metric.keyTip || 'Focus on observable behaviors and adjust your approach based on customer cues.'}
             </p>
+          </div>
+
+          {/* How to Improve This Score */}
+          <div>
+            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              How to Improve This Score
+            </h4>
+            {metric.score === 3.0 ? (
+              <div className="bg-muted/50 p-3 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Complete a Role Play to receive personalized guidance based on your performance.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(() => {
+                  const improvementGuidance = getAllImprovementTipsForMetric(metric.id as BehavioralMetricId);
+                  if (improvementGuidance.length === 0) {
+                    return (
+                      <div className="bg-muted/50 p-3 rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          Complete a Role Play to receive personalized guidance.
+                        </p>
+                      </div>
+                    );
+                  }
+                  
+                  // Find the lowest-scoring component (simulated for now)
+                  const lowestComponent = improvementGuidance[0];
+                  
+                  return (
+                    <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200 dark:border-amber-900/30">
+                      <div className="text-xs font-medium text-amber-900 dark:text-amber-100 mb-2">
+                        Focus Area: {lowestComponent.componentName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                      </div>
+                      <ul className="space-y-2">
+                        {lowestComponent.improvementTips.slice(0, 3).map((tip, idx) => (
+                          <li key={idx} className="text-sm text-amber-900 dark:text-amber-100 flex items-start gap-2">
+                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                            {tip}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
           </div>
 
           <div className="pt-2 border-t">
