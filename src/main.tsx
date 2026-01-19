@@ -33,6 +33,16 @@ const queryClient = new QueryClient({
   },
 });
 
+// Handle GitHub Pages SPA redirect from 404.html
+const redirect = sessionStorage.getItem('redirect');
+if (redirect) {
+  sessionStorage.removeItem('redirect');
+  // Extract the path after the base path
+  const basePath = '/dev_projects_full-build2';
+  const path = redirect.replace(basePath, '') || '/';
+  history.replaceState(null, '', basePath + path);
+}
+
 // Support both client-side navigation and SSR hydration
 const rootElement = document.getElementById('app');
 if (!rootElement) throw new Error('Root element not found');
