@@ -16,6 +16,18 @@
     </script>
   </head>
   <body class="fs-unmask-airo-app-builder">
+    <script>
+      // GitHub Pages SPA redirect handler
+      // Check if we were redirected from a 404 page
+      (function() {
+        var redirect = sessionStorage.getItem('redirect');
+        if (redirect) {
+          sessionStorage.removeItem('redirect');
+          // Let the router handle the path
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
     <div id="app" class="fs-unmask-airo-app-builder"></div>
     <script type="module">
       if (import.meta.env.DEV) {
