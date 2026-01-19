@@ -26,7 +26,7 @@ import {
   hcpCategories,
   influenceDrivers,
 } from "@/lib/data";
-import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
+import { SignalIntelligencePanel, type SignalIntelligenceCapability } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
