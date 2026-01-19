@@ -30,7 +30,7 @@ import { SignalIntelligencePanel, type ObservableSignal } from "@/components/sig
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
-import { detectObservableCues } from "@/lib/observable-cues";
+import { detectObservableCues, type ObservableCue } from "@/lib/observable-cues";
 import { CueBadgeGroup } from "@/components/CueBadge";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -220,6 +220,7 @@ export default function RolePlayPage() {
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
   const [showCues, setShowCues] = useState(true);
+  const [allDetectedCues, setAllDetectedCues] = useState<ObservableCue[]>([]);
 
   const queryClient = useQueryClient();
   const endCalledForSessionRef = useRef<Set<string>>(new Set());
@@ -312,6 +313,16 @@ export default function RolePlayPage() {
       const scoredMetrics = scoreConversation(transcript);
       setMetricResults(scoredMetrics);
 
+      // Collect all detected cues from rep messages for feedback dialog
+      const allCues: ObservableCue[] = [];
+      messages.forEach(msg => {
+        if (msg.role === 'user') {
+          const cues = detectObservableCues(msg.content, msg.role);
+          allCues.push(...cues);
+        }
+      });
+      setAllDetectedCues(allCues);
+
       const feedback = mapToComprehensiveFeedback(data, scoredMetrics);
       setFeedbackScenarioTitle(
         data?.scenario?.title || selectedScenario?.title || "Role-Play Session"
@@ -340,6 +351,7 @@ export default function RolePlayPage() {
     setSessionSignals([]);
     setFeedbackData(null);
     setMetricResults([]);
+    setAllDetectedCues([]);
     setShowFeedbackDialog(false);
     setInput("");
     endCalledForSessionRef.current.clear();
@@ -596,6 +608,7 @@ export default function RolePlayPage() {
         feedback={feedbackData}
         scenarioTitle={feedbackScenarioTitle}
         onStartNew={handleReset}
+        detectedCues={allDetectedCues}
       />
     </div>
   );
