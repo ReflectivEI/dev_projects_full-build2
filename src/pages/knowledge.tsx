@@ -354,9 +354,11 @@ Return ONLY the JSON object, no other text.`,
                           Session reference — not saved
                         </AlertDescription>
                       </Alert>
-                      <div className="text-sm text-muted-foreground whitespace-pre-wrap mb-2">
-                        {aiAnswer.answer}
-                      </div>
+                      {aiAnswer.answer && (
+                        <div className="text-sm text-muted-foreground whitespace-pre-wrap mb-2">
+                          {aiAnswer.answer}
+                        </div>
+                      )}
                       {aiAnswer.relatedTopics && aiAnswer.relatedTopics.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {aiAnswer.relatedTopics.map((topic, i) => (
