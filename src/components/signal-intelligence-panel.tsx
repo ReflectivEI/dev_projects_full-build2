@@ -182,6 +182,9 @@ export function SignalIntelligencePanel({
       {hasMetrics && (
         <div className="space-y-2">
           <h4 className="text-sm font-semibold">Behavioral Metrics</h4>
+          <p className="text-xs text-muted-foreground">
+            This score reflects observed behaviors during this session, including questioning approach, responsiveness, engagement signals, and next-step clarity.
+          </p>
           <div className="space-y-1.5">
             {metricResults
               .filter(m => !m.not_applicable && m.overall_score !== null)
@@ -240,6 +243,17 @@ export function SignalIntelligencePanel({
                   </div>
                 );
               })}
+          </div>
+        </div>
+      )}
+      
+      {!hasMetrics && (
+        <div className="space-y-2">
+          <h4 className="text-sm font-semibold">Behavioral Metrics</h4>
+          <div className="bg-muted/50 p-3 rounded-lg">
+            <p className="text-xs text-muted-foreground">
+              Start a Role Play to generate a Signal Intelligence Score.
+            </p>
           </div>
         </div>
       )}
