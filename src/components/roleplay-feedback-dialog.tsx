@@ -67,6 +67,7 @@ interface RoleplayFeedbackDialogProps {
   feedback: ComprehensiveFeedback | null;
   scenarioTitle?: string;
   onStartNew?: () => void;
+  detectedCues?: ObservableCue[];
 }
 
 function getPerformanceBadgeColor(level: string): string {
