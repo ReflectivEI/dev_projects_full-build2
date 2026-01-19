@@ -34,6 +34,7 @@ jobs:
       - name: Build frontend only (skip server bundle)
         run: npm run build:vite
         env:
+          STATIC_BUILD: 'true'
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
 
       - name: Setup Pages
