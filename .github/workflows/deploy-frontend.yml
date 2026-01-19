@@ -61,6 +61,7 @@ jobs:
         run: npm run build
         env:
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
+          GITHUB_PAGES: 'false'
 
       - name: Verify build output
         run: |
