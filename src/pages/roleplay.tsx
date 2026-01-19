@@ -583,6 +583,7 @@ export default function RolePlayPage() {
                 isLoading={sendResponseMutation.isPending}
                 compact
                 metricResults={metricResults}
+                detectedCues={allDetectedCues}
               />
             </CardContent>
           </Card>
