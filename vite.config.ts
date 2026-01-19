@@ -86,7 +86,9 @@ export default defineConfig(({ mode, command }) => {
 			},
 		},
 
-		// Set base path for GitHub Pages deployment
-		base: isStaticBuild ? '/dev_projects_full-build2/' : '/',
+		// Set base path based on deployment target
+		// GitHub Pages needs /dev_projects_full-build2/
+		// Cloudflare Pages needs /
+		base: process.env.GITHUB_PAGES === 'true' ? '/dev_projects_full-build2/' : '/',
 		};
 	});
