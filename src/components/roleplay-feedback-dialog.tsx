@@ -394,6 +394,47 @@ function MetricScoreCard({
               </div>
             )}
 
+            {metricId && detectedCues && detectedCues.length > 0 && (() => {
+              const relevantMappings = getCuesForMetric(metricId as any);
+              const relevantCues = detectedCues.filter(cue => 
+                relevantMappings.some(m => m.cueType === cue.type)
+              );
+              
+              if (relevantCues.length === 0) return null;
+              
+              return (
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-primary">Observed Evidence During Role Play</span>
+                  <div className="space-y-2">
+                    {relevantCues.map((cue, idx) => {
+                      const mapping = relevantMappings.find(m => m.cueType === cue.type);
+                      return (
+                        <div key={idx} className="bg-muted/30 rounded-lg p-2 space-y-1">
+                          <CueBadge cue={cue} size="sm" />
+                          {mapping && (
+                            <p className="text-xs text-muted-foreground">{mapping.explanation}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {metricId && (!detectedCues || detectedCues.length === 0 || (() => {
+              const relevantMappings = getCuesForMetric(metricId as any);
+              const relevantCues = (detectedCues || []).filter(cue => 
+                relevantMappings.some(m => m.cueType === cue.type)
+              );
+              return relevantCues.length === 0;
+            })()) && (
+              <div className="bg-muted/30 rounded-lg p-2">
+                <span className="text-xs font-semibold text-primary">Observed Evidence During Role Play</span>
+                <p className="text-xs text-muted-foreground mt-1">No observable cues detected for this metric</p>
+              </div>
+            )}
+
             <div>
               <span className="text-xs font-semibold text-primary">Feedback</span>
               <p className="text-xs text-muted-foreground">{feedback}</p>
