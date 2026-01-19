@@ -7,6 +7,7 @@ export interface Scenario {
   title: string;
   description: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
+  category?: string;
   diseaseState?: string;
   specialty?: string;
   hcpCategory?: string;
@@ -27,6 +28,7 @@ export interface CoachingModule {
   title: string;
   description: string;
   category: string;
+  icon?: string;
   duration?: string;
   objectives?: string[];
   content?: any;
@@ -37,6 +39,7 @@ export interface EQFramework {
   name: string;
   description: string;
   category: string;
+  color?: string;
   principles?: any[];
   techniques?: any[];
 }
