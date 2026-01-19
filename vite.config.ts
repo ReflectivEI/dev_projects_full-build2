@@ -24,23 +24,37 @@ if (allowedHosts.length === 0) {
 	allowedHosts.push("*");
 }
 
-export default defineConfig(({ mode }) => ({
-	plugins: [
+export default defineConfig(({ mode, command }) => {
+	// For production builds, skip API routes plugin (GitHub Pages doesn't need it)
+	const isStaticBuild = command === 'build' && process.env.STATIC_BUILD === 'true';
+	
+	const plugins = [
 		react({
 			babel: {
 				plugins: [sourceMapperPlugin],
 			},
 		}),
-		apiRoutes({
-			mode: "isolated",
-			configure: "src/server/configure.js",
-			dirs: [{ dir: "./src/server/api", route: "" }],
-			forceRestart: mode === "development",
-		}),
-		...(mode === "development"
-			? [devToolsPlugin() as Plugin, fullStoryPlugin()]
-			: []),
-	],
+	];
+	
+	// Only add API routes plugin if not building for static hosting
+	if (!isStaticBuild) {
+		plugins.push(
+			apiRoutes({
+				mode: "isolated",
+				configure: "src/server/configure.js",
+				dirs: [{ dir: "./src/server/api", route: "" }],
+				forceRestart: mode === "development",
+			})
+		);
+	}
+	
+	// Add dev tools only in development
+	if (mode === "development") {
+		plugins.push(devToolsPlugin() as Plugin, fullStoryPlugin());
+	}
+	
+	return {
+		plugins,
 
 	resolve: {
 		alias: {
