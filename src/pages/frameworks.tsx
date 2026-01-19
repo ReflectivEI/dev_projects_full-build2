@@ -30,8 +30,7 @@ import {
 } from "lucide-react";
 import { eqFrameworks, communicationStyleModels, heuristicTemplates } from "@/lib/data";
 import type { EQFramework, HeuristicTemplate } from "@shared/schema";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+
 
 import { MessageSquareText } from "lucide-react";
 
@@ -63,49 +62,114 @@ export default function FrameworksPage() {
   const [selectedFramework, setSelectedFramework] = useState<EQFramework | null>(null);
   const [situation, setSituation] = useState("");
   const [aiAdvice, setAiAdvice] = useState<{ advice: string; practiceExercise: string; tips: string[] } | null>(null);
+  const [isGeneratingAdvice, setIsGeneratingAdvice] = useState(false);
+  const [adviceError, setAdviceError] = useState<string | null>(null);
   const [activeHeuristicCategory, setActiveHeuristicCategory] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<HeuristicTemplate | null>(null);
   const [heuristicSituation, setHeuristicSituation] = useState("");
   const [customization, setCustomization] = useState<{ customizedTemplate: string; example: string; tips: string[] } | null>(null);
+  const [isGeneratingCustomization, setIsGeneratingCustomization] = useState(false);
+  const [customizationError, setCustomizationError] = useState<string | null>(null);
 
-  const getAdviceMutation = useMutation({
-    mutationFn: async (data: { frameworkId: string; frameworkName: string; situation: string }) => {
-      const response = await apiRequest("POST", "/api/frameworks/advice", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setAiAdvice(data);
-    },
-  });
-
-  const customizeMutation = useMutation({
-    mutationFn: async (data: { templateName: string; templatePattern: string; userSituation: string }) => {
-      const response = await apiRequest("POST", "/api/heuristics/customize", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setCustomization(data);
-    },
-  });
-
-  const handleGetAdvice = () => {
+  const generateAdvice = async () => {
     if (!situation.trim() || !selectedFramework) return;
-    getAdviceMutation.mutate({
-      frameworkId: selectedFramework.id,
-      frameworkName: selectedFramework.name,
-      situation,
-    });
+    
+    setIsGeneratingAdvice(true);
+    setAdviceError(null);
+
+    try {
+      const response = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `You are a pharma sales coach. A rep is applying the "${selectedFramework.name}" framework in this situation:
+
+"${situation}"
+
+Provide:
+1. Personalized advice (2-3 sentences) on applying this framework
+2. One practice exercise (1 sentence)
+3. 2-3 quick tips (each 1 sentence)
+
+Format as JSON: {"advice": "...", "practiceExercise": "...", "tips": ["...", "..."]}
+
+Return ONLY the JSON object, no other text.`,
+          content: "Generate framework advice",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate advice");
+      }
+
+      const data = await response.json();
+      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setAiAdvice(parsed);
+      } else {
+        throw new Error("Could not parse AI response");
+      }
+    } catch (err) {
+      setAdviceError(err instanceof Error ? err.message : "Failed to generate advice");
+    } finally {
+      setIsGeneratingAdvice(false);
+    }
   };
 
-  const handleCustomize = () => {
+  const generateCustomization = async () => {
     if (!selectedTemplate || !heuristicSituation.trim()) return;
-    customizeMutation.mutate({
-      templateName: selectedTemplate.name,
-      templatePattern: selectedTemplate.template,
-      userSituation: heuristicSituation,
-    });
+    
+    setIsGeneratingCustomization(true);
+    setCustomizationError(null);
+
+    try {
+      const response = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `You are a pharma sales coach. Customize this template for the given situation:
+
+Template: "${selectedTemplate.template}"
+Situation: "${heuristicSituation}"
+
+Provide:
+1. Customized template (adapt the template to this specific situation)
+2. Example dialogue (1-2 sentences showing how to use it)
+3. 2-3 delivery tips (each 1 sentence)
+
+Format as JSON: {"customizedTemplate": "...", "example": "...", "tips": ["...", "..."]}
+
+Return ONLY the JSON object, no other text.`,
+          content: "Generate template customization",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate customization");
+      }
+
+      const data = await response.json();
+      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setCustomization(parsed);
+      } else {
+        throw new Error("Could not parse AI response");
+      }
+    } catch (err) {
+      setCustomizationError(err instanceof Error ? err.message : "Failed to generate customization");
+    } finally {
+      setIsGeneratingCustomization(false);
+    }
   };
+
+
 
   const filteredTemplates =
     activeHeuristicCategory === "all"
@@ -130,14 +194,15 @@ export default function FrameworksPage() {
     return (
       <div className="h-full overflow-auto">
         <div className="p-6">
-          <Button
-            variant="ghost"
-            className="mb-4"
-            onClick={() => {
-              setSelectedFramework(null);
-              setAiAdvice(null);
-              setSituation("");
-            }}
+            <Button
+              variant="ghost"
+              className="mb-4"
+              onClick={() => {
+                setSelectedFramework(null);
+                setAiAdvice(null);
+                setSituation("");
+                setAdviceError(null);
+              }}
             data-testid="button-back-frameworks"
           >
             <ChevronRight className="h-4 w-4 mr-2 rotate-180" />
@@ -180,7 +245,7 @@ export default function FrameworksPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
-                      handleGetAdvice();
+                      generateAdvice();
                     }
                   }}
                   placeholder="Describe your sales situation... e.g., 'I'm meeting with a skeptical oncologist who prefers data-driven discussions'"
@@ -188,21 +253,32 @@ export default function FrameworksPage() {
                   data-testid="input-framework-situation"
                 />
                 <Button
-                  onClick={handleGetAdvice}
-                  disabled={!situation.trim() || getAdviceMutation.isPending}
+                  onClick={generateAdvice}
+                  disabled={!situation.trim() || isGeneratingAdvice}
                   className="w-full"
                   data-testid="button-get-framework-advice"
                 >
-                  {getAdviceMutation.isPending ? (
+                  {isGeneratingAdvice ? (
                     <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
                   ) : (
                     <Send className="h-4 w-4 mr-2" />
                   )}
-                  {getAdviceMutation.isPending ? "Getting Personalized Advice..." : "Get AI Advice"}
+                  {isGeneratingAdvice ? "Getting Personalized Advice..." : "Get AI Advice"}
                 </Button>
+
+                {adviceError && (
+                  <Alert variant="destructive">
+                    <AlertDescription className="text-xs">{adviceError}</AlertDescription>
+                  </Alert>
+                )}
 
                 {aiAdvice && (
                   <div className="space-y-4 pt-4 border-t">
+                    <Alert>
+                      <AlertDescription className="text-xs">
+                        Generated for this session • Content clears on navigation
+                      </AlertDescription>
+                    </Alert>
                     <div>
                       <h4 className="font-medium mb-2 flex items-center gap-2">
                         <MessageSquare className="h-4 w-4 text-primary" />
@@ -619,11 +695,12 @@ export default function FrameworksPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => {
-                              setSelectedTemplate(template);
-                              setHeuristicSituation("");
-                              setCustomization(null);
-                            }}
+                          onClick={() => {
+                            setSelectedTemplate(template);
+                            setHeuristicSituation("");
+                            setCustomization(null);
+                            setCustomizationError(null);
+                          }}
                             data-testid={`button-customize-${template.id}`}
                           >
                             <Wand2 className="h-4 w-4 mr-1" />
@@ -733,12 +810,12 @@ export default function FrameworksPage() {
               <Textarea
                 value={heuristicSituation}
                 onChange={(e) => setHeuristicSituation(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleCustomize();
-                  }
-                }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      generateCustomization();
+                    }
+                  }}
                 placeholder="e.g., Meeting with a skeptical cardiologist who is concerned about drug costs for elderly patients"
                 className="min-h-[80px] resize-none"
                 data-testid="input-customization-situation"
@@ -746,21 +823,32 @@ export default function FrameworksPage() {
             </div>
 
             <Button
-              onClick={handleCustomize}
-              disabled={!heuristicSituation.trim() || customizeMutation.isPending}
+              onClick={generateCustomization}
+              disabled={!heuristicSituation.trim() || isGeneratingCustomization}
               className="w-full"
               data-testid="button-generate-customization"
             >
-              {customizeMutation.isPending ? (
+              {isGeneratingCustomization ? (
                 <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
               ) : (
                 <Sparkles className="h-4 w-4 mr-2" />
               )}
-              {customizeMutation.isPending ? "Generating..." : "Generate Personalized Template"}
+              {isGeneratingCustomization ? "Generating..." : "Generate Personalized Template"}
             </Button>
+
+            {customizationError && (
+              <Alert variant="destructive">
+                <AlertDescription className="text-xs">{customizationError}</AlertDescription>
+              </Alert>
+            )}
 
             {customization && (
               <div className="space-y-4 pt-4 border-t">
+                <Alert>
+                  <AlertDescription className="text-xs">
+                    Generated for this session • Content clears on navigation
+                  </AlertDescription>
+                </Alert>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="text-sm font-medium">Customized Template:</h4>

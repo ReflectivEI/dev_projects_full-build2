@@ -22,8 +22,8 @@ import {
 } from "lucide-react";
 import { knowledgeArticles } from "@/lib/data";
 import type { KnowledgeArticle } from "@shared/schema";
-import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const categoryIcons: Record<string, any> = {
   fda: Scale,
@@ -49,21 +49,60 @@ export default function KnowledgePage() {
   const [selectedArticle, setSelectedArticle] = useState<KnowledgeArticle | null>(null);
   const [aiQuestion, setAiQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState<{ answer: string; relatedTopics: string[] } | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const askAiMutation = useMutation({
-    mutationFn: async (data: { question: string; articleContext?: string }) => {
-      const response = await apiRequest("POST", "/api/knowledge/ask", data);
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setAiAnswer(data);
-    },
-  });
-
-  const handleAskAi = () => {
+  const handleAskAi = async () => {
     if (!aiQuestion.trim()) return;
-    const articleContext = selectedArticle ? selectedArticle.id : undefined;
-    askAiMutation.mutate({ question: aiQuestion, articleContext });
+    
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const contextInfo = selectedArticle 
+        ? `Context: The user is reading about "${selectedArticle.title}" (${selectedArticle.summary})`
+        : "Context: General pharma knowledge base question";
+
+      const response = await fetch("/api/chat/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `You are a pharma industry expert. Answer this question:
+
+"${aiQuestion}"
+
+${contextInfo}
+
+Provide:
+1. A clear, plain-language answer (2-3 sentences)
+2. 2-3 related topics the user might want to explore
+
+Format as JSON: {"answer": "...", "relatedTopics": ["...", "..."]}
+
+Return ONLY the JSON object, no other text.`,
+          content: "Answer knowledge base question",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get answer");
+      }
+
+      const data = await response.json();
+      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+      
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        setAiAnswer(parsed);
+      } else {
+        throw new Error("Could not parse AI response");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to get answer");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const filteredArticles = knowledgeArticles.filter((article) => {
@@ -89,6 +128,7 @@ export default function KnowledgePage() {
               setSelectedArticle(null);
               setAiAnswer(null);
               setAiQuestion("");
+              setError(null);
             }}
             data-testid="button-back-knowledge"
           >
@@ -188,20 +228,31 @@ export default function KnowledgePage() {
                     </div>
                     <Button
                       onClick={handleAskAi}
-                      disabled={!aiQuestion.trim() || askAiMutation.isPending}
+                      disabled={!aiQuestion.trim() || isGenerating}
                       className="w-full"
                       data-testid="button-ask-ai"
                     >
-                      {askAiMutation.isPending ? (
+                      {isGenerating ? (
                         <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
                       ) : (
                         <Send className="h-4 w-4 mr-2" />
                       )}
-                      {askAiMutation.isPending ? "Thinking..." : "Ask AI"}
+                      {isGenerating ? "Thinking..." : "Ask AI"}
                     </Button>
+
+                    {error && (
+                      <Alert variant="destructive">
+                        <AlertDescription className="text-xs">{error}</AlertDescription>
+                      </Alert>
+                    )}
 
                     {aiAnswer && (
                       <div className="space-y-3 pt-3 border-t">
+                        <Alert>
+                          <AlertDescription className="text-xs">
+                            Session reference — not saved
+                          </AlertDescription>
+                        </Alert>
                         <div className="flex items-start gap-2">
                           <MessageSquare className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
                           <div className="text-sm text-muted-foreground whitespace-pre-wrap">
@@ -271,18 +322,28 @@ export default function KnowledgePage() {
                     />
                     <Button
                       onClick={handleAskAi}
-                      disabled={!aiQuestion.trim() || askAiMutation.isPending}
+                      disabled={!aiQuestion.trim() || isGenerating}
                       data-testid="button-global-ask-ai"
                     >
-                      {askAiMutation.isPending ? (
+                      {isGenerating ? (
                         <Sparkles className="h-4 w-4 animate-pulse" />
                       ) : (
                         <Send className="h-4 w-4" />
                       )}
                     </Button>
                   </div>
+                  {error && (
+                    <Alert variant="destructive" className="mt-4">
+                      <AlertDescription className="text-xs">{error}</AlertDescription>
+                    </Alert>
+                  )}
                   {aiAnswer && (
                     <div className="mt-4 p-3 bg-background rounded-lg border">
+                      <Alert className="mb-3">
+                        <AlertDescription className="text-xs">
+                          Session reference — not saved
+                        </AlertDescription>
+                      </Alert>
                       <div className="text-sm text-muted-foreground whitespace-pre-wrap mb-2">
                         {aiAnswer.answer}
                       </div>
