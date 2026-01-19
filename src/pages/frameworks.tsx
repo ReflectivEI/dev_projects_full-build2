@@ -109,7 +109,16 @@ Return ONLY the JSON object, no other text.`,
       
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
-        setAiAdvice(parsed);
+        // Defensive guard: ensure all expected fields exist
+        if (parsed && typeof parsed === 'object') {
+          setAiAdvice({
+            advice: parsed.advice || '',
+            practiceExercise: parsed.practiceExercise || '',
+            tips: Array.isArray(parsed.tips) ? parsed.tips : []
+          });
+        } else {
+          throw new Error("Invalid AI response format");
+        }
       } else {
         throw new Error("Could not parse AI response");
       }
