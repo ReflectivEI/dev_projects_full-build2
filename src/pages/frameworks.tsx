@@ -297,15 +297,17 @@ Return ONLY the JSON object, no other text.`,
                         Generated for this session • Content clears on navigation
                       </AlertDescription>
                     </Alert>
-                    <div>
-                      <h4 className="font-medium mb-2 flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-primary" />
-                        Personalized Advice
-                      </h4>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                        {aiAdvice.advice}
-                      </p>
-                    </div>
+                    {aiAdvice.advice && (
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <MessageSquare className="h-4 w-4 text-primary" />
+                          Personalized Advice
+                        </h4>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {aiAdvice.advice}
+                        </p>
+                      </div>
+                    )}
 
                     <div className="p-3 bg-background rounded-lg border">
                       <h4 className="font-medium mb-2 flex items-center gap-2">
