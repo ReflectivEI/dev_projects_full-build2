@@ -33,10 +33,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Deployment marker for PROMPT 9 verification
-console.log('🚀 BUILD VERSION: PROMPT-8-CONFIRMED');
-console.log('📦 Build timestamp:', new Date().toISOString());
-
 // Support both client-side navigation and SSR hydration
 const rootElement = document.getElementById('app');
 if (!rootElement) throw new Error('Root element not found');
