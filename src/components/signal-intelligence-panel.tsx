@@ -9,13 +9,18 @@ import {
   Clock,
   AlertCircle,
   Lightbulb,
-  TrendingUp
+  TrendingUp,
+  HelpCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import type { MetricResult } from "@/lib/signal-intelligence/scoring";
+import { getCuesForMetric } from "@/lib/observable-cue-to-metric-map";
+import type { ObservableCue } from "@/lib/observable-cues";
+import { CueBadge } from "@/components/CueBadge";
 
 export interface SignalIntelligenceCapability {
   id?: string;
@@ -33,6 +38,7 @@ interface SignalIntelligencePanelProps {
   hasActivity?: boolean;
   compact?: boolean;
   metricResults?: MetricResult[];
+  detectedCues?: ObservableCue[];
 }
 
 const signalTypeConfig = {
@@ -179,12 +185,61 @@ export function SignalIntelligencePanel({
           <div className="space-y-1.5">
             {metricResults
               .filter(m => !m.not_applicable && m.overall_score !== null)
-              .map(m => (
-                <div key={m.id} className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{m.metric}</span>
-                  <span className="font-medium">{m.overall_score?.toFixed(1)}</span>
-                </div>
-              ))}
+              .map(m => {
+                const relevantMappings = getCuesForMetric(m.id as any);
+                const relevantCues = detectedCues.filter(cue => 
+                  relevantMappings.some(mapping => mapping.cueType === cue.type)
+                );
+                const hasEvidence = relevantCues.length > 0;
+
+                return (
+                  <div key={m.id} className="flex items-center justify-between text-xs group">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">{m.metric}</span>
+                      {hasEvidence && (
+                        <Sheet>
+                          <SheetTrigger asChild>
+                            <button className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <HelpCircle className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+                            </button>
+                          </SheetTrigger>
+                          <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+                            <SheetHeader>
+                              <SheetTitle>What influenced {m.metric}?</SheetTitle>
+                              <SheetDescription>
+                                Observable cues detected during the role play that relate to this metric.
+                              </SheetDescription>
+                            </SheetHeader>
+                            <div className="mt-6 space-y-4">
+                              {relevantCues.map((cue, idx) => {
+                                const mapping = relevantMappings.find(m => m.cueType === cue.type);
+                                return (
+                                  <div key={idx} className="space-y-2 p-3 border rounded-lg">
+                                    <CueBadge cue={cue} size="sm" />
+                                    {mapping && (
+                                      <div className="space-y-1">
+                                        {mapping.component && (
+                                          <p className="text-xs font-medium text-muted-foreground">
+                                            Component: {mapping.component}
+                                          </p>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">
+                                          {mapping.explanation}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </SheetContent>
+                        </Sheet>
+                      )}
+                    </div>
+                    <span className="font-medium">{m.overall_score?.toFixed(1)}</span>
+                  </div>
+                );
+              })}
           </div>
         </div>
       )}
