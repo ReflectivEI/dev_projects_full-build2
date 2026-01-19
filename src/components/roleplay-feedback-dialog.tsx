@@ -30,6 +30,9 @@ import {
 } from "lucide-react";
 import { eqMetrics } from "@/lib/data";
 import { readEnabledEIMetricIds, EI_METRICS_SETTINGS_EVENT } from "@/lib/eiMetricSettings";
+import { getCuesForMetric, type CueMetricMapping } from "@/lib/observable-cue-to-metric-map";
+import { CueBadge } from "@/components/CueBadge";
+import type { ObservableCue } from "@/lib/observable-cues";
 
 interface ComprehensiveFeedback {
   overallScore: number;
