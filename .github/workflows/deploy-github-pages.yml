@@ -35,6 +35,7 @@ jobs:
         run: npm run build:vite
         env:
           STATIC_BUILD: 'true'
+          GITHUB_PAGES: 'true'
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
 
       - name: Setup Pages
