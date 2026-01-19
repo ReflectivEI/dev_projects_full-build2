@@ -452,6 +452,7 @@ export function RoleplayFeedbackDialog({
   feedback,
   scenarioTitle,
   onStartNew,
+  detectedCues,
 }: RoleplayFeedbackDialogProps) {
   if (!feedback) return null;
 
