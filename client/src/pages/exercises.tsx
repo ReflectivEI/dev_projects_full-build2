@@ -20,6 +20,7 @@ import {
 import { coachingModules } from "@/lib/data";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 type QuizQuestion = {
   question: string;
@@ -68,7 +69,21 @@ export default function ExercisesPage() {
   const generateExerciseMutation = useMutation({
     mutationFn: async (data: { moduleTitle: string; moduleDescription: string; exerciseType: string }) => {
       const response = await apiRequest("POST", "/api/modules/exercise", data);
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      if (normalized.json && normalized.json.questions) {
+        return normalized.json;
+      }
+      // Fallback: create single question from raw text
+      return {
+        questions: [{
+          question: "Exercise Content",
+          options: ["Review the content below"],
+          correctAnswer: 0,
+          explanation: normalized.text
+        }]
+      };
     },
     onSuccess: (data) => {
       setExerciseData(data);
