@@ -52,6 +52,10 @@ type CoachingGuidance = {
   focus: string;
   whyItMatters: string;
   nextAction: string;
+  keyPractices?: string[];
+  commonChallenges?: string[];
+  developmentTips?: string[];
+  fullText?: string;
 };
 
 export default function ModulesPage() {
@@ -124,48 +128,31 @@ JSON only:`,
       if (guidanceNormalized.json && typeof guidanceNormalized.json === 'object' && guidanceNormalized.json.focus) {
         setCoachingGuidance(guidanceNormalized.json);
       } else {
-        // Worker returned prose - convert to guidance format
-        console.warn("[P0 MODULES] Worker returned prose, converting to guidance format");
+        // Worker returned prose - use as plain text guidance
+        console.warn("[P0 MODULES] Worker returned prose, using as plain text");
         
-        const paragraphs = aiMessage
-          .split(/\n\n+/)
-          .map(p => p.trim())
-          .filter(p => p.length > 0);
+        // Use the AI message directly as coaching guidance
+        const guidanceText = aiMessage && aiMessage.trim().length > 0 
+          ? aiMessage 
+          : 'Unable to generate coaching guidance. Please try again.';
         
-        const fallbackGuidance = {
-          focus: "AI-Generated Coaching Insights",
-          keyPractices: paragraphs.slice(0, 3).map((p, i) => `Insight ${i + 1}: ${p.substring(0, 150)}...`),
-          commonChallenges: ["Review the full guidance below to identify specific challenges"],
-          developmentTips: paragraphs.slice(3, 6).map((p, i) => `Tip ${i + 1}: ${p.substring(0, 150)}...`),
-          fullText: aiMessage
-        };
-        
-        setCoachingGuidance(fallbackGuidance);
+        setCoachingGuidance({
+          focus: `Coaching Insights for ${module.title}`,
+          whyItMatters: guidanceText.substring(0, 300) + (guidanceText.length > 300 ? '...' : ''),
+          nextAction: 'Review the guidance above and apply it to your next customer interaction.',
+          fullText: guidanceText
+        });
       }
     } catch (err) {
       console.error("[P0 MODULES] Error in generateGuidance:", err);
       setError("Unable to generate coaching guidance. Please try again.");
       
       // Set a fallback guidance even on error
-      const fallbackGuidance = {
-        focus: "Unable to Generate Custom Guidance",
-        keyPractices: [
-          "There was an error connecting to the AI service",
-          "Here are some general coaching tips for this module",
-          "Focus on active listening and understanding customer needs"
-        ],
-        commonChallenges: [
-          "Technical difficulties prevented custom guidance generation",
-          "Please try again or contact support if the issue persists"
-        ],
-        developmentTips: [
-          "Practice the core skills from this module regularly",
-          "Seek feedback from colleagues and mentors",
-          "Reflect on your interactions and identify areas for improvement"
-        ]
-      };
-      
-      setCoachingGuidance(fallbackGuidance);
+      setCoachingGuidance({
+        focus: `Coaching Tips for ${module.title}`,
+        whyItMatters: "There was an error connecting to the AI service. Here are some general coaching tips for this module: Focus on active listening and understanding customer needs. Practice the core skills regularly and seek feedback from colleagues.",
+        nextAction: "Try regenerating the guidance, or proceed with the general tips above."
+      });
     } finally {
       setIsGenerating(false);
     }

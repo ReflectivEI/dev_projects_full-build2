@@ -248,7 +248,21 @@ export default function ChatPage() {
           discEnabled,
         },
       });
-      return response.json();
+      
+      // P0 FIX: Read response body BEFORE checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 CHAT] Response status:", response.status);
+        console.log("[P0 CHAT] Response body:", rawText.substring(0, 500));
+      }
+
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
+      
+      const normalized = normalizeAIResponse(rawText);
+      return normalized.json || { messages: [] };
     },
     onSuccess: (data) => {
       // Immediately reflect returned messages to avoid UI gaps if refetch races
