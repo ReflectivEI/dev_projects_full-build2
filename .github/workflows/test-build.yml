@@ -1,0 +1,38 @@
+name: Test Build (DEBUG)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install
+        run: |
+          echo "📦 Installing dependencies..."
+          npm ci
+          echo "✅ Install complete"
+
+      - name: Build
+        run: |
+          echo "🔨 Building..."
+          STATIC_BUILD=true GITHUB_PAGES=false VITE_WORKER_URL=https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev npm run build:vite
+          echo "✅ Build complete"
+
+      - name: Verify
+        run: |
+          echo "📂 Checking output..."
+          ls -la
+          echo "---"
+          ls -la dist/ || echo "❌ dist/ not found"
+          echo "---"
+          test -f dist/index.html && echo "✅ dist/index.html exists" || echo "❌ dist/index.html missing"
