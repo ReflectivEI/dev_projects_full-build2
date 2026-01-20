@@ -58,15 +58,29 @@ jobs:
         run: npm ci
 
       - name: Build frontend
-        run: npm run build
+        run: npm run build:vite
         env:
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
           GITHUB_PAGES: 'false'
+          STATIC_BUILD: 'true'
 
       - name: Verify build output
         run: |
-          echo "Checking if dist/client exists..."
-          ls -la dist/client/
+          echo "Checking if dist exists..."
+          ls -la dist/
+          echo "Checking for _redirects file..."
+          if [ -f dist/_redirects ]; then
+            echo "✅ _redirects file found"
+            cat dist/_redirects
+          else
+            echo "⚠️  WARNING: _redirects file NOT found"
+          fi
+          echo "Checking for 404.html file..."
+          if [ -f dist/404.html ]; then
+            echo "✅ 404.html file found"
+          else
+            echo "⚠️  WARNING: 404.html file NOT found"
+          fi
           echo "Build completed successfully!"
 
       - name: Deploy to Staging
@@ -75,7 +89,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/client --project-name=reflectivai-app-staging --branch=staging
+          command: pages deploy dist --project-name=reflectivai-app-staging --branch=staging
 
       - name: Deploy to Production
         if: github.event.inputs.environment == 'production'
@@ -83,7 +97,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/client --project-name=reflectivai-app-prod --branch=main
+          command: pages deploy dist --project-name=reflectivai-app-prod --branch=main
 
       - name: Deployment Summary
         run: |
