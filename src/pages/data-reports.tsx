@@ -34,7 +34,20 @@ export default function DataReportsPage() {
   const translateMutation = useMutation({
     mutationFn: async (naturalLanguageQuery: string) => {
       const response = await apiRequest("POST", "/api/sql/translate", { question: naturalLanguageQuery });
-      return response.json();
+      
+      // P0 FIX: Read response body before checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 DATA_REPORTS] Response status:", response.status);
+        console.log("[P0 DATA_REPORTS] Response body:", rawText.substring(0, 500));
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
+      
+      return JSON.parse(rawText);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sql/history"] });
