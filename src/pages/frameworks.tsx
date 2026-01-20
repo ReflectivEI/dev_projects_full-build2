@@ -94,8 +94,7 @@ Provide:
 Format as JSON: {"advice": "...", "practiceExercise": "...", "tips": ["...", "..."]}
 
 Return ONLY the JSON object, no other text.`,
-          content: "Generate framework advice",
-        }),
+        content: "Generate framework advice"
       });
 
       if (!response.ok) {
