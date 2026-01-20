@@ -133,8 +133,15 @@ JSON only:`,
           practiceExercise: parsed.practiceExercise || '',
           tips: Array.isArray(parsed.tips) ? parsed.tips : []
         });
+      } else if (aiMessage) {
+        // EMERGENCY FALLBACK: Use raw text
+        setAiAdvice({
+          advice: aiMessage,
+          practiceExercise: "Apply this advice in your next conversation",
+          tips: []
+        });
       } else {
-        throw new Error("Could not parse AI response");
+        throw new Error("No response from AI");
       }
     } catch (err) {
       setAdviceError(err instanceof Error ? err.message : "Failed to generate advice");
