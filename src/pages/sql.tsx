@@ -20,6 +20,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { sampleSqlQueries } from "@/lib/data";
 import type { SQLQuery } from "@shared/schema";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 export default function SqlPage() {
   const [input, setInput] = useState("");
@@ -38,7 +40,20 @@ export default function SqlPage() {
   const translateMutation = useMutation({
     mutationFn: async (naturalLanguage: string) => {
       const response = await apiRequest("POST", "/api/sql/translate", { question: naturalLanguage });
-      return response.json();
+      
+      // P0 FIX: Read response body before checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 SQL] Response status:", response.status);
+        console.log("[P0 SQL] Response body:", rawText.substring(0, 500));
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
+      
+      return JSON.parse(rawText);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sql/history"] });

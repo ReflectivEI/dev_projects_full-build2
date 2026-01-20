@@ -28,6 +28,8 @@ import { heuristicTemplates } from "@/lib/data";
 import type { HeuristicTemplate } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const categoryIcons: Record<string, any> = {
   objection: Shield,
@@ -55,7 +57,20 @@ export default function HeuristicsPage() {
   const customizeMutation = useMutation({
     mutationFn: async (data: { templateName: string; templatePattern: string; userSituation: string }) => {
       const response = await apiRequest("POST", "/api/heuristics/customize", data);
-      return response.json();
+      
+      // P0 FIX: Read response body before checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 HEURISTICS] Response status:", response.status);
+        console.log("[P0 HEURISTICS] Response body:", rawText.substring(0, 500));
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
+      
+      return JSON.parse(rawText);
     },
     onSuccess: (data) => {
       setCustomization(data);
@@ -304,6 +319,17 @@ export default function HeuristicsPage() {
               )}
               {customizeMutation.isPending ? "Generating..." : "Generate Personalized Template"}
             </Button>
+
+            {customizeMutation.isError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {customizeMutation.error instanceof Error 
+                    ? customizeMutation.error.message 
+                    : "Failed to generate customization. Please try again."}
+                </AlertDescription>
+              </Alert>
+            )}
 
             {customization && (
               <div className="space-y-4 pt-4 border-t">
