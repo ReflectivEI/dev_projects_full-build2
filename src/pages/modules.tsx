@@ -137,8 +137,29 @@ JSON only:`,
         setCoachingGuidance(fallbackGuidance);
       }
     } catch (err) {
-      console.error("Guidance generation error:", err);
+      console.error("[P0 MODULES] Error in generateGuidance:", err);
       setError("Unable to generate coaching guidance. Please try again.");
+      
+      // Set a fallback guidance even on error
+      const fallbackGuidance = {
+        focus: "Unable to Generate Custom Guidance",
+        keyPractices: [
+          "There was an error connecting to the AI service",
+          "Here are some general coaching tips for this module",
+          "Focus on active listening and understanding customer needs"
+        ],
+        commonChallenges: [
+          "Technical difficulties prevented custom guidance generation",
+          "Please try again or contact support if the issue persists"
+        ],
+        developmentTips: [
+          "Practice the core skills from this module regularly",
+          "Seek feedback from colleagues and mentors",
+          "Reflect on your interactions and identify areas for improvement"
+        ]
+      };
+      
+      setCoachingGuidance(fallbackGuidance);
     } finally {
       setIsGenerating(false);
     }

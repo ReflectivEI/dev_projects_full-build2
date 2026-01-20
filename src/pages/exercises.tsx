@@ -93,12 +93,32 @@ JSON array only:`,
         setExercises([fallbackExercise]);
       }
     } catch (err) {
-      console.error("Exercise generation error:", err);
+      console.error("[P0 EXERCISES] Error in generateExercises:", err);
+      
       // Mobile-friendly error message with network hint
       const errorMessage = err instanceof Error && err.message.includes('Failed to fetch')
         ? "Network error. Please check your connection and try again."
         : "Unable to generate exercises. Please try again.";
       setError(errorMessage);
+      
+      // Set a fallback exercise even on error so user sees something
+      const fallbackExercise = {
+        title: "Unable to Generate Custom Exercises",
+        description: "There was an error connecting to the AI service. Here's a general practice exercise:",
+        practiceSteps: [
+          "Practice active listening in your next customer conversation",
+          "Ask open-ended questions to understand their needs",
+          "Reflect back what you heard to confirm understanding",
+          "Take notes on emotional cues and body language"
+        ],
+        scenario: "Apply these fundamental skills in your daily interactions",
+        reflectionPrompts: [
+          "What did you notice about the customer's communication style?",
+          "How did active listening change the conversation?"
+        ]
+      };
+      
+      setExercises([fallbackExercise]);
     } finally {
       setIsGenerating(false);
     }
