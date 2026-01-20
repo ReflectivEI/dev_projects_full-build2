@@ -91,6 +91,10 @@ jobs:
           test -f "$OUTPUT_DIR/404.html" && echo "  ✓ 404.html" || echo "  ⚠️  404.html missing"
           
           echo "🎉 Build output verified!"
+        env:
+          VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
+          GITHUB_PAGES: 'false'
+          STATIC_BUILD: 'true'
 
       - name: Deploy to Staging
         if: github.event.inputs.environment == 'staging'
