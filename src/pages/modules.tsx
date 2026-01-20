@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,10 +73,8 @@ export default function ModulesPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
+      const response = await apiRequest("POST", "/api/chat/send", {
           message: `Generate coaching guidance for the module "${module.title}": ${module.description}
 
 Provide:
