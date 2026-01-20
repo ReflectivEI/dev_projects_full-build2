@@ -67,16 +67,23 @@ export default function KnowledgePage() {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
 <<<<<<< HEAD
+<<<<<<< HEAD
           message: `RESPOND WITH ONLY JSON. NO OTHER TEXT.
 =======
           message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
 
 Question: "${aiQuestion}"
 >>>>>>> 20260120133733-57caki7jtt
+=======
+          message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
+
+Question: "${aiQuestion}"
+>>>>>>> bac9114 (fix: CRITICAL - Knowledge Base AI parsing with multiple fallback strategies)
 
 Question: "${aiQuestion}"
 ${contextInfo}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 JSON format:
 {"answer": "clear 2-3 sentence answer", "relatedTopics": ["topic1", "topic2", "topic3"]}
@@ -88,6 +95,12 @@ Respond with this EXACT JSON structure (no markdown, no explanation):
 
 JSON only:`,
 >>>>>>> 20260120133733-57caki7jtt
+=======
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"answer": "your 2-3 sentence answer here", "relatedTopics": ["topic1", "topic2", "topic3"]}
+
+JSON only:`,
+>>>>>>> bac9114 (fix: CRITICAL - Knowledge Base AI parsing with multiple fallback strategies)
           content: "Answer knowledge base question",
       });
 
@@ -96,6 +109,7 @@ JSON only:`,
       }
 
       const data = await response.json();
+<<<<<<< HEAD
 <<<<<<< HEAD
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || data?.aiMessage?.content || "";
       
@@ -115,6 +129,10 @@ JSON only:`,
 =======
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
       
+=======
+      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      
+>>>>>>> bac9114 (fix: CRITICAL - Knowledge Base AI parsing with multiple fallback strategies)
       // Try multiple parsing strategies
       let parsed = null;
       
@@ -123,7 +141,10 @@ JSON only:`,
         parsed = JSON.parse(aiMessage);
       } catch {
         // Strategy 2: Extract JSON from markdown code blocks
+<<<<<<< HEAD
 >>>>>>> 20260120133733-57caki7jtt
+=======
+>>>>>>> bac9114 (fix: CRITICAL - Knowledge Base AI parsing with multiple fallback strategies)
         const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (codeBlockMatch) {
           try {
@@ -132,10 +153,14 @@ JSON only:`,
         }
         
 <<<<<<< HEAD
+<<<<<<< HEAD
         // Strategy 3: Find JSON object
 =======
         // Strategy 3: Find any JSON object in the response
 >>>>>>> 20260120133733-57caki7jtt
+=======
+        // Strategy 3: Find any JSON object in the response
+>>>>>>> bac9114 (fix: CRITICAL - Knowledge Base AI parsing with multiple fallback strategies)
         if (!parsed) {
           const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
@@ -146,6 +171,7 @@ JSON only:`,
         }
       }
       
+<<<<<<< HEAD
 <<<<<<< HEAD
       // If we got valid JSON with expected structure, use it
       if (parsed && typeof parsed === 'object' && parsed.answer) {
@@ -168,6 +194,17 @@ JSON only:`,
         setAiAnswer({
           answer: aiMessage || 'Unable to generate a response. Please try rephrasing your question.',
 >>>>>>> 20260120133733-57caki7jtt
+=======
+      if (parsed && typeof parsed === 'object' && parsed.answer) {
+        setAiAnswer({
+          answer: parsed.answer || '',
+          relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
+        });
+      } else {
+        // Fallback: Use the raw response as the answer
+        setAiAnswer({
+          answer: aiMessage || 'Unable to generate a response. Please try rephrasing your question.',
+>>>>>>> bac9114 (fix: CRITICAL - Knowledge Base AI parsing with multiple fallback strategies)
           relatedTopics: []
         });
       }
