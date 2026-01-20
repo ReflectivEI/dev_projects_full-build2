@@ -140,6 +140,17 @@ export default function SqlPage() {
             </Card>
           )}
 
+          {translateMutation.isError && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                {translateMutation.error instanceof Error 
+                  ? translateMutation.error.message 
+                  : "Failed to translate query. Please try again."}
+              </AlertDescription>
+            </Alert>
+          )}
+
           {latestQuery && (
             <Card className="mb-6 border-primary">
               <CardHeader className="pb-3">
