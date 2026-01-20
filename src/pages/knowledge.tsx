@@ -66,19 +66,15 @@ export default function KnowledgePage() {
 
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-          message: `You are a pharma industry expert. Answer this question:
+          message: `RESPOND WITH ONLY JSON. NO OTHER TEXT.
 
-"${aiQuestion}"
-
+Question: "${aiQuestion}"
 ${contextInfo}
 
-Provide:
-1. A clear, plain-language answer (2-3 sentences)
-2. 2-3 related topics the user might want to explore
+JSON format:
+{"answer": "clear 2-3 sentence answer", "relatedTopics": ["topic1", "topic2", "topic3"]}
 
-Format as JSON: {"answer": "...", "relatedTopics": ["...", "..."]}
-
-Return ONLY the JSON object, no other text.`,
+JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
           content: "Answer knowledge base question",
       });
 
