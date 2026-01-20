@@ -33,13 +33,22 @@ const queryClient = new QueryClient({
   },
 });
 
-// Handle GitHub Pages SPA redirect from 404.html
+// Handle SPA redirect from 404.html (platform-aware)
 const redirect = sessionStorage.getItem('redirect');
 if (redirect) {
   sessionStorage.removeItem('redirect');
-  // Extract the path after the base path
-  const basePath = '/dev_projects_full-build2';
-  const path = redirect.replace(basePath, '') || '/';
+  
+  // Detect platform: GitHub Pages vs Cloudflare Pages
+  const isGitHubPages = window.location.hostname.includes('github.io');
+  const basePath = isGitHubPages ? '/dev_projects_full-build2' : '';
+  
+  // Extract path: strip GitHub Pages base if present, otherwise use as-is
+  let path = redirect;
+  if (isGitHubPages && path.startsWith('/dev_projects_full-build2')) {
+    path = path.replace('/dev_projects_full-build2', '') || '/';
+  }
+  
+  // Restore original path
   history.replaceState(null, '', basePath + path);
 }
 
