@@ -66,19 +66,16 @@ export default function KnowledgePage() {
 
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-          message: `You are a pharma industry expert. Answer this question:
+          message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
 
-"${aiQuestion}"
+Question: "${aiQuestion}"
 
 ${contextInfo}
 
-Provide:
-1. A clear, plain-language answer (2-3 sentences)
-2. 2-3 related topics the user might want to explore
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"answer": "your 2-3 sentence answer here", "relatedTopics": ["topic1", "topic2", "topic3"]}
 
-Format as JSON: {"answer": "...", "relatedTopics": ["...", "..."]}
-
-Return ONLY the JSON object, no other text.`,
+JSON only:`,
           content: "Answer knowledge base question",
       });
 
@@ -88,21 +85,44 @@ Return ONLY the JSON object, no other text.`,
 
       const data = await response.json();
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
-      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
       
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Defensive guard: ensure all expected fields exist
-        if (parsed && typeof parsed === 'object') {
-          setAiAnswer({
-            answer: parsed.answer || '',
-            relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
-          });
-        } else {
-          throw new Error("Invalid AI response format");
+      // Try multiple parsing strategies
+      let parsed = null;
+      
+      // Strategy 1: Direct JSON parse (if AI returned pure JSON)
+      try {
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract JSON from markdown code blocks
+        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            parsed = JSON.parse(codeBlockMatch[1].trim());
+          } catch {}
         }
+        
+        // Strategy 3: Find any JSON object in the response
+        if (!parsed) {
+          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+        }
+      }
+      
+      if (parsed && typeof parsed === 'object' && parsed.answer) {
+        setAiAnswer({
+          answer: parsed.answer || '',
+          relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
+        });
       } else {
-        throw new Error("Could not parse AI response");
+        // Fallback: Use the raw response as the answer
+        setAiAnswer({
+          answer: aiMessage || 'Unable to generate a response. Please try rephrasing your question.',
+          relatedTopics: []
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to get answer");
