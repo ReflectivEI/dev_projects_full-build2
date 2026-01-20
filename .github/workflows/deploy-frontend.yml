@@ -59,6 +59,10 @@ jobs:
 
       - name: Build and verify frontend
         run: |
+          echo "🔨 Starting build..."
+          npm run build:vite
+          
+          echo "✅ Build completed"
           echo "🔍 Detecting build output directory..."
           if [ -f "dist/index.html" ]; then
             echo "OUTPUT_DIR=dist" >> $GITHUB_ENV
