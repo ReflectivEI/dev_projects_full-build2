@@ -75,16 +75,14 @@ export default function ModulesPage() {
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-          message: `Generate coaching guidance for the module "${module.title}": ${module.description}
+          message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
 
-Provide:
-1. Coaching focus (1 sentence)
-2. Why it matters (1-2 sentences)
-3. One concrete action for next conversation (1 sentence)
+Module: "${module.title}" - ${module.description}
 
-Format as JSON: {"focus": "...", "whyItMatters": "...", "nextAction": "..."}
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"focus": "one sentence coaching focus", "whyItMatters": "1-2 sentences why this matters", "nextAction": "one concrete action"}
 
-Return ONLY the JSON object, no other text.`,
+JSON only:`,
           content: "Generate coaching guidance",
       });
 
@@ -95,10 +93,33 @@ Return ONLY the JSON object, no other text.`,
       const data = await response.json();
       const aiMessage = data?.aiMessage?.content || data?.messages?.find((m: any) => m.role === "assistant")?.content || "";
 
-      // Extract JSON from AI response
-      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
+      // Try multiple parsing strategies
+      let parsed = null;
+      
+      // Strategy 1: Direct JSON parse
+      try {
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract from markdown code blocks
+        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            parsed = JSON.parse(codeBlockMatch[1].trim());
+          } catch {}
+        }
+        
+        // Strategy 3: Find any JSON object
+        if (!parsed) {
+          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+        }
+      }
+      
+      if (parsed && typeof parsed === 'object' && parsed.focus) {
         setCoachingGuidance(parsed);
       } else {
         throw new Error("Could not parse guidance from response");
