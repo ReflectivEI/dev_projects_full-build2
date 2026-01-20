@@ -121,8 +121,15 @@ JSON only:`,
       
       if (parsed && typeof parsed === 'object' && parsed.focus) {
         setCoachingGuidance(parsed);
+      } else if (aiMessage) {
+        // EMERGENCY FALLBACK: Use raw text
+        setCoachingGuidance({
+          focus: "Coaching Guidance",
+          whyItMatters: aiMessage,
+          nextAction: "Apply this guidance in your next conversation"
+        });
       } else {
-        throw new Error("Could not parse guidance from response");
+        throw new Error("No response from AI");
       }
     } catch (err) {
       console.error("Guidance generation error:", err);
