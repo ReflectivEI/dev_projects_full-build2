@@ -32,6 +32,7 @@ import { eqFrameworks, communicationStyleModels, heuristicTemplates } from "@/li
 import type { EQFramework, HeuristicTemplate } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 import { MessageSquareText } from "lucide-react";
 
@@ -72,7 +73,13 @@ export default function FrameworksPage() {
   const getAdviceMutation = useMutation({
     mutationFn: async (data: { frameworkId: string; frameworkName: string; situation: string }) => {
       const response = await apiRequest("POST", "/api/frameworks/advice", data);
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      return {
+        advice: normalized.text,
+        steps: normalized.json?.steps || []
+      };
     },
     onSuccess: (data) => {
       setAiAdvice(data);
@@ -82,7 +89,13 @@ export default function FrameworksPage() {
   const customizeMutation = useMutation({
     mutationFn: async (data: { templateName: string; templatePattern: string; userSituation: string }) => {
       const response = await apiRequest("POST", "/api/heuristics/customize", data);
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      return {
+        customizedTemplate: normalized.text,
+        examples: normalized.json?.examples || []
+      };
     },
     onSuccess: (data) => {
       setCustomization(data);
