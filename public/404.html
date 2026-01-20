@@ -5,10 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ReflectivAI - Redirecting...</title>
     <script>
-      // GitHub Pages SPA redirect fix
-      // Store the path and redirect to index.html with the path as a query parameter
+      // SPA redirect fix for both GitHub Pages and Cloudflare Pages
+      // Detect deployment platform and use appropriate base path
+      const isGitHubPages = location.hostname.includes('github.io');
+      const basePath = isGitHubPages ? '/dev_projects_full-build2/' : '/';
+      
+      // Store the path and redirect to index.html
       sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
-      location.replace(location.origin + '/dev_projects_full-build2/');
+      location.replace(location.origin + basePath);
     </script>
   </head>
   <body>
