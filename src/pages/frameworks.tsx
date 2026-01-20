@@ -221,19 +221,42 @@ JSON only:`,
       // Parse the AI message for customization object
       const customizationNormalized = normalizeAIResponse(aiMessage);
       
-      if (customizationNormalized.json && typeof customizationNormalized.json === 'object' && customizationNormalized.json.customizedTemplate) {
+      if (!import.meta.env.DEV) {
+        console.log("[P0 FRAMEWORKS] Customization normalized:", customizationNormalized);
+      }
+      
+      if (customizationNormalized.json && typeof customizationNormalized.json === 'object' && !Array.isArray(customizationNormalized.json) && customizationNormalized.json.customizedTemplate) {
+        // Valid customization object returned
         setCustomization({
           customizedTemplate: customizationNormalized.json.customizedTemplate || '',
           example: customizationNormalized.json.example || '',
           tips: Array.isArray(customizationNormalized.json.tips) ? customizationNormalized.json.tips : []
         });
       } else {
-        // Fallback: Use the raw response as customized template
-        console.warn("[P0 FRAMEWORKS] Worker returned prose, using as plain text customization");
+        // Worker returned prose - generate structured customization from it
+        console.warn("[P0 FRAMEWORKS] Worker returned prose, generating structured customization");
+        
+        // Split prose into paragraphs
+        const paragraphs = aiMessage
+          .split(/\n\n+/)
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
+        
+        // First paragraph as customized template, second as example, rest as tips
+        const customizedText = paragraphs[0] || aiMessage || selectedTemplate?.template || "Apply this template to your situation.";
+        const exampleText = paragraphs[1] || `Example: "${customizedText.substring(0, 100)}..."`;
+        const tipsList = paragraphs.slice(2, 5).length > 0
+          ? paragraphs.slice(2, 5)
+          : [
+              "Adapt the language to match your customer's communication style",
+              "Practice this approach in low-stakes conversations first",
+              "Pay attention to the customer's response and adjust accordingly"
+            ];
+        
         setCustomization({
-          customizedTemplate: aiMessage || "Unable to generate customization. Please try again.",
-          example: "Use this customized approach in your next conversation",
-          tips: []
+          customizedTemplate: customizedText,
+          example: exampleText,
+          tips: tipsList
         });
       }
     } catch (err) {
