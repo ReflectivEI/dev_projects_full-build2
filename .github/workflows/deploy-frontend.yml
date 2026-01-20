@@ -58,7 +58,17 @@ jobs:
         run: npm ci
 
       - name: Build frontend
-        run: npm run build:vite
+        run: |
+          echo "🔨 Starting build..."
+          npm run build:vite || {
+            echo "❌ Build failed with exit code $?"
+            echo "Checking if dist exists:"
+            ls -la dist/ || echo "dist/ does not exist"
+            exit 1
+          }
+          echo "✅ Build completed"
+          echo "Checking dist contents:"
+          ls -la dist/ || echo "dist/ does not exist after build"
         env:
           VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
           GITHUB_PAGES: 'false'
