@@ -80,11 +80,25 @@ JSON only:`,
           content: "Answer knowledge base question",
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get answer");
+      // P0 FIX: Read response body BEFORE checking status
+      // Worker may return useful error messages in non-200 responses
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 KNOWLEDGE] Response status:", response.status);
+        console.log("[P0 KNOWLEDGE] Response body:", rawText.substring(0, 500));
       }
 
-      const rawText = await response.text();
+      if (!response.ok) {
+        // Try to extract error message from Worker response
+        try {
+          const errorData = JSON.parse(rawText);
+          const errorMsg = errorData.error || errorData.message || rawText;
+          throw new Error(`Worker error (${response.status}): ${errorMsg}`);
+        } catch {
+          throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+        }
+      }
       const normalized = normalizeAIResponse(rawText);
       
       // Extract AI message from response structure
@@ -96,9 +110,9 @@ JSON only:`,
         }
       }
 
-      // P0 DIAGNOSTIC: Log what we received
+      // P0 DIAGNOSTIC: Log normalized structure
       if (!import.meta.env.DEV) {
-        console.log("[P0 KNOWLEDGE] Raw response:", rawText.substring(0, 500));
+        console.log("[P0 KNOWLEDGE] Normalized:", normalized);
         console.log("[P0 KNOWLEDGE] AI Message:", aiMessage.substring(0, 500));
       }
 
