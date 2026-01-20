@@ -74,8 +74,10 @@ export default function ModulesPage() {
   };
 
   const generateCoachingGuidance = async (module: CoachingModule) => {
+    console.log('[MODULES] generateCoachingGuidance called for module:', module.title);
     setIsGenerating(true);
     setError(null);
+    setCoachingGuidance(null); // Clear previous guidance
 
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
@@ -231,8 +233,13 @@ JSON only:`,
                 </Alert>
 
                 <Button
-                  onClick={() => generateCoachingGuidance(selectedModule)}
-                  disabled={isGenerating}
+                  onClick={() => {
+                    if (selectedModule) {
+                      console.log('[MODULES] Regenerate button clicked, calling generateCoachingGuidance');
+                      generateCoachingGuidance(selectedModule);
+                    }
+                  }}
+                  disabled={isGenerating || !selectedModule}
                   className="w-full"
                 >
                   {isGenerating ? (
@@ -368,8 +375,7 @@ JSON only:`,
             return (
               <Card
                 key={module.id}
-                className="hover-elevate cursor-pointer"
-                onClick={() => setSelectedModule(module)}
+                className="hover-elevate"
               >
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3 mb-3">
@@ -387,11 +393,29 @@ JSON only:`,
                   </p>
 
                   <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <Badge variant="secondary" className="text-xs">
+                    <Button 
+                      variant="secondary" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedModule(module);
+                        // Auto-generate AI coaching when clicking AI Coaching button
+                        setTimeout(() => generateCoachingGuidance(module), 100);
+                      }}
+                    >
                       <Sparkles className="h-3 w-3 mr-1" />
                       AI Coaching
-                    </Badge>
-                    <Button variant="ghost" size="sm">
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedModule(module);
+                        // Don't auto-generate when viewing module details
+                        setCoachingGuidance(null);
+                      }}
+                    >
                       View Module
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
