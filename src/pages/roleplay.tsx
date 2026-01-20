@@ -505,7 +505,7 @@ export default function RolePlayPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
@@ -587,7 +587,7 @@ export default function RolePlayPage() {
             </div>
           </div>
 
-          <Card className="w-full md:w-80 flex flex-col">
+          <Card className="w-full md:w-80 flex flex-col md:max-h-full max-h-96">
             <CardContent className="flex-1 pt-6">
               <SignalIntelligencePanel
                 signals={sessionSignals}
