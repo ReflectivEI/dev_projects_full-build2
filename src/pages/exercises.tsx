@@ -53,13 +53,6 @@ JSON array only:`,
                    normalized.text;
       }
 
-<<<<<<< HEAD
-      // Parse the AI message for exercises array
-      const exercisesNormalized = normalizeAIResponse(aiMessage);
-      
-      if (Array.isArray(exercisesNormalized.json) && exercisesNormalized.json.length > 0) {
-        setExercises(exercisesNormalized.json);
-=======
       // P0 DIAGNOSTIC: Log what we received
       if (!import.meta.env.DEV) {
         console.log("[P0 EXERCISES] Raw response:", rawText.substring(0, 500));
@@ -76,15 +69,28 @@ JSON array only:`,
 
       if (Array.isArray(exercisesNormalized.json) && exercisesNormalized.json.length > 0) {
         setExercises(exercisesNormalized.json);
-      } else if (exercisesNormalized.json && !Array.isArray(exercisesNormalized.json)) {
-        // Worker returned an object, not an array - show helpful error
-        console.error("[P0 EXERCISES] Worker returned object instead of array:", exercisesNormalized.json);
-        setError("The AI returned an unexpected format. This is a backend issue. Response: " + aiMessage.substring(0, 200));
->>>>>>> 20260120170414-uo4alx2j8w
       } else {
-        // Worker returned plain text, not JSON
-        console.error("[P0 EXERCISES] Worker returned plain text, not JSON:", aiMessage.substring(0, 500));
-        setError("The AI did not return structured data. This is a backend issue. Response: " + aiMessage.substring(0, 200));
+        // Worker returned prose instead of JSON - convert to single exercise
+        console.warn("[P0 EXERCISES] Worker returned prose, converting to exercise format");
+        
+        // Split prose into paragraphs and use as practice steps
+        const paragraphs = aiMessage
+          .split(/\n\n+/)
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
+        
+        const fallbackExercise = {
+          title: "AI-Generated Practice Guidance",
+          description: "The AI provided conversational guidance. Review the insights below:",
+          practiceSteps: paragraphs.length > 0 ? paragraphs : [aiMessage],
+          scenario: "Apply these insights to your sales conversations",
+          reflectionPrompts: [
+            "How can you apply this guidance to your current sales challenges?",
+            "Which aspect resonates most with your experience?"
+          ]
+        };
+        
+        setExercises([fallbackExercise]);
       }
     } catch (err) {
       console.error("Exercise generation error:", err);

@@ -102,11 +102,6 @@ JSON only:`,
                    normalized.text;
       }
 
-<<<<<<< HEAD
-      // Parse the AI message for coaching guidance
-      const guidanceNormalized = normalizeAIResponse(aiMessage);
-      
-=======
       // P0 DIAGNOSTIC: Log what we received
       if (!import.meta.env.DEV) {
         console.log("[P0 MODULES] Raw response:", rawText.substring(0, 500));
@@ -120,12 +115,26 @@ JSON only:`,
         console.log("[P0 MODULES] Guidance normalized:", guidanceNormalized);
       }
 
->>>>>>> 20260120170414-uo4alx2j8w
       if (guidanceNormalized.json && typeof guidanceNormalized.json === 'object' && guidanceNormalized.json.focus) {
         setCoachingGuidance(guidanceNormalized.json);
       } else {
-        console.error("[P0 MODULES] Worker returned unexpected format:", guidanceNormalized);
-        setError("The AI did not return structured coaching guidance. This is a backend issue. Response: " + aiMessage.substring(0, 200));
+        // Worker returned prose - convert to guidance format
+        console.warn("[P0 MODULES] Worker returned prose, converting to guidance format");
+        
+        const paragraphs = aiMessage
+          .split(/\n\n+/)
+          .map(p => p.trim())
+          .filter(p => p.length > 0);
+        
+        const fallbackGuidance = {
+          focus: "AI-Generated Coaching Insights",
+          keyPractices: paragraphs.slice(0, 3).map((p, i) => `Insight ${i + 1}: ${p.substring(0, 150)}...`),
+          commonChallenges: ["Review the full guidance below to identify specific challenges"],
+          developmentTips: paragraphs.slice(3, 6).map((p, i) => `Tip ${i + 1}: ${p.substring(0, 150)}...`),
+          fullText: aiMessage
+        };
+        
+        setCoachingGuidance(fallbackGuidance);
       }
     } catch (err) {
       console.error("Guidance generation error:", err);

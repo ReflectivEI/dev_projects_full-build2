@@ -96,11 +96,6 @@ JSON only:`,
         }
       }
 
-<<<<<<< HEAD
-      // Parse the AI message for answer object
-      const answerNormalized = normalizeAIResponse(aiMessage);
-      
-=======
       // P0 DIAGNOSTIC: Log what we received
       if (!import.meta.env.DEV) {
         console.log("[P0 KNOWLEDGE] Raw response:", rawText.substring(0, 500));
@@ -114,7 +109,6 @@ JSON only:`,
         console.log("[P0 KNOWLEDGE] Answer normalized:", answerNormalized);
       }
 
->>>>>>> 20260120170414-uo4alx2j8w
       if (answerNormalized.json && typeof answerNormalized.json === 'object' && answerNormalized.json.answer) {
         setAiAnswer({
           answer: answerNormalized.json.answer || '',
