@@ -482,7 +482,7 @@ export default function ChatPage() {
         )}
       </div>
 
-      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4">
             <div className="space-y-4 pb-4">
@@ -635,7 +635,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="w-72 flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
+        <div className="w-full md:w-72 flex-shrink-0 flex flex-col overflow-hidden md:max-h-full max-h-96">
           <div className="flex-1 overflow-y-auto pr-2">
             <Card className="mb-4">
               <CardContent className="pt-6">
