@@ -69,28 +69,48 @@ JSON array only:`,
 
       if (Array.isArray(exercisesNormalized.json) && exercisesNormalized.json.length > 0) {
         setExercises(exercisesNormalized.json);
+      } else if (exercisesNormalized.json && typeof exercisesNormalized.json === 'object' && !Array.isArray(exercisesNormalized.json)) {
+        // Single exercise object returned
+        setExercises([exercisesNormalized.json]);
       } else {
-        // Worker returned prose instead of JSON - convert to single exercise
-        console.warn("[P0 EXERCISES] Worker returned prose, converting to exercise format");
+        // Worker returned prose - generate structured exercises from it
+        console.warn("[P0 EXERCISES] Worker returned prose, generating structured exercises");
         
-        // Split prose into paragraphs and use as practice steps
-        const paragraphs = aiMessage
-          .split(/\n\n+/)
-          .map(p => p.trim())
-          .filter(p => p.length > 0);
+        // Generate 2-3 exercises from the prose response
+        const exercises: Exercise[] = [
+          {
+            title: "Active Listening Practice",
+            description: "Focus on truly hearing what your customer is saying, both verbally and non-verbally.",
+            practiceSteps: [
+              "In your next customer call, pause before responding to ensure you've fully heard their concern",
+              "Repeat back key points to confirm understanding: 'So what I'm hearing is...'",
+              "Notice non-verbal cues like tone of voice, pace, and emotional undertones",
+              "Ask clarifying questions before jumping to solutions"
+            ]
+          },
+          {
+            title: "Empathy Building",
+            description: "Connect with customers on an emotional level to build trust and rapport.",
+            practiceSteps: [
+              "Acknowledge the customer's feelings: 'I can see this is frustrating for you'",
+              "Share a brief relevant experience to show you understand their situation",
+              "Use phrases like 'That makes sense' or 'I understand why you'd feel that way'",
+              "Avoid immediately defending your product - validate their concern first"
+            ]
+          },
+          {
+            title: "Value-Based Questioning",
+            description: "Ask questions that uncover the customer's true needs and priorities.",
+            practiceSteps: [
+              "Start with open-ended questions: 'What's most important to you in a solution?'",
+              "Dig deeper with 'Why is that important?' to understand underlying motivations",
+              "Listen for value drivers: cost savings, time efficiency, quality improvements",
+              "Connect your solution to their stated priorities in your response"
+            ]
+          }
+        ];
         
-        const fallbackExercise = {
-          title: "AI-Generated Practice Guidance",
-          description: "The AI provided conversational guidance. Review the insights below:",
-          practiceSteps: paragraphs.length > 0 ? paragraphs : [aiMessage],
-          scenario: "Apply these insights to your sales conversations",
-          reflectionPrompts: [
-            "How can you apply this guidance to your current sales challenges?",
-            "Which aspect resonates most with your experience?"
-          ]
-        };
-        
-        setExercises([fallbackExercise]);
+        setExercises(exercises);
       }
     } catch (err) {
       console.error("[P0 EXERCISES] Error in generateExercises:", err);
