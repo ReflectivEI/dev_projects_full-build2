@@ -232,6 +232,7 @@ JSON only:`,
                   </AlertDescription>
                 </Alert>
 
+                {/* Force rebuild - Jan 20 2026 10:52 PM */}
                 <Button
                   onClick={() => {
                     console.log('[MODULES] Button clicked! selectedModule:', selectedModule?.title);
