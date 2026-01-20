@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -63,10 +64,8 @@ export default function KnowledgePage() {
         ? `Context: The user is reading about "${selectedArticle.title}" (${selectedArticle.summary})`
         : "Context: General pharma knowledge base question";
 
-      const response = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
+      const response = await apiRequest("POST", "/api/chat/send", {
           message: `You are a pharma industry expert. Answer this question:
 
 "${aiQuestion}"
