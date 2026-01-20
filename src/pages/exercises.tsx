@@ -30,24 +30,47 @@ export default function ExercisesPage() {
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-        message: `Generate 2-3 short, actionable practice exercises for improving sales communication skills. For each exercise, provide:
-- A clear title
-- A brief description (1-2 sentences)
-- 2-3 specific practice steps
+        message: `CRITICAL: You MUST respond with ONLY a valid JSON array. No other text before or after.
 
-Format as JSON array: [{"title": "...", "description": "...", "practiceSteps": ["...", "..."]}]
+Generate 2-3 short, actionable practice exercises for improving sales communication skills.
 
-Return ONLY the JSON array, no other text.`,
+Respond with this EXACT JSON structure (no markdown, no explanation):
+[{"title": "Exercise Title", "description": "Brief description", "practiceSteps": ["Step 1", "Step 2", "Step 3"]}]
+
+JSON array only:`,
         content: "Generate practice exercises",
       });
 
       const data = await response.json();
       const aiMessage = data?.aiMessage?.content || data?.messages?.find((m: any) => m.role === "assistant")?.content || "";
 
-      // Extract JSON from AI response
-      const jsonMatch = aiMessage.match(/\[\s*\{[\s\S]*\}\s*\]/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
+      // Try multiple parsing strategies
+      let parsed = null;
+      
+      // Strategy 1: Direct JSON parse (if AI returned pure JSON array)
+      try {
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract JSON from markdown code blocks
+        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            parsed = JSON.parse(codeBlockMatch[1].trim());
+          } catch {}
+        }
+        
+        // Strategy 3: Find any JSON array in the response
+        if (!parsed) {
+          const jsonMatch = aiMessage.match(/\[\s*\{[\s\S]*\}\s*\]/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+        }
+      }
+      
+      if (Array.isArray(parsed) && parsed.length > 0) {
         setExercises(parsed);
       } else {
         throw new Error("Could not parse exercises from response");

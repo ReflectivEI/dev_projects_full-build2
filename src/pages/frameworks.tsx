@@ -82,18 +82,15 @@ export default function FrameworksPage() {
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-        message: `You are a pharma sales coach. A rep is applying the "${selectedFramework.name}" framework in this situation:
+        message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
 
-"${situation}"
+Framework: "${selectedFramework.name}"
+Situation: "${situation}"
 
-Provide:
-1. Personalized advice (2-3 sentences) on applying this framework
-2. One practice exercise (1 sentence)
-3. 2-3 quick tips (each 1 sentence)
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"advice": "2-3 sentences of advice", "practiceExercise": "one practice exercise", "tips": ["tip1", "tip2", "tip3"]}
 
-Format as JSON: {"advice": "...", "practiceExercise": "...", "tips": ["...", "..."]}
-
-Return ONLY the JSON object, no other text.`,
+JSON only:`,
         content: "Generate framework advice"
       });
 
@@ -103,20 +100,39 @@ Return ONLY the JSON object, no other text.`,
 
       const data = await response.json();
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
-      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
       
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Defensive guard: ensure all expected fields exist
-        if (parsed && typeof parsed === 'object') {
-          setAiAdvice({
-            advice: parsed.advice || '',
-            practiceExercise: parsed.practiceExercise || '',
-            tips: Array.isArray(parsed.tips) ? parsed.tips : []
-          });
-        } else {
-          throw new Error("Invalid AI response format");
+      // Try multiple parsing strategies
+      let parsed = null;
+      
+      // Strategy 1: Direct JSON parse
+      try {
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract from markdown code blocks
+        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            parsed = JSON.parse(codeBlockMatch[1].trim());
+          } catch {}
         }
+        
+        // Strategy 3: Find any JSON object
+        if (!parsed) {
+          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+        }
+      }
+      
+      if (parsed && typeof parsed === 'object' && parsed.advice) {
+        setAiAdvice({
+          advice: parsed.advice || '',
+          practiceExercise: parsed.practiceExercise || '',
+          tips: Array.isArray(parsed.tips) ? parsed.tips : []
+        });
       } else {
         throw new Error("Could not parse AI response");
       }
@@ -136,19 +152,15 @@ Return ONLY the JSON object, no other text.`,
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-        message: `You are a pharma sales coach. Customize this template for the given situation:
+        message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
 
 Template: "${selectedTemplate.template}"
 Situation: "${heuristicSituation}"
 
-Provide:
-1. Customized template (adapt the template to this specific situation)
-2. Example dialogue (1-2 sentences showing how to use it)
-3. 3-3 delivery tips (each 1 sentence)
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"customizedTemplate": "adapted template", "example": "example dialogue", "tips": ["tip1", "tip2", "tip3"]}
 
-Format as JSON: {"customizedTemplate": "...", "example": "...", "tips": ["...", "..."]}
-
-Return ONLY the JSON object, no other text.`,
+JSON only:`,
         content: "Generate template customization"
       });
 
@@ -158,20 +170,39 @@ Return ONLY the JSON object, no other text.`,
 
       const data = await response.json();
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
-      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
       
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Defensive guard: ensure all expected fields exist
-        if (parsed && typeof parsed === 'object') {
-          setCustomization({
-            customizedTemplate: parsed.customizedTemplate || '',
-            example: parsed.example || '',
-            tips: Array.isArray(parsed.tips) ? parsed.tips : []
-          });
-        } else {
-          throw new Error("Invalid AI response format");
+      // Try multiple parsing strategies
+      let parsed = null;
+      
+      // Strategy 1: Direct JSON parse
+      try {
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract from markdown code blocks
+        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            parsed = JSON.parse(codeBlockMatch[1].trim());
+          } catch {}
         }
+        
+        // Strategy 3: Find any JSON object
+        if (!parsed) {
+          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+        }
+      }
+      
+      if (parsed && typeof parsed === 'object' && parsed.customizedTemplate) {
+        setCustomization({
+          customizedTemplate: parsed.customizedTemplate || '',
+          example: parsed.example || '',
+          tips: Array.isArray(parsed.tips) ? parsed.tips : []
+        });
       } else {
         throw new Error("Could not parse AI response");
       }

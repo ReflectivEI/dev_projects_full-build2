@@ -66,15 +66,28 @@ export default function KnowledgePage() {
 
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
+<<<<<<< HEAD
           message: `RESPOND WITH ONLY JSON. NO OTHER TEXT.
+=======
+          message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
+
+Question: "${aiQuestion}"
+>>>>>>> 20260120133733-57caki7jtt
 
 Question: "${aiQuestion}"
 ${contextInfo}
 
+<<<<<<< HEAD
 JSON format:
 {"answer": "clear 2-3 sentence answer", "relatedTopics": ["topic1", "topic2", "topic3"]}
 
 JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
+=======
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"answer": "your 2-3 sentence answer here", "relatedTopics": ["topic1", "topic2", "topic3"]}
+
+JSON only:`,
+>>>>>>> 20260120133733-57caki7jtt
           content: "Answer knowledge base question",
       });
 
@@ -83,6 +96,7 @@ JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
       }
 
       const data = await response.json();
+<<<<<<< HEAD
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || data?.aiMessage?.content || "";
       
       // EMERGENCY FIX: If Worker returns plain text, use it directly
@@ -98,6 +112,18 @@ JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
         parsed = JSON.parse(aiMessage);
       } catch {
         // Strategy 2: Extract from markdown code blocks
+=======
+      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      
+      // Try multiple parsing strategies
+      let parsed = null;
+      
+      // Strategy 1: Direct JSON parse (if AI returned pure JSON)
+      try {
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract JSON from markdown code blocks
+>>>>>>> 20260120133733-57caki7jtt
         const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
         if (codeBlockMatch) {
           try {
@@ -105,7 +131,11 @@ JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
           } catch {}
         }
         
+<<<<<<< HEAD
         // Strategy 3: Find JSON object
+=======
+        // Strategy 3: Find any JSON object in the response
+>>>>>>> 20260120133733-57caki7jtt
         if (!parsed) {
           const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
           if (jsonMatch) {
@@ -116,6 +146,7 @@ JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
         }
       }
       
+<<<<<<< HEAD
       // If we got valid JSON with expected structure, use it
       if (parsed && typeof parsed === 'object' && parsed.answer) {
         setAiAnswer({
@@ -126,6 +157,17 @@ JSON ONLY - NO MARKDOWN, NO EXPLANATION:`,
         // FALLBACK: Use the raw text as the answer
         setAiAnswer({
           answer: aiMessage,
+=======
+      if (parsed && typeof parsed === 'object' && parsed.answer) {
+        setAiAnswer({
+          answer: parsed.answer || '',
+          relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
+        });
+      } else {
+        // Fallback: Use the raw response as the answer
+        setAiAnswer({
+          answer: aiMessage || 'Unable to generate a response. Please try rephrasing your question.',
+>>>>>>> 20260120133733-57caki7jtt
           relatedTopics: []
         });
       }
