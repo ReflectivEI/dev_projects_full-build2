@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -83,44 +84,30 @@ JSON only:`,
         throw new Error("Failed to get answer");
       }
 
-      const data = await response.json();
-      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
       
-      // Try multiple parsing strategies
-      let parsed = null;
-      
-      // Strategy 1: Direct JSON parse (if AI returned pure JSON)
-      try {
-        parsed = JSON.parse(aiMessage);
-      } catch {
-        // Strategy 2: Extract JSON from markdown code blocks
-        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          try {
-            parsed = JSON.parse(codeBlockMatch[1].trim());
-          } catch {}
-        }
-        
-        // Strategy 3: Find any JSON object in the response
-        if (!parsed) {
-          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try {
-              parsed = JSON.parse(jsonMatch[0]);
-            } catch {}
-          }
+      // Extract AI message from response structure
+      let aiMessage = normalized.text;
+      if (normalized.json) {
+        const messages = normalized.json.messages;
+        if (Array.isArray(messages) && messages.length > 0) {
+          aiMessage = messages[messages.length - 1]?.content || normalized.text;
         }
       }
+
+      // Parse the AI message for answer object
+      const answerNormalized = normalizeAIResponse(aiMessage);
       
-      if (parsed && typeof parsed === 'object' && parsed.answer) {
+      if (answerNormalized.json && typeof answerNormalized.json === 'object' && answerNormalized.json.answer) {
         setAiAnswer({
-          answer: parsed.answer || '',
-          relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
+          answer: answerNormalized.json.answer || '',
+          relatedTopics: Array.isArray(answerNormalized.json.relatedTopics) ? answerNormalized.json.relatedTopics : []
         });
       } else {
         // Fallback: Use the raw response as the answer
         setAiAnswer({
-          answer: aiMessage || 'Unable to generate a response. Please try rephrasing your question.',
+          answer: answerNormalized.text || 'Unable to generate a response. Please try rephrasing your question.',
           relatedTopics: []
         });
       }

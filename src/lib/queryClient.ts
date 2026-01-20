@@ -24,6 +24,21 @@ const API_BASE_URL = import.meta.env.DEV
       "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev"
     );
 
+// P0 DIAGNOSTIC: Production environment check
+if (!import.meta.env.DEV) {
+  console.log("[P0 ENV] 🔍 Environment Variables:");
+  console.log("  - MODE:", import.meta.env.MODE);
+  console.log("  - DEV:", import.meta.env.DEV);
+  console.log("  - PROD:", import.meta.env.PROD);
+  console.log("  - VITE_WORKER_URL:", import.meta.env.VITE_WORKER_URL || "❌ NOT SET");
+  console.log("  - VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL || "❌ NOT SET");
+  console.log("  - window.WORKER_URL:", RUNTIME_BASE || "❌ NOT SET");
+  console.log("[P0 ENV] 🎯 Resolved Configuration:");
+  console.log("  - Final API_BASE_URL:", API_BASE_URL || "(using local /api)");
+  console.log("  - Sample URL:", buildUrl("/api/health"));
+  console.log("  - isExternalApi:", !!API_BASE_URL);
+}
+
 console.log("[ReflectivAI] Final API_BASE_URL:", API_BASE_URL);
 
 // Persist and forward session ids so the worker keeps a stable conversation session.
@@ -134,6 +149,13 @@ export async function apiRequest(
   const fullUrl = buildUrl(url);
   const isExternalApi = !!API_BASE_URL;
 
+  // P0 DIAGNOSTIC: Log every API request in production
+  if (!import.meta.env.DEV) {
+    console.log(`[P0 API] ${method} ${fullUrl}`);
+    console.log(`[P0 API] isExternalApi:`, isExternalApi);
+    console.log(`[P0 API] credentials:`, isExternalApi ? "omit" : "include");
+  }
+
   const res = await fetch(fullUrl, {
     method,
     headers: getHeaders(!!data),
@@ -141,6 +163,16 @@ export async function apiRequest(
     // Only include credentials for same-origin requests (not for external APIs)
     credentials: isExternalApi ? "omit" : "include",
   });
+
+  // P0 DIAGNOSTIC: Log response details
+  if (!import.meta.env.DEV) {
+    console.log(`[P0 API] Response status:`, res.status, res.statusText);
+    console.log(`[P0 API] Response headers:`, Object.fromEntries(res.headers.entries()));
+    // Clone response to read body without consuming it
+    const clonedRes = res.clone();
+    const bodyText = await clonedRes.text();
+    console.log(`[P0 API] Response body (first 500 chars):`, bodyText.substring(0, 500));
+  }
 
   const nextSession = res.headers.get("x-session-id");
   setSessionId(nextSession);

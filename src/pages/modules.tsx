@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -90,37 +91,22 @@ JSON only:`,
         throw new Error("Failed to generate guidance");
       }
 
-      const data = await response.json();
-      const aiMessage = data?.aiMessage?.content || data?.messages?.find((m: any) => m.role === "assistant")?.content || "";
-
-      // Try multiple parsing strategies
-      let parsed = null;
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
       
-      // Strategy 1: Direct JSON parse
-      try {
-        parsed = JSON.parse(aiMessage);
-      } catch {
-        // Strategy 2: Extract from markdown code blocks
-        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          try {
-            parsed = JSON.parse(codeBlockMatch[1].trim());
-          } catch {}
-        }
-        
-        // Strategy 3: Find any JSON object
-        if (!parsed) {
-          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try {
-              parsed = JSON.parse(jsonMatch[0]);
-            } catch {}
-          }
-        }
+      // Extract AI message from response structure
+      let aiMessage = normalized.text;
+      if (normalized.json) {
+        aiMessage = normalized.json.aiMessage?.content || 
+                   normalized.json.messages?.find((m: any) => m.role === "assistant")?.content || 
+                   normalized.text;
       }
+
+      // Parse the AI message for coaching guidance
+      const guidanceNormalized = normalizeAIResponse(aiMessage);
       
-      if (parsed && typeof parsed === 'object' && parsed.focus) {
-        setCoachingGuidance(parsed);
+      if (guidanceNormalized.json && typeof guidanceNormalized.json === 'object' && guidanceNormalized.json.focus) {
+        setCoachingGuidance(guidanceNormalized.json);
       } else {
         throw new Error("Could not parse guidance from response");
       }

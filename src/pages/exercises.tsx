@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 type Exercise = {
   title: string;
@@ -41,37 +42,22 @@ JSON array only:`,
         content: "Generate practice exercises",
       });
 
-      const data = await response.json();
-      const aiMessage = data?.aiMessage?.content || data?.messages?.find((m: any) => m.role === "assistant")?.content || "";
-
-      // Try multiple parsing strategies
-      let parsed = null;
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
       
-      // Strategy 1: Direct JSON parse (if AI returned pure JSON array)
-      try {
-        parsed = JSON.parse(aiMessage);
-      } catch {
-        // Strategy 2: Extract JSON from markdown code blocks
-        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          try {
-            parsed = JSON.parse(codeBlockMatch[1].trim());
-          } catch {}
-        }
-        
-        // Strategy 3: Find any JSON array in the response
-        if (!parsed) {
-          const jsonMatch = aiMessage.match(/\[\s*\{[\s\S]*\}\s*\]/);
-          if (jsonMatch) {
-            try {
-              parsed = JSON.parse(jsonMatch[0]);
-            } catch {}
-          }
-        }
+      // Extract AI message from response structure
+      let aiMessage = normalized.text;
+      if (normalized.json) {
+        aiMessage = normalized.json.aiMessage?.content || 
+                   normalized.json.messages?.find((m: any) => m.role === "assistant")?.content || 
+                   normalized.text;
       }
+
+      // Parse the AI message for exercises array
+      const exercisesNormalized = normalizeAIResponse(aiMessage);
       
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        setExercises(parsed);
+      if (Array.isArray(exercisesNormalized.json) && exercisesNormalized.json.length > 0) {
+        setExercises(exercisesNormalized.json);
       } else {
         throw new Error("Could not parse exercises from response");
       }
