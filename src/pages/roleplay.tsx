@@ -587,7 +587,7 @@ export default function RolePlayPage() {
             </div>
           </div>
 
-          <Card className="w-80 hidden xl:flex flex-col">
+          <Card className="w-full md:w-80 flex flex-col">
             <CardContent className="flex-1 pt-6">
               <SignalIntelligencePanel
                 signals={sessionSignals}
