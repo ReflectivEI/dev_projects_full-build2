@@ -10,8 +10,11 @@
       const isGitHubPages = location.hostname.includes('github.io');
       const basePath = isGitHubPages ? '/dev_projects_full-build2/' : '/';
       
-      // Store the path and redirect to index.html
+      // Store the FULL path (including base path for GitHub Pages)
+      // main.tsx will handle platform-specific stripping
       sessionStorage.setItem('redirect', location.pathname + location.search + location.hash);
+      
+      // Redirect to index.html at appropriate base
       location.replace(location.origin + basePath);
     </script>
   </head>
