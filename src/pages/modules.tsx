@@ -82,15 +82,17 @@ export default function ModulesPage() {
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-          message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
+          message: `You are coaching a pharmaceutical sales representative on "${module.title}". 
 
-Module: "${module.title}" - ${module.description}
+Module Description: ${module.description}
 
-Respond with this EXACT JSON structure (no markdown, no explanation):
-{"focus": "one sentence coaching focus", "whyItMatters": "1-2 sentences why this matters", "nextAction": "one concrete action"}
+Provide specific, actionable coaching guidance for this module. Include:
+1. What to focus on when practicing this skill
+2. Why this skill matters in pharma sales conversations
+3. One concrete action they can take in their next customer interaction
 
-JSON only:`,
-          content: "Generate coaching guidance",
+Be specific and practical. Assume they are working with healthcare professionals (doctors, nurses, pharmacists) in a pharmaceutical sales context. Give them real coaching they can use immediately.`,
+          content: "coaching",
       });
 
       // P0 FIX: Read response body BEFORE checking status
