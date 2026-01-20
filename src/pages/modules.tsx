@@ -132,18 +132,22 @@ Be specific and practical. Assume they are working with healthcare professionals
       if (guidanceNormalized.json && typeof guidanceNormalized.json === 'object' && guidanceNormalized.json.focus) {
         setCoachingGuidance(guidanceNormalized.json);
       } else {
-        // Worker returned prose - use as plain text guidance
-        console.warn("[P0 MODULES] Worker returned prose, using as plain text");
+        // Worker returned prose - parse it intelligently
+        console.warn("[P0 MODULES] Worker returned prose, parsing as structured guidance");
         
-        // Use the AI message directly as coaching guidance
         const guidanceText = aiMessage && aiMessage.trim().length > 0 
           ? aiMessage 
           : 'Unable to generate coaching guidance. Please try again.';
         
+        // Split the guidance into sections if possible
+        const lines = guidanceText.split('\n').filter(l => l.trim().length > 0);
+        const firstParagraph = lines[0] || guidanceText.substring(0, 200);
+        const remainingText = lines.slice(1).join('\n\n') || guidanceText;
+        
         setCoachingGuidance({
-          focus: `Coaching Insights for ${module.title}`,
-          whyItMatters: guidanceText.substring(0, 300) + (guidanceText.length > 300 ? '...' : ''),
-          nextAction: 'Review the guidance above and apply it to your next customer interaction.',
+          focus: `${module.title} Coaching`,
+          whyItMatters: remainingText.length > 0 ? remainingText : firstParagraph,
+          nextAction: 'Apply these coaching insights in your next customer interaction.',
           fullText: guidanceText
         });
       }
