@@ -149,8 +149,7 @@ Provide:
 Format as JSON: {"customizedTemplate": "...", "example": "...", "tips": ["...", "..."]}
 
 Return ONLY the JSON object, no other text.`,
-          content: "Generate template customization",
-        }),
+        content: "Generate template customization"
       });
 
       if (!response.ok) {
