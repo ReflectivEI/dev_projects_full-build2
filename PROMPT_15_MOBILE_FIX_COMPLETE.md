@@ -67,7 +67,31 @@ Fixed production mobile behavior to ensure:
 
 ---
 
-### 4️⃣ Mobile Layout Parity - EI Metrics Grid
+### 4️⃣ Mobile Layout Parity - Chat Page Signal Intelligence
+
+**File Modified**: `src/pages/chat.tsx`
+
+**Changes**:
+1. **Parent container** (line 485):
+   - Before: `className="flex-1 flex gap-6 p-6 overflow-hidden"`
+   - After: `className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden"`
+   - **Impact**: Vertical layout on mobile, horizontal on desktop
+
+2. **Signal Intelligence Panel + Suggested Topics** (line 638):
+   - Before: `className="w-72 flex-shrink-0 hidden lg:flex flex-col overflow-hidden"` (hidden below 1024px)
+   - After: `className="w-full md:w-72 flex-shrink-0 flex flex-col overflow-hidden md:max-h-full max-h-96"`
+   - **Impact**: Always visible, responsive width, height-constrained on mobile
+
+**Result**:
+- ✅ AI Coach Signal Intelligence Panel visible on mobile
+- ✅ Suggested Topics accessible on mobile
+- ✅ Panel appears below chat on mobile (vertical stack)
+- ✅ Panel appears beside chat on desktop (horizontal layout)
+- ✅ Max height on mobile prevents excessive scrolling
+
+---
+
+### 5️⃣ Mobile Layout Parity - EI Metrics Grid
 
 **File Modified**: `src/pages/ei-metrics.tsx`
 
@@ -163,11 +187,13 @@ Fixed production mobile behavior to ensure:
 ### Modified
 - `public/404.html` (platform-aware redirect)
 - `src/pages/roleplay.tsx` (responsive layout + Signal Intelligence visibility)
+- `src/pages/chat.tsx` (responsive layout + Signal Intelligence visibility)
 - `src/pages/ei-metrics.tsx` (responsive grid)
 
 ### Commits
 1. `fix: mobile routing and layout parity for Cloudflare Pages`
 2. `fix: make EI Metrics grid responsive for mobile (single column on small screens)`
+3. `fix: make Chat page Signal Intelligence Panel visible on mobile`
 
 ---
 
