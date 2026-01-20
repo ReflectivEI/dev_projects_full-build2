@@ -86,7 +86,6 @@ Format as JSON: {"focus": "...", "whyItMatters": "...", "nextAction": "..."}
 
 Return ONLY the JSON object, no other text.`,
           content: "Generate coaching guidance",
-        }),
       });
 
       if (!response.ok) {
