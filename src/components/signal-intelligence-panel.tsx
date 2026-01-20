@@ -304,6 +304,13 @@ export function SignalIntelligencePanel({
           </p>
         </TooltipContent>
       </Tooltip>
+
+      {/* PROMPT 12 – REMOVE AFTER PROD VERIFICATION */}
+      {import.meta.env.MODE === 'production' && (
+        <div className="text-[10px] text-muted-foreground/50 text-center mt-2">
+          Signal Intelligence™ • Build: PROMPT-11 • Production
+        </div>
+      )}
     </div>
   );
 }

@@ -19,6 +19,12 @@ if (import.meta.hot) {
   });
 }
 
+// PROMPT 12 – REMOVE AFTER PROD VERIFICATION
+if (import.meta.env.MODE === 'production') {
+  console.info('✅ ReflectivAI Production Build: PROMPT-11');
+}
+console.info('🌐 Runtime Host:', window.location.hostname);
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
