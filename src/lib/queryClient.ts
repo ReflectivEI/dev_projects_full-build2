@@ -164,20 +164,17 @@ export async function apiRequest(
     credentials: isExternalApi ? "omit" : "include",
   });
 
-  // P0 DIAGNOSTIC: Log response details
+  // P0 DIAGNOSTIC: Log response details WITHOUT consuming body
   if (!import.meta.env.DEV) {
     console.log(`[P0 API] Response status:`, res.status, res.statusText);
     console.log(`[P0 API] Response headers:`, Object.fromEntries(res.headers.entries()));
-    // Clone response to read body without consuming it
-    const clonedRes = res.clone();
-    const bodyText = await clonedRes.text();
-    console.log(`[P0 API] Response body (first 500 chars):`, bodyText.substring(0, 500));
   }
 
   const nextSession = res.headers.get("x-session-id");
   setSessionId(nextSession);
 
-  await throwIfResNotOk(res);
+  // P0 FIX: Do NOT call throwIfResNotOk here - let caller handle response
+  // The response body can only be read once, so we must return it unconsumed
   return res;
 }
 

@@ -87,11 +87,17 @@ JSON only:`,
           content: "Generate coaching guidance",
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to generate guidance");
+      // P0 FIX: Read response body BEFORE checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 MODULES] Response status:", response.status);
+        console.log("[P0 MODULES] Response body:", rawText.substring(0, 500));
       }
 
-      const rawText = await response.text();
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
       const normalized = normalizeAIResponse(rawText);
       
       // Extract AI message from response structure

@@ -94,11 +94,19 @@ JSON only:`,
         content: "Generate framework advice"
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to generate advice");
+      // P0 FIX: Read response body BEFORE checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 FRAMEWORKS] Advice response status:", response.status);
+        console.log("[P0 FRAMEWORKS] Advice response body:", rawText.substring(0, 500));
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
+
+      const data = JSON.parse(rawText);
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
       
       // Try multiple parsing strategies
@@ -171,11 +179,19 @@ JSON only:`,
         content: "Generate template customization"
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to generate customization");
+      // P0 FIX: Read response body BEFORE checking status
+      const rawText = await response.text();
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 FRAMEWORKS] Customization response status:", response.status);
+        console.log("[P0 FRAMEWORKS] Customization response body:", rawText.substring(0, 500));
       }
 
-      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
+      }
+
+      const data = JSON.parse(rawText);
       const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
       
       // Try multiple parsing strategies
