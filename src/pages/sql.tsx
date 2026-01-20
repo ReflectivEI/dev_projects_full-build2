@@ -64,8 +64,8 @@ export default function SqlPage() {
   const latestQuery = translateMutation.data as SQLQuery | undefined;
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="p-6 border-b flex-shrink-0">
+    <div className="h-screen flex flex-col">
+      <div className="p-6 border-b flex-shrink-0 overflow-y-auto max-h-[30vh]">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-md bg-chart-3 flex items-center justify-center">
             <Database className="h-5 w-5 text-white" />
