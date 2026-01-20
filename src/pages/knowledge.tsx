@@ -80,7 +80,6 @@ Format as JSON: {"answer": "...", "relatedTopics": ["...", "..."]}
 
 Return ONLY the JSON object, no other text.`,
           content: "Answer knowledge base question",
-        }),
       });
 
       if (!response.ok) {
