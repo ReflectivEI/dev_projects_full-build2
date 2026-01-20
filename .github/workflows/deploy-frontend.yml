@@ -66,23 +66,23 @@ jobs:
 
       - name: Verify build output
         run: |
-          echo "Checking if dist/client exists..."
-          ls -la dist/client/
+          echo "Checking if dist exists..."
+          ls -la dist/
           echo "Checking for _redirects file..."
-          if [ -f dist/client/_redirects ]; then
+          if [ -f dist/_redirects ]; then
             echo "✅ _redirects file found"
-            cat dist/client/_redirects
+            cat dist/_redirects
           else
             echo "⚠️  WARNING: _redirects file NOT found"
           fi
           echo "Checking for 404.html file..."
-          if [ -f dist/client/404.html ]; then
+          if [ -f dist/404.html ]; then
             echo "✅ 404.html file found"
           else
             echo "⚠️  WARNING: 404.html file NOT found"
           fi
           echo "Checking for index.html file..."
-          if [ -f dist/client/index.html ]; then
+          if [ -f dist/index.html ]; then
             echo "✅ index.html file found"
           else
             echo "❌ ERROR: index.html file NOT found!"
@@ -96,7 +96,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/client --project-name=reflectivai-app-staging --branch=staging
+          command: pages deploy dist --project-name=reflectivai-app-staging --branch=staging
 
       - name: Deploy to Production
         if: github.event.inputs.environment == 'production'
@@ -104,7 +104,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/client --project-name=reflectivai-app-prod --branch=main
+          command: pages deploy dist --project-name=reflectivai-app-prod --branch=main
 
       - name: Deployment Summary
         run: |
