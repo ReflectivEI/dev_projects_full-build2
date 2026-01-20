@@ -79,7 +79,7 @@ export default function SqlPage() {
         </div>
       </div>
 
-      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+      <div className="flex-1 flex gap-6 p-6 overflow-y-auto">
         <div className="flex-1 flex flex-col min-w-0">
           <Card className="mb-6">
             <CardContent className="p-4">
