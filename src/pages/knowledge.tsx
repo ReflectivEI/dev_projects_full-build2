@@ -116,13 +116,28 @@ JSON only:`,
         });
       } else {
         // Fallback: Use the raw response as the answer
+        console.warn("[P0 KNOWLEDGE] Worker returned prose, using as plain text answer");
+        
+        // Use the AI message directly, ensuring we have content
+        const answerText = aiMessage && aiMessage.trim().length > 0 
+          ? aiMessage 
+          : answerNormalized.text || 'Unable to generate a response. Please try rephrasing your question.';
+        
         setAiAnswer({
-          answer: answerNormalized.text || 'Unable to generate a response. Please try rephrasing your question.',
+          answer: answerText,
           relatedTopics: []
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to get answer");
+      console.error("[P0 KNOWLEDGE] Error in handleAskAi:", err);
+      const errorMessage = err instanceof Error ? err.message : "Failed to get answer";
+      setError(errorMessage);
+      
+      // Set a fallback answer even on error
+      setAiAnswer({
+        answer: "I'm having trouble responding right now. Please try again or rephrase your question.",
+        relatedTopics: []
+      });
     } finally {
       setIsGenerating(false);
     }
