@@ -264,6 +264,57 @@ export default function ModulesPage() {
                         {coachingGuidance.nextAction}
                       </p>
                     </div>
+
+                    {coachingGuidance.keyPractices && coachingGuidance.keyPractices.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4 text-primary" />
+                          Key Practices
+                        </h4>
+                        <ul className="space-y-1 pl-6">
+                          {coachingGuidance.keyPractices.map((practice, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-1">•</span>
+                              <span>{practice}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {coachingGuidance.commonChallenges && coachingGuidance.commonChallenges.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4 text-primary" />
+                          Common Challenges
+                        </h4>
+                        <ul className="space-y-1 pl-6">
+                          {coachingGuidance.commonChallenges.map((challenge, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-1">•</span>
+                              <span>{challenge}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {coachingGuidance.developmentTips && coachingGuidance.developmentTips.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <Lightbulb className="h-4 w-4 text-primary" />
+                          Development Tips
+                        </h4>
+                        <ul className="space-y-1 pl-6">
+                          {coachingGuidance.developmentTips.map((tip, i) => (
+                            <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                              <span className="text-primary mt-1">•</span>
+                              <span>{tip}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 )}
               </CardContent>
