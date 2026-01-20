@@ -203,7 +203,14 @@ export default function ChatPage() {
         hcpCategory: selectedHcpCategory,
         influenceDriver: selectedInfluenceDriver,
       });
-      return response.json() as Promise<CoachPromptBundle>;
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      if (normalized.json && (normalized.json.conversationStarters || normalized.json.suggestedTopics)) {
+        return normalized.json as CoachPromptBundle;
+      }
+      // Fallback: empty bundle
+      return { conversationStarters: [], suggestedTopics: [] } as CoachPromptBundle;
     },
     staleTime: 1000 * 60,
   });
@@ -227,11 +234,19 @@ export default function ChatPage() {
     queryKey: ["/api/chat/messages"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/chat/messages");
-      const data = await response.json().catch(() => null);
-      if (Array.isArray(data)) {
-        return normalizeMessages(data);
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Try to parse as JSON array or object with messages
+      if (normalized.json) {
+        if (Array.isArray(normalized.json)) {
+          return normalizeMessages(normalized.json);
+        }
+        if (normalized.json.messages && Array.isArray(normalized.json.messages)) {
+          return normalizeMessages(normalized.json.messages);
+        }
       }
-      return normalizeMessages((data as any)?.messages);
+      // Fallback: empty array
+      return [];
     },
   });
 

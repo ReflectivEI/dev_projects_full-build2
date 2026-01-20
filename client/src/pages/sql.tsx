@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { sampleSqlQueries } from "@/lib/data";
 import type { SQLQuery } from "@shared/schema";
 
@@ -30,15 +31,27 @@ export default function SqlPage() {
     queryKey: ["/api/sql/history"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/sql/history");
-      const data = await response.json();
-      return (data?.queries as SQLQuery[] | undefined) ?? [];
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return queries array or empty array
+      if (normalized.json && Array.isArray(normalized.json.queries)) {
+        return normalized.json.queries as SQLQuery[];
+      }
+      return [];
     },
   });
 
   const translateMutation = useMutation({
     mutationFn: async (naturalLanguage: string) => {
       const response = await apiRequest("POST", "/api/sql/translate", { question: naturalLanguage });
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      if (normalized.json && normalized.json.sql) {
+        return normalized.json;
+      }
+      // Fallback: treat raw text as SQL
+      return { sql: normalized.text, explanation: "Generated SQL query" };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sql/history"] });

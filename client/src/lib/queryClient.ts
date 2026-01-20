@@ -24,6 +24,16 @@ const API_BASE_URL = import.meta.env.DEV
       "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev"
     );
 
+// Production diagnostic logging (safe - no secrets)
+if (!import.meta.env.DEV) {
+  console.log("[ReflectivAI] 🔍 API Configuration:");
+  console.log("  - MODE:", import.meta.env.MODE);
+  console.log("  - VITE_WORKER_URL:", import.meta.env.VITE_WORKER_URL ? "✅ SET" : "❌ NOT SET");
+  console.log("  - RUNTIME_BASE (window.WORKER_URL):", RUNTIME_BASE ? "✅ SET" : "❌ NOT SET");
+  console.log("  - Final API_BASE_URL:", API_BASE_URL || "(using local /api)");
+  console.log("  - Sample URL:", buildUrl("/api/health"));
+}
+
 console.log("[ReflectivAI] Final API_BASE_URL:", API_BASE_URL);
 
 // Persist and forward session ids so the worker keeps a stable conversation session.

@@ -64,31 +64,36 @@ jobs:
           GITHUB_PAGES: 'false'
           STATIC_BUILD: 'true'
 
-      - name: Verify build output
+      - name: Detect and verify build output directory
         run: |
-          echo "Checking if dist exists..."
-          ls -la dist/
-          echo "Checking for _redirects file..."
-          if [ -f dist/_redirects ]; then
-            echo "✅ _redirects file found"
-            cat dist/_redirects
+          echo "🔍 Detecting build output directory..."
+          if [ -f "dist/index.html" ]; then
+            echo "OUTPUT_DIR=dist" >> $GITHUB_ENV
+            echo "✅ Found: dist/index.html"
+          elif [ -f "dist/client/index.html" ]; then
+            echo "OUTPUT_DIR=dist/client" >> $GITHUB_ENV
+            echo "✅ Found: dist/client/index.html"
+          elif [ -f "client/dist/index.html" ]; then
+            echo "OUTPUT_DIR=client/dist" >> $GITHUB_ENV
+            echo "✅ Found: client/dist/index.html"
           else
-            echo "⚠️  WARNING: _redirects file NOT found"
-          fi
-          echo "Checking for 404.html file..."
-          if [ -f dist/404.html ]; then
-            echo "✅ 404.html file found"
-          else
-            echo "⚠️  WARNING: 404.html file NOT found"
-          fi
-          echo "Checking for index.html file..."
-          if [ -f dist/index.html ]; then
-            echo "✅ index.html file found"
-          else
-            echo "❌ ERROR: index.html file NOT found!"
+            echo "❌ ERROR: No index.html found in known output paths" >&2
+            echo "Contents of repo root:"; ls -la
+            echo "Contents of dist:"; ls -la dist || true
+            echo "Contents of dist/client:"; ls -la dist/client || true
+            echo "Contents of client/dist:"; ls -la client/dist || true
             exit 1
           fi
-          echo "Build completed successfully!"
+          
+          echo "📂 Using OUTPUT_DIR=$OUTPUT_DIR"
+          ls -la "$OUTPUT_DIR"
+          
+          echo "✅ Verifying required files..."
+          test -f "$OUTPUT_DIR/index.html" && echo "  ✓ index.html"
+          test -f "$OUTPUT_DIR/_redirects" && echo "  ✓ _redirects" || echo "  ⚠️  _redirects missing"
+          test -f "$OUTPUT_DIR/404.html" && echo "  ✓ 404.html" || echo "  ⚠️  404.html missing"
+          
+          echo "🎉 Build output verified!"
 
       - name: Deploy to Staging
         if: github.event.inputs.environment == 'staging'
@@ -96,7 +101,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=reflectivai-app-staging --branch=staging
+          command: pages deploy ${{ env.OUTPUT_DIR }} --project-name=reflectivai-app-staging --branch=staging
 
       - name: Deploy to Production
         if: github.event.inputs.environment == 'production'
@@ -104,7 +109,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist --project-name=reflectivai-app-prod --branch=main
+          command: pages deploy ${{ env.OUTPUT_DIR }} --project-name=reflectivai-app-prod --branch=main
 
       - name: Deployment Summary
         run: |

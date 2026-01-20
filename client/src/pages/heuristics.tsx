@@ -28,6 +28,7 @@ import { heuristicTemplates } from "@/lib/data";
 import type { HeuristicTemplate } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 const categoryIcons: Record<string, any> = {
   objection: Shield,
@@ -55,7 +56,13 @@ export default function HeuristicsPage() {
   const customizeMutation = useMutation({
     mutationFn: async (data: { templateName: string; templatePattern: string; userSituation: string }) => {
       const response = await apiRequest("POST", "/api/heuristics/customize", data);
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      return {
+        customizedTemplate: normalized.text,
+        examples: normalized.json?.examples || []
+      };
     },
     onSuccess: (data) => {
       setCustomization(data);
