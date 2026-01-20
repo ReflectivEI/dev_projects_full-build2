@@ -126,19 +126,41 @@ JSON only:`,
       // Parse the AI message for advice object
       const adviceNormalized = normalizeAIResponse(aiMessage);
       
-      if (adviceNormalized.json && typeof adviceNormalized.json === 'object' && adviceNormalized.json.advice) {
+      if (!import.meta.env.DEV) {
+        console.log("[P0 FRAMEWORKS] Advice normalized:", adviceNormalized);
+      }
+      
+      if (adviceNormalized.json && typeof adviceNormalized.json === 'object' && !Array.isArray(adviceNormalized.json) && adviceNormalized.json.advice) {
+        // Valid advice object returned
         setAiAdvice({
           advice: adviceNormalized.json.advice || '',
           practiceExercise: adviceNormalized.json.practiceExercise || '',
           tips: Array.isArray(adviceNormalized.json.tips) ? adviceNormalized.json.tips : []
         });
       } else {
-        // Fallback: Use the raw response as advice
-        console.warn("[P0 FRAMEWORKS] Worker returned prose, using as plain text advice");
+        // Worker returned prose - generate structured advice from it
+        console.warn("[P0 FRAMEWORKS] Worker returned prose, generating structured advice");
+        
+        // Split prose into sentences for tips
+        const sentences = aiMessage
+          .split(/[.!?]+/)
+          .map(s => s.trim())
+          .filter(s => s.length > 20 && s.length < 200);
+        
+        // Use first 2-3 sentences as advice, rest as tips
+        const adviceText = sentences.slice(0, 2).join('. ') + '.';
+        const tipsList = sentences.slice(2, 5).length > 0 
+          ? sentences.slice(2, 5)
+          : [
+              `Apply the ${selectedFramework?.name || 'framework'} principles to this situation`,
+              "Practice active listening and empathy",
+              "Reflect on the outcome and adjust your approach"
+            ];
+        
         setAiAdvice({
-          advice: aiMessage || "Unable to generate advice. Please try again.",
-          practiceExercise: "Apply this advice in your next conversation",
-          tips: []
+          advice: adviceText || aiMessage || "Consider how this framework applies to your situation.",
+          practiceExercise: `Practice applying ${selectedFramework?.name || 'this framework'} in your next conversation with a similar situation.`,
+          tips: tipsList
         });
       }
     } catch (err) {
