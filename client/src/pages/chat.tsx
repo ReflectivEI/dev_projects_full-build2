@@ -44,6 +44,7 @@ import {
 import reflectivAILogo from "@assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import type { Message } from "@shared/schema";
@@ -248,7 +249,17 @@ export default function ChatPage() {
           discEnabled,
         },
       });
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      if (normalized.json && (normalized.json.messages || normalized.json.userMessage || normalized.json.aiMessage)) {
+        return normalized.json;
+      }
+      // Fallback: create message structure from raw text
+      return {
+        aiMessage: { role: "assistant", content: normalized.text, timestamp: Date.now() },
+        userMessage: { role: "user", content, timestamp: Date.now() }
+      };
     },
     onSuccess: (data) => {
       // Immediately reflect returned messages to avoid UI gaps if refetch races
