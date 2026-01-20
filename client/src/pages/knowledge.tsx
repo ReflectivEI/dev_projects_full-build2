@@ -24,6 +24,7 @@ import { knowledgeArticles } from "@/lib/data";
 import type { KnowledgeArticle } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 const categoryIcons: Record<string, any> = {
   fda: Scale,
@@ -53,7 +54,13 @@ export default function KnowledgePage() {
   const askAiMutation = useMutation({
     mutationFn: async (data: { question: string; articleContext?: string }) => {
       const response = await apiRequest("POST", "/api/knowledge/ask", data);
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      return {
+        answer: normalized.text,
+        relatedTopics: normalized.json?.relatedTopics || []
+      };
     },
     onSuccess: (data) => {
       setAiAnswer(data);
