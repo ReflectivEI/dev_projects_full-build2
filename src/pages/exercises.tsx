@@ -366,9 +366,9 @@ JSON array only:`,
                         
                         if (showResult) {
                           if (isCorrectOption) {
-                            optionClass += " border-green-500 bg-green-50 dark:bg-green-950";
+                            optionClass += " border-primary bg-primary/10";
                           } else if (isSelected && !isCorrectOption) {
-                            optionClass += " border-red-500 bg-red-50 dark:bg-red-950";
+                            optionClass += " border-destructive bg-destructive/10";
                           } else {
                             optionClass += " border-border opacity-50";
                           }
@@ -387,10 +387,10 @@ JSON array only:`,
                             >
                               {option}
                               {showResult && isCorrectOption && (
-                                <CheckCircle2 className="inline-block ml-2 h-4 w-4 text-green-600" />
+                                <CheckCircle2 className="inline-block ml-2 h-4 w-4 text-primary" />
                               )}
                               {showResult && isSelected && !isCorrectOption && (
-                                <XCircle className="inline-block ml-2 h-4 w-4 text-red-600" />
+                                <XCircle className="inline-block ml-2 h-4 w-4 text-destructive" />
                               )}
                             </Label>
                           </div>
@@ -408,12 +408,12 @@ JSON array only:`,
                     )}
 
                     {showResult && (
-                      <Alert className={correct ? "border-green-500 bg-green-50 dark:bg-green-950" : "border-orange-500 bg-orange-50 dark:bg-orange-950"}>
+                      <Alert className={correct ? "border-primary bg-primary/10" : "border-muted bg-muted"}>
                         <div className="flex items-start gap-3">
                           {correct ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5" />
+                            <CheckCircle2 className="h-5 w-5 text-primary mt-0.5" />
                           ) : (
-                            <AlertCircle className="h-5 w-5 text-orange-600 mt-0.5" />
+                            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
                           )}
                           <div className="flex-1">
                             <p className="font-semibold mb-1">
