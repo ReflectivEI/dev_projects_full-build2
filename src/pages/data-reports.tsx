@@ -10,6 +10,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Database, Send, Clock, AlertTriangle, ShieldCheck } from "lucide-react";
 import type { SQLQuery } from "@shared/schema";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 const exampleQuestions = [
   "Show me the top 10 prescribers by total prescriptions",
@@ -47,7 +48,22 @@ export default function DataReportsPage() {
         throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
       }
       
-      return JSON.parse(rawText);
+      // Use normalizeAIResponse to handle both JSON and prose responses
+      const normalized = normalizeAIResponse(rawText);
+      
+      if (normalized.json && typeof normalized.json === 'object') {
+        return normalized.json;
+      } else {
+        // Fallback: Convert prose to expected structure
+        console.warn("[P0 DATA_REPORTS] Worker returned prose, converting to structure");
+        return {
+          id: Date.now().toString(),
+          naturalLanguage: naturalLanguageQuery,
+          sqlQuery: "-- Unable to generate SQL query",
+          explanation: normalized.text || "Unable to generate query. Please try again.",
+          timestamp: Date.now()
+        };
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sql/history"] });

@@ -30,6 +30,7 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 const categoryIcons: Record<string, any> = {
   objection: Shield,
@@ -70,7 +71,20 @@ export default function HeuristicsPage() {
         throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
       }
       
-      return JSON.parse(rawText);
+      // Use normalizeAIResponse to handle both JSON and prose responses
+      const normalized = normalizeAIResponse(rawText);
+      
+      if (normalized.json && typeof normalized.json === 'object') {
+        return normalized.json;
+      } else {
+        // Fallback: Convert prose to expected structure
+        console.warn("[P0 HEURISTICS] Worker returned prose, converting to structure");
+        return {
+          customizedTemplate: normalized.text || "Unable to generate customization. Please try again.",
+          example: "Use this customized approach in your next conversation",
+          tips: []
+        };
+      }
     },
     onSuccess: (data) => {
       setCustomization(data);

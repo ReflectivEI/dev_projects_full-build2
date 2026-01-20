@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { eqFrameworks, communicationStyleModels, heuristicTemplates } from "@/lib/data";
 import type { EQFramework, HeuristicTemplate } from "@shared/schema";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 
 import { MessageSquareText } from "lucide-react";
