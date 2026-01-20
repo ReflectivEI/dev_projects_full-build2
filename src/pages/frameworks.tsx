@@ -107,50 +107,38 @@ JSON only:`,
         throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
       }
 
-      const data = JSON.parse(rawText);
-      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      const normalized = normalizeAIResponse(rawText);
       
-      // Try multiple parsing strategies
-      let parsed = null;
-      
-      // Strategy 1: Direct JSON parse
-      try {
-        parsed = JSON.parse(aiMessage);
-      } catch {
-        // Strategy 2: Extract from markdown code blocks
-        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          try {
-            parsed = JSON.parse(codeBlockMatch[1].trim());
-          } catch {}
-        }
-        
-        // Strategy 3: Find any JSON object
-        if (!parsed) {
-          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try {
-              parsed = JSON.parse(jsonMatch[0]);
-            } catch {}
-          }
+      // Extract AI message from response structure
+      let aiMessage = normalized.text;
+      if (normalized.json) {
+        const messages = normalized.json.messages;
+        if (Array.isArray(messages) && messages.length > 0) {
+          aiMessage = messages[messages.length - 1]?.content || normalized.text;
         }
       }
+
+      if (!import.meta.env.DEV) {
+        console.log("[P0 FRAMEWORKS] AI Message:", aiMessage.substring(0, 500));
+      }
+
+      // Parse the AI message for advice object
+      const adviceNormalized = normalizeAIResponse(aiMessage);
       
-      if (parsed && typeof parsed === 'object' && parsed.advice) {
+      if (adviceNormalized.json && typeof adviceNormalized.json === 'object' && adviceNormalized.json.advice) {
         setAiAdvice({
-          advice: parsed.advice || '',
-          practiceExercise: parsed.practiceExercise || '',
-          tips: Array.isArray(parsed.tips) ? parsed.tips : []
+          advice: adviceNormalized.json.advice || '',
+          practiceExercise: adviceNormalized.json.practiceExercise || '',
+          tips: Array.isArray(adviceNormalized.json.tips) ? adviceNormalized.json.tips : []
         });
-      } else if (aiMessage) {
-        // EMERGENCY FALLBACK: Use raw text
+      } else {
+        // Fallback: Use the raw response as advice
+        console.warn("[P0 FRAMEWORKS] Worker returned prose, using as plain text advice");
         setAiAdvice({
-          advice: aiMessage,
+          advice: aiMessage || "Unable to generate advice. Please try again.",
           practiceExercise: "Apply this advice in your next conversation",
           tips: []
         });
-      } else {
-        throw new Error("No response from AI");
       }
     } catch (err) {
       setAdviceError(err instanceof Error ? err.message : "Failed to generate advice");
@@ -192,50 +180,38 @@ JSON only:`,
         throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
       }
 
-      const data = JSON.parse(rawText);
-      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
+      const normalized = normalizeAIResponse(rawText);
       
-      // Try multiple parsing strategies
-      let parsed = null;
-      
-      // Strategy 1: Direct JSON parse
-      try {
-        parsed = JSON.parse(aiMessage);
-      } catch {
-        // Strategy 2: Extract from markdown code blocks
-        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeBlockMatch) {
-          try {
-            parsed = JSON.parse(codeBlockMatch[1].trim());
-          } catch {}
-        }
-        
-        // Strategy 3: Find any JSON object
-        if (!parsed) {
-          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            try {
-              parsed = JSON.parse(jsonMatch[0]);
-            } catch {}
-          }
+      // Extract AI message from response structure
+      let aiMessage = normalized.text;
+      if (normalized.json) {
+        const messages = normalized.json.messages;
+        if (Array.isArray(messages) && messages.length > 0) {
+          aiMessage = messages[messages.length - 1]?.content || normalized.text;
         }
       }
+
+      if (!import.meta.env.DEV) {
+        console.log("[P0 FRAMEWORKS] Customization AI Message:", aiMessage.substring(0, 500));
+      }
+
+      // Parse the AI message for customization object
+      const customizationNormalized = normalizeAIResponse(aiMessage);
       
-      if (parsed && typeof parsed === 'object' && parsed.customizedTemplate) {
+      if (customizationNormalized.json && typeof customizationNormalized.json === 'object' && customizationNormalized.json.customizedTemplate) {
         setCustomization({
-          customizedTemplate: parsed.customizedTemplate || '',
-          example: parsed.example || '',
-          tips: Array.isArray(parsed.tips) ? parsed.tips : []
+          customizedTemplate: customizationNormalized.json.customizedTemplate || '',
+          example: customizationNormalized.json.example || '',
+          tips: Array.isArray(customizationNormalized.json.tips) ? customizationNormalized.json.tips : []
         });
-      } else if (aiMessage) {
-        // EMERGENCY FALLBACK: Use raw text
+      } else {
+        // Fallback: Use the raw response as customized template
+        console.warn("[P0 FRAMEWORKS] Worker returned prose, using as plain text customization");
         setCustomization({
-          customizedTemplate: aiMessage,
+          customizedTemplate: aiMessage || "Unable to generate customization. Please try again.",
           example: "Use this customized approach in your next conversation",
           tips: []
         });
-      } else {
-        throw new Error("No response from AI");
       }
     } catch (err) {
       setCustomizationError(err instanceof Error ? err.message : "Failed to generate customization");
