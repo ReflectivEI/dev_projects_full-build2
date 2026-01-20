@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
@@ -79,11 +80,9 @@ export default function FrameworksPage() {
     setAdviceError(null);
 
     try {
-      const response = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `You are a pharma sales coach. A rep is applying the "${selectedFramework.name}" framework in this situation:
+      // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
+      const response = await apiRequest("POST", "/api/chat/send", {
+        message: `You are a pharma sales coach. A rep is applying the "${selectedFramework.name}" framework in this situation:
 
 "${situation}"
 
@@ -136,11 +135,9 @@ Return ONLY the JSON object, no other text.`,
     setCustomizationError(null);
 
     try {
-      const response = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `You are a pharma sales coach. Customize this template for the given situation:
+      // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
+      const response = await apiRequest("POST", "/api/chat/send", {
+        message: `You are a pharma sales coach. Customize this template for the given situation:
 
 Template: "${selectedTemplate.template}"
 Situation: "${heuristicSituation}"
@@ -148,7 +145,7 @@ Situation: "${heuristicSituation}"
 Provide:
 1. Customized template (adapt the template to this specific situation)
 2. Example dialogue (1-2 sentences showing how to use it)
-3. 2-3 delivery tips (each 1 sentence)
+3. 3-3 delivery tips (each 1 sentence)
 
 Format as JSON: {"customizedTemplate": "...", "example": "...", "tips": ["...", "..."]}
 
