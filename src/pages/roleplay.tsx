@@ -366,8 +366,8 @@ export default function RolePlayPage() {
   ------------------------------ */
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      <div className="p-6 border-b flex items-center justify-between">
+    <div className="h-screen flex flex-col">
+      <div className="p-6 border-b flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-md bg-chart-2 flex items-center justify-center">
             <Users className="h-5 w-5 text-white" />
@@ -505,7 +505,7 @@ export default function RolePlayPage() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-y-auto">
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
