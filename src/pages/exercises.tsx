@@ -72,8 +72,15 @@ JSON array only:`,
       
       if (Array.isArray(parsed) && parsed.length > 0) {
         setExercises(parsed);
+      } else if (aiMessage) {
+        // EMERGENCY FALLBACK: Use raw text as single exercise
+        setExercises([{
+          title: "Practice Exercise",
+          description: aiMessage,
+          practiceSteps: ["Review the guidance above", "Apply to your next conversation"]
+        }]);
       } else {
-        throw new Error("Could not parse exercises from response");
+        throw new Error("No response from AI");
       }
     } catch (err) {
       console.error("Exercise generation error:", err);
