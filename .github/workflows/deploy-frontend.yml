@@ -57,44 +57,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build and verify frontend
+      - name: Build
         run: |
-          echo "🔨 Starting build..."
-          npm run build:vite
-          
-          echo "✅ Build completed"
-          echo "🔍 Detecting build output directory..."
-          if [ -f "dist/index.html" ]; then
-            echo "OUTPUT_DIR=dist" >> $GITHUB_ENV
-            echo "✅ Found: dist/index.html"
-          elif [ -f "dist/client/index.html" ]; then
-            echo "OUTPUT_DIR=dist/client" >> $GITHUB_ENV
-            echo "✅ Found: dist/client/index.html"
-          elif [ -f "client/dist/index.html" ]; then
-            echo "OUTPUT_DIR=client/dist" >> $GITHUB_ENV
-            echo "✅ Found: client/dist/index.html"
-          else
-            echo "❌ ERROR: No index.html found in known output paths" >&2
-            echo "Contents of repo root:"; ls -la
-            echo "Contents of dist:"; ls -la dist || true
-            echo "Contents of dist/client:"; ls -la dist/client || true
-            echo "Contents of client/dist:"; ls -la client/dist || true
-            exit 1
-          fi
-          
-          echo "📂 Using OUTPUT_DIR=$OUTPUT_DIR"
-          ls -la "$OUTPUT_DIR"
-          
-          echo "✅ Verifying required files..."
-          test -f "$OUTPUT_DIR/index.html" && echo "  ✓ index.html"
-          test -f "$OUTPUT_DIR/_redirects" && echo "  ✓ _redirects" || echo "  ⚠️  _redirects missing"
-          test -f "$OUTPUT_DIR/404.html" && echo "  ✓ 404.html" || echo "  ⚠️  404.html missing"
-          
-          echo "🎉 Build output verified!"
-        env:
-          VITE_WORKER_URL: https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev
-          GITHUB_PAGES: 'false'
-          STATIC_BUILD: 'true'
+          echo "🔨 Building..."
+          STATIC_BUILD=true GITHUB_PAGES=false VITE_WORKER_URL=https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev npm run build:vite
+          echo "✅ Build complete"
+
+      - name: Verify
+        run: |
+          echo "📂 Checking output..."
+          ls -la dist/
+          test -f dist/index.html && echo "✅ dist/index.html exists" || (echo "❌ dist/index.html missing" && exit 1)
+          echo "OUTPUT_DIR=dist" >> $GITHUB_ENV
 
       - name: Deploy to Staging
         if: github.event.inputs.environment == 'staging'
