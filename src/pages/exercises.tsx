@@ -54,7 +54,11 @@ Return ONLY the JSON array, no other text.`,
       }
     } catch (err) {
       console.error("Exercise generation error:", err);
-      setError("Unable to generate exercises. Please try again.");
+      // Mobile-friendly error message with network hint
+      const errorMessage = err instanceof Error && err.message.includes('Failed to fetch')
+        ? "Network error. Please check your connection and try again."
+        : "Unable to generate exercises. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsGenerating(false);
     }
