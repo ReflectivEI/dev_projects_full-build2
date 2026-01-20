@@ -87,22 +87,51 @@ Return ONLY the JSON object, no other text.`,
       }
 
       const data = await response.json();
-      const aiMessage = data.messages?.[data.messages.length - 1]?.content || "";
-      const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+      const aiMessage = data.messages?.[data.messages.length - 1]?.content || data?.aiMessage?.content || "";
       
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        // Defensive guard: ensure all expected fields exist
-        if (parsed && typeof parsed === 'object') {
-          setAiAnswer({
-            answer: parsed.answer || '',
-            relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
-          });
-        } else {
-          throw new Error("Invalid AI response format");
+      // EMERGENCY FIX: If Worker returns plain text, use it directly
+      if (!aiMessage) {
+        throw new Error("No response from AI");
+      }
+      
+      // Try to parse as JSON, but if it fails, use the text directly
+      let parsed = null;
+      
+      try {
+        // Strategy 1: Direct JSON parse
+        parsed = JSON.parse(aiMessage);
+      } catch {
+        // Strategy 2: Extract from markdown code blocks
+        const codeBlockMatch = aiMessage.match(/```(?:json)?\s*([\s\S]*?)```/);
+        if (codeBlockMatch) {
+          try {
+            parsed = JSON.parse(codeBlockMatch[1].trim());
+          } catch {}
         }
+        
+        // Strategy 3: Find JSON object
+        if (!parsed) {
+          const jsonMatch = aiMessage.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            try {
+              parsed = JSON.parse(jsonMatch[0]);
+            } catch {}
+          }
+        }
+      }
+      
+      // If we got valid JSON with expected structure, use it
+      if (parsed && typeof parsed === 'object' && parsed.answer) {
+        setAiAnswer({
+          answer: parsed.answer,
+          relatedTopics: Array.isArray(parsed.relatedTopics) ? parsed.relatedTopics : []
+        });
       } else {
-        throw new Error("Could not parse AI response");
+        // FALLBACK: Use the raw text as the answer
+        setAiAnswer({
+          answer: aiMessage,
+          relatedTopics: []
+        });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to get answer");
