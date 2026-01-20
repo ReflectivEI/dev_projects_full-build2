@@ -66,10 +66,10 @@ jobs:
       - name: Verify
         run: |
           echo "📂 Checking output..."
-          ls -la dist/client/
-          test -f dist/client/index.html && echo "✅ dist/client/index.html exists" || (echo "❌ dist/client/index.html missing" && exit 1)
-          test -f dist/client/_redirects && echo "✅ dist/client/_redirects exists" || (echo "❌ dist/client/_redirects missing" && exit 1)
-          echo "OUTPUT_DIR=dist/client" >> $GITHUB_ENV
+          ls -la dist/
+          test -f dist/index.html && echo "✅ dist/index.html exists" || (echo "❌ dist/index.html missing" && exit 1)
+          test -f dist/_redirects && echo "✅ dist/_redirects exists" || (echo "❌ dist/_redirects missing" && exit 1)
+          echo "OUTPUT_DIR=dist" >> $GITHUB_ENV
 
       - name: Deploy to Staging
         if: github.event.inputs.environment == 'staging'
