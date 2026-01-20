@@ -53,13 +53,38 @@ JSON array only:`,
                    normalized.text;
       }
 
+<<<<<<< HEAD
       // Parse the AI message for exercises array
       const exercisesNormalized = normalizeAIResponse(aiMessage);
       
       if (Array.isArray(exercisesNormalized.json) && exercisesNormalized.json.length > 0) {
         setExercises(exercisesNormalized.json);
+=======
+      // P0 DIAGNOSTIC: Log what we received
+      if (!import.meta.env.DEV) {
+        console.log("[P0 EXERCISES] Raw response:", rawText.substring(0, 500));
+        console.log("[P0 EXERCISES] Normalized:", normalized);
+        console.log("[P0 EXERCISES] AI Message:", aiMessage.substring(0, 500));
+      }
+
+      // Parse the AI message for exercises array
+      const exercisesNormalized = normalizeAIResponse(aiMessage);
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 EXERCISES] Exercises normalized:", exercisesNormalized);
+      }
+
+      if (Array.isArray(exercisesNormalized.json) && exercisesNormalized.json.length > 0) {
+        setExercises(exercisesNormalized.json);
+      } else if (exercisesNormalized.json && !Array.isArray(exercisesNormalized.json)) {
+        // Worker returned an object, not an array - show helpful error
+        console.error("[P0 EXERCISES] Worker returned object instead of array:", exercisesNormalized.json);
+        setError("The AI returned an unexpected format. This is a backend issue. Response: " + aiMessage.substring(0, 200));
+>>>>>>> 20260120170414-uo4alx2j8w
       } else {
-        throw new Error("Could not parse exercises from response");
+        // Worker returned plain text, not JSON
+        console.error("[P0 EXERCISES] Worker returned plain text, not JSON:", aiMessage.substring(0, 500));
+        setError("The AI did not return structured data. This is a backend issue. Response: " + aiMessage.substring(0, 200));
       }
     } catch (err) {
       console.error("Exercise generation error:", err);

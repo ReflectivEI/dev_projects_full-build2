@@ -102,13 +102,30 @@ JSON only:`,
                    normalized.text;
       }
 
+<<<<<<< HEAD
       // Parse the AI message for coaching guidance
       const guidanceNormalized = normalizeAIResponse(aiMessage);
       
+=======
+      // P0 DIAGNOSTIC: Log what we received
+      if (!import.meta.env.DEV) {
+        console.log("[P0 MODULES] Raw response:", rawText.substring(0, 500));
+        console.log("[P0 MODULES] AI Message:", aiMessage.substring(0, 500));
+      }
+
+      // Parse the AI message for coaching guidance
+      const guidanceNormalized = normalizeAIResponse(aiMessage);
+      
+      if (!import.meta.env.DEV) {
+        console.log("[P0 MODULES] Guidance normalized:", guidanceNormalized);
+      }
+
+>>>>>>> 20260120170414-uo4alx2j8w
       if (guidanceNormalized.json && typeof guidanceNormalized.json === 'object' && guidanceNormalized.json.focus) {
         setCoachingGuidance(guidanceNormalized.json);
       } else {
-        throw new Error("Could not parse guidance from response");
+        console.error("[P0 MODULES] Worker returned unexpected format:", guidanceNormalized);
+        setError("The AI did not return structured coaching guidance. This is a backend issue. Response: " + aiMessage.substring(0, 200));
       }
     } catch (err) {
       console.error("Guidance generation error:", err);
