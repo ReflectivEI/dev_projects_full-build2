@@ -210,8 +210,15 @@ JSON only:`,
           example: parsed.example || '',
           tips: Array.isArray(parsed.tips) ? parsed.tips : []
         });
+      } else if (aiMessage) {
+        // EMERGENCY FALLBACK: Use raw text
+        setCustomization({
+          customizedTemplate: aiMessage,
+          example: "Use this customized approach in your next conversation",
+          tips: []
+        });
       } else {
-        throw new Error("Could not parse AI response");
+        throw new Error("No response from AI");
       }
     } catch (err) {
       setCustomizationError(err instanceof Error ? err.message : "Failed to generate customization");
