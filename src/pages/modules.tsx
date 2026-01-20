@@ -234,12 +234,17 @@ JSON only:`,
 
                 <Button
                   onClick={() => {
+                    console.log('[MODULES] Button clicked! selectedModule:', selectedModule?.title);
+                    console.log('[MODULES] isGenerating:', isGenerating);
+                    console.log('[MODULES] coachingGuidance:', coachingGuidance);
                     if (selectedModule) {
-                      console.log('[MODULES] Regenerate button clicked, calling generateCoachingGuidance');
+                      console.log('[MODULES] Calling generateCoachingGuidance...');
                       generateCoachingGuidance(selectedModule);
+                    } else {
+                      console.error('[MODULES] ERROR: selectedModule is null!');
                     }
                   }}
-                  disabled={isGenerating || !selectedModule}
+                  disabled={isGenerating}
                   className="w-full"
                 >
                   {isGenerating ? (
