@@ -73,11 +73,11 @@ JSON array only:`,
         // Single exercise object returned
         setExercises([exercisesNormalized.json]);
       } else {
-        // Worker returned prose - generate structured exercises from it
-        console.warn("[P0 EXERCISES] Worker returned prose, generating structured exercises");
+        // Worker returned prose - generate VARIED structured exercises
+        console.warn("[P0 EXERCISES] Worker returned prose, generating RANDOMIZED structured exercises");
         
-        // Generate 2-3 exercises from the prose response
-        const exercises: Exercise[] = [
+        // Pool of 9 possible exercises - randomly select 3 each time
+        const exercisePool: Exercise[] = [
           {
             title: "Active Listening Practice",
             description: "Focus on truly hearing what your customer is saying, both verbally and non-verbally.",
@@ -107,10 +107,75 @@ JSON array only:`,
               "Listen for value drivers: cost savings, time efficiency, quality improvements",
               "Connect your solution to their stated priorities in your response"
             ]
+          },
+          {
+            title: "Objection Handling",
+            description: "Turn customer concerns into opportunities to demonstrate value.",
+            practiceSteps: [
+              "Listen fully to the objection without interrupting or getting defensive",
+              "Acknowledge it as valid: 'That's a fair concern, and I appreciate you bringing it up'",
+              "Ask clarifying questions: 'Can you tell me more about what's driving that concern?'",
+              "Reframe with evidence: 'Here's how other customers in your situation addressed this...'"
+            ]
+          },
+          {
+            title: "Building Rapport",
+            description: "Create genuine connections that go beyond transactional relationships.",
+            practiceSteps: [
+              "Research the customer's background and industry before the call",
+              "Find common ground early: shared interests, mutual connections, similar challenges",
+              "Use their communication style: match their pace, formality, and energy level",
+              "Follow up on personal details they share to show you remember and care"
+            ]
+          },
+          {
+            title: "Storytelling for Impact",
+            description: "Use compelling narratives to make your message memorable and persuasive.",
+            practiceSteps: [
+              "Prepare 2-3 customer success stories relevant to common pain points",
+              "Structure stories with: situation, challenge, solution, measurable outcome",
+              "Make the customer the hero of the story, not your product",
+              "Practice telling stories in under 90 seconds for maximum impact"
+            ]
+          },
+          {
+            title: "Handling Silence",
+            description: "Use strategic pauses to encourage deeper customer engagement.",
+            practiceSteps: [
+              "After asking a question, count to 5 silently before speaking again",
+              "Resist the urge to fill silence - let the customer think and respond",
+              "Notice what customers reveal when given space to reflect",
+              "Use silence after making a key point to let it sink in"
+            ]
+          },
+          {
+            title: "Discovery Questions",
+            description: "Uncover hidden needs and priorities through strategic questioning.",
+            practiceSteps: [
+              "Start broad: 'Walk me through your current process for [relevant task]'",
+              "Identify pain points: 'What's the most frustrating part of that process?'",
+              "Quantify impact: 'How much time/money does that cost you monthly?'",
+              "Explore consequences: 'What happens if this problem isn't solved?'"
+            ]
+          },
+          {
+            title: "Closing with Confidence",
+            description: "Ask for the business in a way that feels natural and pressure-free.",
+            practiceSteps: [
+              "Summarize the value you've discussed: 'Based on what you've shared...'",
+              "Confirm alignment: 'Does this solution address your key concerns?'",
+              "Assume the sale: 'When would you like to get started?'",
+              "Handle hesitation with a trial close: 'What would need to happen for this to be a yes?'"
+            ]
           }
         ];
         
-        setExercises(exercises);
+        // Randomly select 3 exercises from the pool
+        const shuffled = [...exercisePool].sort(() => Math.random() - 0.5);
+        const selectedExercises = shuffled.slice(0, 3);
+        
+        console.log("[P0 EXERCISES] Selected exercises:", selectedExercises.map(e => e.title));
+        setExercises(selectedExercises);
       }
     } catch (err) {
       console.error("[P0 EXERCISES] Error in generateExercises:", err);
