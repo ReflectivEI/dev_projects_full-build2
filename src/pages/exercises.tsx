@@ -10,6 +10,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { apiRequest } from "@/lib/queryClient";
 
 type Exercise = {
   title: string;
@@ -27,11 +28,9 @@ export default function ExercisesPage() {
     setError(null);
 
     try {
-      const response = await fetch("/api/chat/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: `Generate 2-3 short, actionable practice exercises for improving sales communication skills. For each exercise, provide:
+      // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
+      const response = await apiRequest("POST", "/api/chat/send", {
+        message: `Generate 2-3 short, actionable practice exercises for improving sales communication skills. For each exercise, provide:
 - A clear title
 - A brief description (1-2 sentences)
 - 2-3 specific practice steps
@@ -39,13 +38,8 @@ export default function ExercisesPage() {
 Format as JSON array: [{"title": "...", "description": "...", "practiceSteps": ["...", "..."]}]
 
 Return ONLY the JSON array, no other text.`,
-          content: "Generate practice exercises",
-        }),
+        content: "Generate practice exercises",
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate exercises");
-      }
 
       const data = await response.json();
       const aiMessage = data?.aiMessage?.content || data?.messages?.find((m: any) => m.role === "assistant")?.content || "";
