@@ -147,20 +147,67 @@ JSON only:`,
           .map(s => s.trim())
           .filter(s => s.length > 20 && s.length < 200);
         
-        // Use first 2-3 sentences as advice, rest as tips
-        const adviceText = sentences.slice(0, 2).join('. ') + '.';
-        const tipsList = sentences.slice(2, 5).length > 0 
-          ? sentences.slice(2, 5)
-          : [
-              `Apply the ${selectedFramework?.name || 'framework'} principles to this situation`,
-              "Practice active listening and empathy",
-              "Reflect on the outcome and adjust your approach"
-            ];
+        // Generate framework-specific advice based on the framework name
+        const frameworkAdviceMap: Record<string, { advice: string; exercise: string; tips: string[] }> = {
+          "DISC Communication Styles": {
+            advice: `For this situation, identify the stakeholder's DISC style through their communication patterns. ${situation.toLowerCase().includes('data') || situation.toLowerCase().includes('analytical') ? 'They appear analytical (C-style), so lead with data and precision.' : situation.toLowerCase().includes('relationship') || situation.toLowerCase().includes('rapport') ? 'They seem relationship-focused (I-style), so build rapport before diving into details.' : 'Adapt your approach based on their dominant style: D (direct/results), I (enthusiastic/social), S (steady/supportive), or C (analytical/precise).'}`,
+            exercise: "In your next conversation, observe verbal and non-verbal cues to identify their primary DISC style, then adjust your communication approach accordingly.",
+            tips: [
+              "D-types: Be direct, focus on results and bottom-line impact",
+              "I-types: Build rapport, be enthusiastic, emphasize collaboration",
+              "S-types: Be patient, show reliability, emphasize team benefits",
+              "C-types: Provide data, be precise, focus on quality and accuracy"
+            ]
+          },
+          "Active Listening Framework": {
+            advice: `In this situation, practice deep active listening by fully focusing on what the other person is saying without planning your response. Reflect back what you hear to confirm understanding before offering solutions.`,
+            exercise: "During your next conversation, pause for 3 seconds after they finish speaking before responding. Use phrases like 'What I'm hearing is...' to confirm understanding.",
+            tips: [
+              "Maintain eye contact and use affirming body language",
+              "Ask clarifying questions before jumping to solutions",
+              "Notice emotional undertones, not just words",
+              "Resist the urge to interrupt or finish their sentences"
+            ]
+          },
+          "Empathy Mapping": {
+            advice: `Apply empathy mapping to understand what the stakeholder is thinking, feeling, saying, and doing in this situation. This reveals their true motivations and concerns beyond surface-level objections.`,
+            exercise: "Create a simple empathy map: What are they thinking? Feeling? Saying? Doing? What are their pains and gains? Use this to guide your approach.",
+            tips: [
+              "Think: What are their unstated concerns or goals?",
+              "Feel: What emotions are driving their behavior?",
+              "Say: What are they explicitly communicating?",
+              "Do: What actions reveal their true priorities?"
+            ]
+          },
+          "Rapport Building Techniques": {
+            advice: `Build genuine rapport by finding common ground and matching their communication style. In this situation, focus on creating a connection before pushing your agenda.`,
+            exercise: "Research the person's background before meeting. Find one genuine point of connection (shared interest, mutual contact, similar challenge) and reference it naturally.",
+            tips: [
+              "Mirror their pace, tone, and energy level subtly",
+              "Find authentic common ground early in the conversation",
+              "Remember and reference personal details they share",
+              "Show genuine curiosity about their perspective"
+            ]
+          }
+        };
+        
+        // Get framework-specific advice or use generic advice
+        const frameworkAdvice = frameworkAdviceMap[selectedFramework?.name || ''] || {
+          advice: sentences.slice(0, 2).join('. ') + '.' || `Apply ${selectedFramework?.name || 'this framework'} principles to understand the stakeholder's perspective and adapt your communication approach accordingly.`,
+          exercise: `Practice applying ${selectedFramework?.name || 'this framework'} in your next conversation with a similar situation. Observe what works and adjust your approach.`,
+          tips: sentences.slice(2, 5).length > 0 
+            ? sentences.slice(2, 5)
+            : [
+                `Apply the ${selectedFramework?.name || 'framework'} principles to this situation`,
+                "Practice active listening and empathy",
+                "Reflect on the outcome and adjust your approach"
+              ]
+        };
         
         setAiAdvice({
-          advice: adviceText || aiMessage || "Consider how this framework applies to your situation.",
-          practiceExercise: `Practice applying ${selectedFramework?.name || 'this framework'} in your next conversation with a similar situation.`,
-          tips: tipsList
+          advice: frameworkAdvice.advice,
+          practiceExercise: frameworkAdvice.exercise,
+          tips: frameworkAdvice.tips
         });
       }
     } catch (err) {
