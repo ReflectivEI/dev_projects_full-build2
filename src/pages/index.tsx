@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Send, Brain, MessageSquare, Loader2, Sparkles } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 
 type Message = {
   id: string;
@@ -49,22 +50,14 @@ export default function HomePage() {
     setIsLoading(true);
 
     try {
-      // Call Cloudflare Worker directly
-      const workerUrl = 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev';
-      
-      console.log('[ReflectivAI] Calling worker:', workerUrl);
-      
-      const response = await fetch(`${workerUrl}/chat`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          session: sessionId,
-          mode: 'sales-coach',
-          messages: [...messages, userMessage].map(m => ({
-            role: m.role,
-            content: m.content
-          }))
-        })
+      // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
+      const response = await apiRequest('POST', '/chat', {
+        session: sessionId,
+        mode: 'sales-coach',
+        messages: [...messages, userMessage].map(m => ({
+          role: m.role,
+          content: m.content
+        }))
       });
 
       if (!response.ok) {
