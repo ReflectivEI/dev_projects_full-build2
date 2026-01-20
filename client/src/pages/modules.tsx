@@ -32,6 +32,7 @@ import { coachingModules, eqFrameworks } from "@/lib/data";
 import type { CoachingModule } from "@shared/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 const moduleIcons: Record<string, any> = {
   Search,
@@ -70,7 +71,21 @@ export default function ModulesPage() {
   const generateExerciseMutation = useMutation({
     mutationFn: async (data: { moduleTitle: string; moduleDescription: string; exerciseType: string }) => {
       const response = await apiRequest("POST", "/api/modules/exercise", data);
-      return response.json();
+      const rawText = await response.text();
+      const normalized = normalizeAIResponse(rawText);
+      // Return in expected format with fallback
+      if (normalized.json && normalized.json.questions) {
+        return normalized.json;
+      }
+      // Fallback: create single question from raw text
+      return {
+        questions: [{
+          question: "Coaching Guidance",
+          options: ["Review the guidance below"],
+          correctAnswer: 0,
+          explanation: normalized.text
+        }]
+      };
     },
     onSuccess: (data) => {
       setExerciseData(data);
