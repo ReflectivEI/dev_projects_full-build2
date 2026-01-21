@@ -1,0 +1,11 @@
+# Deployment Trigger File
+# Created: January 21, 2026
+# Purpose: Trigger GitHub Actions deployment
+
+All changes committed and ready for deployment:
+- Header icon relocation complete
+- Signal Intelligence PDF audit complete
+- All 8 metrics updated with PDF content
+- UI modal restructured
+
+Commit hash: cb898e16b0904e528933b2ce7b791d7ec580d2bf
