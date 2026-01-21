@@ -66,6 +66,12 @@ export default function ModulesPage() {
   const [coachingGuidance, setCoachingGuidance] = useState<CoachingGuidance | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Modal states
+  const [showAICoachingModal, setShowAICoachingModal] = useState(false);
+  const [showPracticeModal, setShowPracticeModal] = useState(false);
+  const [aiCoachingModule, setAICoachingModule] = useState<CoachingModule | null>(null);
+  const [practiceModule, setPracticeModule] = useState<CoachingModule | null>(null);
 
   const filteredModules = activeTab === "all"
     ? coachingModules
