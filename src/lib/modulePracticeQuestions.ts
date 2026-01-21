@@ -13,6 +13,7 @@ export interface ModulePracticeQuestions {
 }
 
 export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
+  // Module IDs from data.ts: discovery, stakeholder, clinical, objection, closing, eq-mastery
   "discovery": [
     {
       question: "What open-ended question would you ask to uncover a physician's biggest challenge with current treatment protocols?",
@@ -38,6 +39,34 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
       question: "What question would reveal the physician's current workflow and where inefficiencies exist?",
       focusArea: "Process understanding",
       context: "Map their current state to identify improvement opportunities"
+    }
+  ],
+  // Alias for stakeholder module
+  "stakeholder": [
+    {
+      question: "How would you identify all the stakeholders involved in a hospital formulary decision beyond the primary contact?",
+      focusArea: "Stakeholder identification",
+      context: "Map the complete decision-making unit"
+    },
+    {
+      question: "What questions would you ask to understand the power dynamics between different stakeholders?",
+      focusArea: "Influence mapping",
+      context: "Identify who has veto power vs. advisory roles"
+    },
+    {
+      question: "How would you tailor your message differently for a CFO vs. a Chief Medical Officer?",
+      focusArea: "Audience adaptation",
+      context: "Speak to each stakeholder's priorities and concerns"
+    },
+    {
+      question: "What approach would you use to gain access to stakeholders who are difficult to reach?",
+      focusArea: "Access strategy",
+      context: "Leverage existing relationships and find creative entry points"
+    },
+    {
+      question: "How would you document and track stakeholder relationships over time?",
+      focusArea: "Relationship management",
+      context: "Maintain institutional knowledge and continuity"
     }
   ],
   "stakeholder-mapping": [
@@ -67,6 +96,29 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
       context: "Find common ground and build consensus across competing interests"
     }
   ],
+  // Alias for clinical module
+  "clinical": [
+    {
+      question: "How would you explain a hazard ratio of 0.65 to a busy physician in under 30 seconds?",
+      focusArea: "Data simplification",
+      context: "Translate complex statistics into clinical relevance"
+    },
+    {
+      question: "What would you emphasize when presenting trial data that shows statistical significance but modest clinical benefit?",
+      focusArea: "Balanced communication",
+      context: "Be honest about limitations while highlighting value"
+    },
+    {
+      question: "How would you address a physician's concern about the trial population not matching their patient demographics?",
+      focusArea: "External validity",
+      context: "Acknowledge limitations and discuss applicability"
+    },
+    {
+      question: "What questions would you ask to understand which clinical endpoints matter most to this physician?",
+      focusArea: "Endpoint prioritization",
+      context: "Align your data presentation with their decision criteria"
+    }
+  ],
   "clinical-data": [
     {
       question: "How would you present a non-inferiority trial result to a skeptical physician who prefers superiority data?",
@@ -87,6 +139,34 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
       question: "What approach would you use to discuss safety data when there's a numerical imbalance in adverse events?",
       focusArea: "Safety communication",
       context: "Present safety data transparently while providing appropriate context"
+    }
+  ],
+  // Alias for objection module
+  "objection": [
+    {
+      question: "When a physician says 'Your drug is too expensive,' what would you ask before responding?",
+      focusArea: "Understanding objections",
+      context: "Uncover the real concern behind the stated objection"
+    },
+    {
+      question: "How would you respond to 'I've heard your drug has more side effects than the competitor'?",
+      focusArea: "Safety concerns",
+      context: "Acknowledge, provide context, and redirect to benefits"
+    },
+    {
+      question: "What would you say when a physician states 'I'm happy with what I'm currently prescribing'?",
+      focusArea: "Status quo challenge",
+      context: "Identify gaps in current treatment without being confrontational"
+    },
+    {
+      question: "How would you handle an objection about lack of long-term safety data?",
+      focusArea: "Data limitations",
+      context: "Be transparent while emphasizing available evidence"
+    },
+    {
+      question: "What approach would you use when a physician raises multiple objections at once?",
+      focusArea: "Objection prioritization",
+      context: "Address the most critical concern first"
     }
   ],
   "objection-handling": [
