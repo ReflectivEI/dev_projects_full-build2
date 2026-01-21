@@ -49,14 +49,53 @@ export default function Dashboard() {
     staleTime: 1000 * 60 * 5,
   });
 
+  const handleExportReport = () => {
+    try {
+      // Get user profile
+      const profileData = localStorage.getItem('user_profile');
+      const profile = profileData ? JSON.parse(profileData) : {
+        name: 'Sales Representative',
+        email: 'rep@pharma.com',
+        specialty: 'Oncology'
+      };
+
+      // Sample metrics data (in production, fetch from actual data)
+      const metrics = [
+        { name: 'Empathy', score: 85, change: 5 },
+        { name: 'Objection Handling', score: 78, change: -2 },
+        { name: 'Clinical Knowledge', score: 92, change: 8 },
+        { name: 'Active Listening', score: 88, change: 3 },
+      ];
+
+      // Sample sessions data
+      const sessions = [
+        { date: '2026-01-20', type: 'AI Coach', duration: '25 min', score: 85 },
+        { date: '2026-01-19', type: 'Role Play', duration: '30 min', score: 82 },
+        { date: '2026-01-18', type: 'Exercise', duration: '15 min', score: 90 },
+      ];
+
+      exportProgressReportPDF(profile, metrics, sessions, generateFilename('progress-report'));
+      toast.success('Report exported successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export report');
+    }
+  };
+
   return (
     <div className="h-full overflow-auto">
       <div className="p-6 space-y-6">
-        <div className="flex flex-col gap-2">
-          <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Welcome to ReflectivAI</h1>
-          <p className="text-muted-foreground">
-            Master signal intelligence and sales excellence in Life Sciences
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Welcome to ReflectivAI</h1>
+            <p className="text-muted-foreground">
+              Master signal intelligence and sales excellence in Life Sciences
+            </p>
+          </div>
+          <Button onClick={handleExportReport} variant="outline" className="w-fit">
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
         </div>
 
         <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
