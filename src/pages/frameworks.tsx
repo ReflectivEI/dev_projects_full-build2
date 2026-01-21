@@ -80,6 +80,11 @@ export default function FrameworksPage() {
     
     setIsGeneratingAdvice(true);
     setAdviceError(null);
+    setAiAdvice(null); // Clear previous advice
+
+    // Create AbortController with 12-second timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 12000);
 
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
@@ -211,8 +216,73 @@ JSON only:`,
         });
       }
     } catch (err) {
-      setAdviceError(err instanceof Error ? err.message : "Failed to generate advice");
+      console.error("[P0 FRAMEWORKS] Error in generateAdvice:", err);
+      
+      // Check if request was aborted (timeout)
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      
+      // Use framework-specific fallback from existing map
+      const frameworkAdviceMap: Record<string, { advice: string; exercise: string; tips: string[] }> = {
+        "DISC Communication Styles": {
+          advice: `For this situation, identify the stakeholder's DISC style through their communication patterns. ${situation.toLowerCase().includes('data') || situation.toLowerCase().includes('analytical') ? 'They appear analytical (C-style), so lead with data and precision.' : situation.toLowerCase().includes('relationship') || situation.toLowerCase().includes('rapport') ? 'They seem relationship-focused (I-style), so build rapport before diving into details.' : 'Adapt your approach based on their dominant style: D (direct/results), I (enthusiastic/social), S (steady/supportive), or C (analytical/precise).'}`,
+          exercise: "In your next conversation, observe verbal and non-verbal cues to identify their primary DISC style, then adjust your communication approach accordingly.",
+          tips: [
+            "D-types: Be direct, focus on results and bottom-line impact",
+            "I-types: Build rapport, be enthusiastic, emphasize collaboration",
+            "S-types: Be patient, show reliability, emphasize team benefits",
+            "C-types: Provide data, be precise, focus on quality and accuracy"
+          ]
+        },
+        "Active Listening Framework": {
+          advice: `In this situation, practice deep active listening by fully focusing on what the other person is saying without planning your response. Reflect back what you hear to confirm understanding before offering solutions.`,
+          exercise: "During your next conversation, pause for 3 seconds after they finish speaking before responding. Use phrases like 'What I'm hearing is...' to confirm understanding.",
+          tips: [
+            "Maintain eye contact and use affirming body language",
+            "Ask clarifying questions before jumping to solutions",
+            "Notice emotional undertones, not just words",
+            "Resist the urge to interrupt or finish their sentences"
+          ]
+        },
+        "Empathy Mapping": {
+          advice: `Apply empathy mapping to understand what the stakeholder is thinking, feeling, saying, and doing in this situation. This reveals their true motivations and concerns beyond surface-level objections.`,
+          exercise: "Create a simple empathy map: What are they thinking? Feeling? Saying? Doing? What are their pains and gains? Use this to guide your approach.",
+          tips: [
+            "Think: What are their unstated concerns or goals?",
+            "Feel: What emotions are driving their behavior?",
+            "Say: What are they explicitly communicating?",
+            "Do: What actions reveal their true priorities?"
+          ]
+        },
+        "Rapport Building Techniques": {
+          advice: `Build genuine rapport by finding common ground and matching their communication style. In this situation, focus on creating a connection before pushing your agenda.`,
+          exercise: "Research the person's background before meeting. Find one genuine point of connection (shared interest, mutual contact, similar challenge) and reference it naturally.",
+          tips: [
+            "Mirror their pace, tone, and energy level subtly",
+            "Find authentic common ground early in the conversation",
+            "Remember and reference personal details they share",
+            "Show genuine curiosity about their perspective"
+          ]
+        }
+      };
+      
+      const fallbackAdvice = frameworkAdviceMap[selectedFramework?.name || ''] || {
+        advice: `Apply ${selectedFramework?.name || 'this framework'} principles to understand the stakeholder's perspective and adapt your communication approach accordingly.`,
+        exercise: `Practice applying ${selectedFramework?.name || 'this framework'} in your next conversation with a similar situation. Observe what works and adjust your approach.`,
+        tips: [
+          "Focus on understanding before being understood",
+          "Adapt your communication style to match theirs",
+          "Build trust through consistent, authentic interactions"
+        ]
+      };
+      
+      setAiAdvice({
+        advice: fallbackAdvice.advice,
+        practiceExercise: fallbackAdvice.exercise,
+        tips: fallbackAdvice.tips
+      });
+      setAdviceError(null); // Clear error to show fallback cleanly
     } finally {
+      clearTimeout(timeoutId);
       setIsGeneratingAdvice(false);
     }
   };

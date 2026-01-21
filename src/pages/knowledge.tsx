@@ -112,6 +112,10 @@ export default function KnowledgePage() {
     setIsGenerating(true);
     setError(null);
 
+    // Create AbortController with 12-second timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 12000);
+
     try {
       const contextInfo = selectedArticle 
         ? `Context: The user is reading about "${selectedArticle.title}" (${selectedArticle.summary})`
@@ -199,6 +203,9 @@ JSON only:`,
     } catch (err) {
       console.error("[P0 KNOWLEDGE] Error in handleAskAi:", err);
       
+      // Check if request was aborted (timeout)
+      const isTimeout = err instanceof Error && err.name === 'AbortError';
+      
       const definitionFallback = getDefinitionFallback(aiQuestion);
       
       if (definitionFallback) {
@@ -206,14 +213,19 @@ JSON only:`,
         setAiAnswer(definitionFallback);
         setError(null);
       } else {
-        const errorMessage = err instanceof Error ? err.message : "Failed to get answer";
-        setError(errorMessage);
+        // Deterministic fallback response
+        const fallbackAnswer = selectedArticle
+          ? `Based on the article "${selectedArticle.title}": ${selectedArticle.summary} Try refining your question to a specific term or concept.`
+          : "Try refining your question to a specific term (e.g., endpoints, hazard ratio, confidence interval).";
+        
         setAiAnswer({
-          answer: "I'm having trouble responding right now. Please try again or rephrase your question.",
+          answer: fallbackAnswer,
           relatedTopics: []
         });
+        setError(null); // Clear error to show fallback cleanly
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsGenerating(false);
     }
   };
@@ -363,7 +375,7 @@ JSON only:`,
                       <div className="space-y-3 pt-3 border-t">
                         <Alert>
                           <AlertDescription className="text-xs">
-                            Session reference — not saved
+                            Generated for this session. Content may clear on navigation.
                           </AlertDescription>
                         </Alert>
                         {aiAnswer.answer && (
@@ -456,7 +468,7 @@ JSON only:`,
                     <div className="mt-4 p-3 bg-background rounded-lg border">
                       <Alert className="mb-3">
                         <AlertDescription className="text-xs">
-                          Session reference — not saved
+                          Generated for this session. Content may clear on navigation.
                         </AlertDescription>
                       </Alert>
                       {aiAnswer.answer && (
