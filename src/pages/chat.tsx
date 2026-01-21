@@ -341,8 +341,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
-      <div className="p-6 border-b flex-shrink-0 overflow-y-auto max-h-[40vh]">
+    <div className="min-h-screen flex flex-col">
+      <div className="p-6 border-b flex-shrink-0 overflow-y-auto max-h-[35vh] md:max-h-[40vh]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
@@ -498,9 +498,9 @@ export default function ChatPage() {
         )}
       </div>
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-y-auto">
-        <div className="flex-1 flex flex-col min-w-0">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4 min-h-0 overscroll-contain">
             <div className="space-y-4 pb-4">
               {isLoading ? (
                 <div className="space-y-4">
