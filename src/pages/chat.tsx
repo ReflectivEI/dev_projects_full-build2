@@ -638,7 +638,8 @@ export default function ChatPage() {
                 </div>
               )}
             </div>
-          <div className="flex-shrink-0 pt-4 border-t bg-background mt-4">
+          </ScrollArea>
+          <div className="flex-shrink-0 pt-4 border-t bg-background">
             <div className="flex gap-2">
               <Textarea
                 ref={textareaRef}
