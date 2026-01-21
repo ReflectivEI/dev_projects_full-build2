@@ -72,6 +72,7 @@ export default function ModulesPage() {
   const [showPracticeModal, setShowPracticeModal] = useState(false);
   const [aiCoachingModule, setAICoachingModule] = useState<CoachingModule | null>(null);
   const [practiceModule, setPracticeModule] = useState<CoachingModule | null>(null);
+  const [expandedQuestionIndex, setExpandedQuestionIndex] = useState<number | null>(null);
 
   const filteredModules = activeTab === "all"
     ? coachingModules
