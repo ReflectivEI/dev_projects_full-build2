@@ -493,6 +493,16 @@ export default function ChatPage() {
         )}
       </div>
 
+      {/* Session Indicator - Transient notification for session boundaries */}
+      {showSessionIndicator && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Badge variant="secondary" className="px-4 py-2 text-sm shadow-lg">
+            <Sparkles className="h-3 w-3 mr-2 inline" />
+            New Session Started
+          </Badge>
+        </div>
+      )}
+
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4">
