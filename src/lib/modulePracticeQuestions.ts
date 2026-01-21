@@ -5,6 +5,8 @@ export interface PracticeQuestion {
   question: string;
   context?: string;
   focusArea: string;
+  whyItMatters?: string;
+  howToUse?: string;
 }
 
 export interface ModulePracticeQuestions {
