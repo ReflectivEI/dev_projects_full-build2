@@ -319,6 +319,16 @@ export default function ChatPage() {
     }
   }, [messages]);
 
+  // Clear chat when user navigates away from the page
+  useEffect(() => {
+    return () => {
+      // On unmount, clear the session to ensure fresh start on next visit
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("reflectivai-session-id");
+      }
+    };
+  }, []);
+
   const handleSend = () => {
     if (!input.trim() || sendMessageMutation.isPending) return;
     sendMessageMutation.mutate(input.trim());
