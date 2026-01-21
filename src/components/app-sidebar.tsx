@@ -26,6 +26,7 @@ import {
   Dumbbell,
   Loader2,
   RotateCcw,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // Logo removed - using text instead
@@ -86,6 +87,11 @@ const customizationsNavItems = [
     title: "Knowledge Base",
     url: "/knowledge",
     icon: Library,
+  },
+  {
+    title: "Help Center",
+    url: "/help",
+    icon: HelpCircle,
   },
 ];
 
