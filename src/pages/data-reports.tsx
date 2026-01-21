@@ -8,9 +8,11 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { Database, Send, Clock, AlertTriangle, ShieldCheck } from "lucide-react";
+import { Database, Send, Clock, AlertTriangle, ShieldCheck, Download } from "lucide-react";
 import type { SQLQuery } from "@shared/schema";
 import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
+import { exportToCSV, generateFilename } from "@/lib/export-utils";
+import { toast as sonnerToast } from "sonner";
 
 const exampleQuestions = [
   "Show me the top 10 prescribers by total prescriptions",
@@ -82,6 +84,26 @@ export default function DataReportsPage() {
     e.preventDefault();
     if (question.trim()) {
       translateMutation.mutate(question.trim());
+    }
+  };
+
+  const handleExportHistory = () => {
+    if (!queryHistory || queryHistory.length === 0) {
+      sonnerToast.error('No data to export');
+      return;
+    }
+
+    try {
+      const exportData = queryHistory.map(query => ({
+        question: query.naturalLanguageQuery,
+        sql: query.sqlQuery,
+        timestamp: new Date(query.timestamp).toLocaleString(),
+      }));
+
+      exportToCSV(exportData, generateFilename('query-history'), ['question', 'sql', 'timestamp']);
+      sonnerToast.success('Query history exported successfully');
+    } catch (error) {
+      sonnerToast.error('Failed to export data');
     }
   };
 
@@ -177,11 +199,25 @@ export default function DataReportsPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Query History
-              </CardTitle>
-              <CardDescription>Recent translations</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Query History
+                  </CardTitle>
+                  <CardDescription>Recent translations</CardDescription>
+                </div>
+                {queryHistory && queryHistory.length > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportHistory}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-[400px]">
