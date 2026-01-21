@@ -19,6 +19,7 @@ import EIMetricsPage from "@/pages/ei-metrics";
 import ExercisesPage from "@/pages/exercises";
 import DataReportsPage from "@/pages/data-reports";
 import HelpPage from "@/pages/help";
+import ProfilePage from "@/pages/profile";
 
 // Get base path from Vite config (for GitHub Pages deployment)
 const basePath = import.meta.env.BASE_URL || '/';
@@ -37,6 +38,7 @@ function Router() {
         <Route path="/data-reports" component={DataReportsPage} />
         <Route path="/knowledge" component={KnowledgePage} />
         <Route path="/help" component={HelpPage} />
+        <Route path="/profile" component={ProfilePage} />
         <Route component={NotFound} />
       </Switch>
     </WouterRouter>
