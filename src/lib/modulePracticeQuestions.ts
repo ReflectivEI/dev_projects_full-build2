@@ -1,0 +1,167 @@
+// Practice questions for coaching modules
+// Each module gets 4-5 deterministic practice questions
+
+export interface PracticeQuestion {
+  question: string;
+  context?: string;
+  focusArea: string;
+}
+
+export interface ModulePracticeQuestions {
+  moduleId: string;
+  questions: PracticeQuestion[];
+}
+
+export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
+  "discovery": [
+    {
+      question: "What open-ended question would you ask to uncover a physician's biggest challenge with current treatment protocols?",
+      focusArea: "Open-ended questioning",
+      context: "Focus on understanding pain points before presenting solutions"
+    },
+    {
+      question: "How would you follow up when a physician gives a surface-level answer like 'Everything is fine'?",
+      focusArea: "Probing deeper",
+      context: "Challenge assumptions and dig beneath initial responses"
+    },
+    {
+      question: "What would you ask to understand the physician's decision-making criteria for selecting treatments?",
+      focusArea: "Decision criteria discovery",
+      context: "Uncover what truly matters in their evaluation process"
+    },
+    {
+      question: "How would you discover which patient populations the physician finds most challenging to treat?",
+      focusArea: "Patient segmentation",
+      context: "Identify specific use cases where your solution adds value"
+    },
+    {
+      question: "What question would reveal the physician's current workflow and where inefficiencies exist?",
+      focusArea: "Process understanding",
+      context: "Map their current state to identify improvement opportunities"
+    }
+  ],
+  "stakeholder-mapping": [
+    {
+      question: "How would you identify all the stakeholders involved in a hospital formulary decision beyond the primary contact?",
+      focusArea: "Stakeholder identification",
+      context: "Map the complete decision-making unit"
+    },
+    {
+      question: "What questions would you ask to understand the power dynamics between different stakeholders?",
+      focusArea: "Influence mapping",
+      context: "Determine who has veto power vs. advisory roles"
+    },
+    {
+      question: "How would you uncover hidden influencers who aren't in formal decision-making roles?",
+      focusArea: "Hidden influencers",
+      context: "Find the informal power brokers and opinion leaders"
+    },
+    {
+      question: "What approach would you use to understand each stakeholder's individual priorities and concerns?",
+      focusArea: "Individual motivations",
+      context: "Tailor your message to each stakeholder's unique perspective"
+    },
+    {
+      question: "How would you navigate a situation where stakeholders have conflicting priorities?",
+      focusArea: "Conflict resolution",
+      context: "Find common ground and build consensus across competing interests"
+    }
+  ],
+  "clinical-data": [
+    {
+      question: "How would you present a non-inferiority trial result to a skeptical physician who prefers superiority data?",
+      focusArea: "Data interpretation",
+      context: "Frame clinical evidence in context of real-world clinical needs"
+    },
+    {
+      question: "What would you say when a physician asks about a subgroup analysis that wasn't statistically significant?",
+      focusArea: "Statistical literacy",
+      context: "Explain limitations while maintaining credibility"
+    },
+    {
+      question: "How would you address a physician's concern about the generalizability of trial data to their patient population?",
+      focusArea: "External validity",
+      context: "Bridge the gap between trial populations and real-world patients"
+    },
+    {
+      question: "What approach would you use to discuss safety data when there's a numerical imbalance in adverse events?",
+      focusArea: "Safety communication",
+      context: "Present safety data transparently while providing appropriate context"
+    }
+  ],
+  "objection-handling": [
+    {
+      question: "A physician says 'Your drug is too expensive.' How do you respond without being defensive?",
+      focusArea: "Price objections",
+      context: "Acknowledge concern, reframe to value, provide evidence"
+    },
+    {
+      question: "How would you handle: 'I've heard negative things about your drug from colleagues'?",
+      focusArea: "Reputation concerns",
+      context: "Validate their concern, seek specifics, provide balanced perspective"
+    },
+    {
+      question: "What would you say when a physician states: 'The current treatment works fine, why should I switch?'",
+      focusArea: "Status quo bias",
+      context: "Uncover hidden dissatisfaction and present incremental value"
+    },
+    {
+      question: "How do you respond to: 'I don't have time to learn a new treatment protocol'?",
+      focusArea: "Change resistance",
+      context: "Minimize perceived effort and highlight support resources"
+    },
+    {
+      question: "A physician says: 'Your competitor's drug has better efficacy data.' How do you respond?",
+      focusArea: "Competitive positioning",
+      context: "Acknowledge competition, differentiate on relevant dimensions"
+    }
+  ],
+  "closing": [
+    {
+      question: "What specific commitment would you ask for after a successful product presentation?",
+      focusArea: "Commitment gaining",
+      context: "Be specific about next steps and timelines"
+    },
+    {
+      question: "How would you handle a physician who says 'Let me think about it' at the end of your meeting?",
+      focusArea: "Soft objections",
+      context: "Uncover real concerns and establish concrete follow-up"
+    },
+    {
+      question: "What would you say to move from 'I'm interested' to 'I'll prescribe this for my next eligible patient'?",
+      focusArea: "Trial close",
+      context: "Bridge interest to action with specific patient scenarios"
+    },
+    {
+      question: "How would you secure a follow-up meeting when the physician seems satisfied but hasn't committed?",
+      focusArea: "Next steps",
+      context: "Create urgency and provide compelling reason to meet again"
+    }
+  ],
+  "eq-mastery": [
+    {
+      question: "How would you recognize and respond when a physician becomes defensive during your conversation?",
+      focusArea: "Emotional awareness",
+      context: "Read emotional cues and adjust your approach in real-time"
+    },
+    {
+      question: "What would you do if you notice your own frustration rising during a difficult interaction?",
+      focusArea: "Self-regulation",
+      context: "Manage your emotions to maintain professional effectiveness"
+    },
+    {
+      question: "How would you build rapport with a physician who seems rushed and uninterested?",
+      focusArea: "Empathy and connection",
+      context: "Demonstrate understanding of their constraints and priorities"
+    },
+    {
+      question: "What approach would you use to re-engage a physician who has become disengaged mid-conversation?",
+      focusArea: "Engagement recovery",
+      context: "Recognize disengagement signals and pivot to regain attention"
+    }
+  ]
+};
+
+export function getPracticeQuestions(moduleId: string): PracticeQuestion[] {
+  return MODULE_PRACTICE_QUESTIONS[moduleId] || [];
+}
