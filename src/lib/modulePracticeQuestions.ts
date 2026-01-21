@@ -34,17 +34,23 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
     {
       question: "What would you ask to understand the physician's decision-making criteria for selecting treatments?",
       focusArea: "Decision criteria discovery",
-      context: "Uncover what truly matters in their evaluation process"
+      context: "Uncover what truly matters in their evaluation process",
+      whyItMatters: "Understanding decision criteria allows you to align your value proposition with what the physician actually cares about—whether it's efficacy, safety, cost, ease of use, or patient compliance.",
+      howToUse: "Ask this early in the relationship to guide all future conversations. Listen for both stated criteria (what they say matters) and revealed criteria (what their questions and concerns actually focus on)."
     },
     {
       question: "How would you discover which patient populations the physician finds most challenging to treat?",
       focusArea: "Patient segmentation",
-      context: "Identify specific use cases where your solution adds value"
+      context: "Identify specific use cases where your solution adds value",
+      whyItMatters: "Physicians are most receptive to solutions that address their toughest clinical challenges. Identifying these pain points helps you position your product where it can make the biggest difference.",
+      howToUse: "Use this question to uncover specific patient profiles, comorbidities, or treatment-resistant cases. Follow up with: 'What makes this population particularly challenging?' to dig deeper."
     },
     {
       question: "What question would reveal the physician's current workflow and where inefficiencies exist?",
       focusArea: "Process understanding",
-      context: "Map their current state to identify improvement opportunities"
+      context: "Map their current state to identify improvement opportunities",
+      whyItMatters: "Workflow inefficiencies represent opportunities for your solution to add value beyond clinical efficacy. Understanding their process helps you position practical benefits like time savings, reduced administrative burden, or better patient monitoring.",
+      howToUse: "Ask: 'Walk me through how you currently manage [condition]—from diagnosis to follow-up.' Listen for pain points, bottlenecks, and workarounds. These are opportunities to demonstrate value."
     }
   ],
   // Alias for stakeholder module
