@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 // Logo removed - using text/icon instead
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, getSessionId } from "@/lib/queryClient";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import type { Message } from "@shared/schema";
@@ -185,6 +185,7 @@ export default function ChatPage() {
   const [selectedInfluenceDriver, setSelectedInfluenceDriver] = useState<string>("");
   const [discEnabled, setDiscEnabled] = useState<boolean>(false);
   const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
+  const [showSessionIndicator, setShowSessionIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -293,6 +294,16 @@ export default function ChatPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
       setObservableSignals([]);
+      setShowSummary(false); // Close summary dialog on session reset
+      
+      // Reset session ID for true fresh start
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("reflectivai-session-id");
+      }
+      
+      // Show "New Session" indicator (auto-dismiss after 3s)
+      setShowSessionIndicator(true);
+      setTimeout(() => setShowSessionIndicator(false), 3000);
     },
   });
 
@@ -362,7 +373,7 @@ export default function ChatPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleGetSummary}
-                  disabled={summaryMutation.isPending}
+                  disabled={summaryMutation.isPending || messages.length === 0}
                   data-testid="button-session-summary"
                 >
                   {summaryMutation.isPending ? (
@@ -497,6 +508,16 @@ export default function ChatPage() {
           </div>
         )}
       </div>
+
+      {/* Session Indicator - Transient notification for session boundaries */}
+      {showSessionIndicator && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Badge variant="secondary" className="px-4 py-2 text-sm shadow-lg">
+            <Sparkles className="h-3 w-3 mr-2 inline" />
+            New Session Started
+          </Badge>
+        </div>
+      )}
 
       <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
