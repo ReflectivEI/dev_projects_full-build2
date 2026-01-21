@@ -95,27 +95,37 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
     {
       question: "How would you identify all the stakeholders involved in a hospital formulary decision beyond the primary contact?",
       focusArea: "Stakeholder identification",
-      context: "Map the complete decision-making unit"
+      context: "Map the complete decision-making unit",
+      whyItMatters: "Formulary decisions involve multiple stakeholders. Missing a key decision-maker can derail your entire effort.",
+      howToUse: "Ask: 'Who else is involved in evaluating new treatments?' and 'Whose approval is required?' Map the org chart."
     },
     {
       question: "What questions would you ask to understand the power dynamics between different stakeholders?",
       focusArea: "Influence mapping",
-      context: "Determine who has veto power vs. advisory roles"
+      context: "Determine who has veto power vs. advisory roles",
+      whyItMatters: "Not all stakeholders have equal influence. Understanding power dynamics helps you prioritize your time and tailor your approach.",
+      howToUse: "Ask: 'When decisions like this have been made in the past, whose input carried the most weight?'"
     },
     {
       question: "How would you uncover hidden influencers who aren't in formal decision-making roles?",
       focusArea: "Hidden influencers",
-      context: "Find the informal power brokers and opinion leaders"
+      context: "Find the informal power brokers and opinion leaders",
+      whyItMatters: "Informal influencers often have more sway than their title suggests. They can be champions or blockers.",
+      howToUse: "Ask: 'Who do people go to for advice on clinical matters?' Look for respected clinicians, long-tenured staff, and opinion leaders."
     },
     {
       question: "What approach would you use to understand each stakeholder's individual priorities and concerns?",
       focusArea: "Individual motivations",
-      context: "Tailor your message to each stakeholder's unique perspective"
+      context: "Tailor your message to each stakeholder's unique perspective",
+      whyItMatters: "Each stakeholder has unique priorities. Generic messaging fails to resonate with anyone.",
+      howToUse: "Research their background, ask about their goals, and listen for what they emphasize. Adapt your message accordingly."
     },
     {
       question: "How would you navigate a situation where stakeholders have conflicting priorities?",
       focusArea: "Conflict resolution",
-      context: "Find common ground and build consensus across competing interests"
+      context: "Find common ground and build consensus across competing interests",
+      whyItMatters: "Conflicting priorities are common. Your ability to find common ground and build consensus is critical to moving deals forward.",
+      howToUse: "Identify shared goals (e.g., patient outcomes, efficiency). Position your solution as addressing multiple priorities simultaneously."
     }
   ],
   // Alias for clinical module
