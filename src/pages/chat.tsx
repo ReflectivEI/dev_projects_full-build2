@@ -266,17 +266,8 @@ export default function ChatPage() {
       return normalized.json || { messages: [] };
     },
     onSuccess: (data) => {
-      // Immediately reflect returned messages to avoid UI gaps if refetch races
-      if (Array.isArray(data?.messages)) {
-        queryClient.setQueryData(["/api/chat/messages"], normalizeMessages(data.messages));
-      } else if (data?.userMessage || data?.aiMessage) {
-        queryClient.setQueryData(["/api/chat/messages"], (prev: Message[] | undefined) => {
-          const next = Array.isArray(prev) ? [...prev] : [];
-          const appended = normalizeMessages([data.userMessage, data.aiMessage]);
-          return [...next, ...appended];
-        });
-      }
-
+      // CRITICAL: Only invalidate to refetch, never replace message array directly
+      // This prevents messages from disappearing when API response is incomplete
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
 
       // Update observable signals from the AI response (normalized to prevent runtime crashes)
@@ -515,9 +506,9 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 overflow-hidden min-h-0">
-        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:pr-4 min-h-0 overscroll-contain pb-32">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:pr-4 min-h-0 overscroll-contain pb-4">
             <div className="space-y-4 pb-4">
               {isLoading ? (
                 <div className="space-y-4">
@@ -645,7 +636,7 @@ export default function ChatPage() {
             </div>
           </div>
 
-          <div className="pt-4 border-t">
+          <div className="flex-shrink-0 pt-4 border-t bg-background">
             <div className="flex gap-2">
               <Textarea
                 ref={textareaRef}
