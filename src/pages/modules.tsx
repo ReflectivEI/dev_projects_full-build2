@@ -69,52 +69,83 @@ export default function ModulesPage() {
     console.log('[MODULES] generateCoachingGuidance called for module:', module.title);
     setIsGenerating(true);
     setError(null);
-    setCoachingGuidance(null); // Clear previous guidance
+    setCoachingGuidance(null);
 
     try {
-      // ENTERPRISE SOLUTION: Use static coaching content library
-      // This provides professional, FDA-compliant coaching guidance immediately
-      // without relying on external API calls that may fail
+      const response = await apiRequest("POST", "/api/chat/send", {
+        message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
+
+Generate coaching guidance for: "${module.title}"
+Description: "${module.description}"
+
+Respond with this EXACT JSON structure (no markdown, no explanation):
+{"focus": "main coaching focus", "whyItMatters": "why this matters", "nextAction": "next action to take", "keyPractices": ["practice1", "practice2", "practice3"], "commonChallenges": ["challenge1", "challenge2", "challenge3"], "developmentTips": ["tip1", "tip2", "tip3"]}
+
+JSON only:`,
+        content: "Generate coaching guidance"
+      });
+
+      const rawText = await response.text();
       
-      // Simulate brief loading for UX (feels more natural)
-      await new Promise(resolve => setTimeout(resolve, 800));
+      if (response.ok) {
+        const normalized = normalizeAIResponse(rawText);
+        
+        let aiMessage = normalized.text;
+        if (normalized.json) {
+          const messages = normalized.json.messages;
+          if (Array.isArray(messages) && messages.length > 0) {
+            aiMessage = messages[messages.length - 1]?.content || normalized.text;
+          }
+        }
+
+        const guidanceNormalized = normalizeAIResponse(aiMessage);
+        
+        if (guidanceNormalized.json && guidanceNormalized.json.focus && guidanceNormalized.json.whyItMatters && guidanceNormalized.json.nextAction) {
+          setCoachingGuidance({
+            focus: guidanceNormalized.json.focus || '',
+            whyItMatters: guidanceNormalized.json.whyItMatters || '',
+            nextAction: guidanceNormalized.json.nextAction || '',
+            keyPractices: Array.isArray(guidanceNormalized.json.keyPractices) ? guidanceNormalized.json.keyPractices : [],
+            commonChallenges: Array.isArray(guidanceNormalized.json.commonChallenges) ? guidanceNormalized.json.commonChallenges : [],
+            developmentTips: Array.isArray(guidanceNormalized.json.developmentTips) ? guidanceNormalized.json.developmentTips : []
+          });
+          return;
+        }
+      }
       
+      throw new Error('AI response invalid or unavailable');
+      
+    } catch (err) {
+      console.warn('[MODULES] AI generation failed, using static content:', err);
       const content = getCoachingContent(module.id);
       
       if (content) {
         setCoachingGuidance(content);
-        console.log('[MODULES] Loaded coaching content from library:', content.focus);
       } else {
-        throw new Error(`No coaching content available for module: ${module.id}`);
+        setCoachingGuidance({
+          focus: `Coaching Tips for ${module.title}`,
+          whyItMatters: "Focus on active listening and understanding customer needs. Practice the core skills regularly and seek feedback from colleagues. Build relationships based on trust and clinical value.",
+          nextAction: "Apply these coaching principles in your next customer interaction and document your learnings.",
+          keyPractices: [
+            'Practice active listening and ask open-ended questions',
+            'Focus on customer needs before presenting solutions',
+            'Use clinical evidence to support your recommendations',
+            'Follow up consistently and provide ongoing value'
+          ],
+          commonChallenges: [
+            'Talking too much instead of listening',
+            'Focusing on product features instead of customer needs',
+            'Not following up after initial conversations',
+            'Failing to document insights for future reference'
+          ],
+          developmentTips: [
+            'Record yourself (with permission) and review your approach',
+            'Role-play difficult scenarios with colleagues',
+            'Seek feedback from managers and peers regularly',
+            'Study best practices from top performers in your organization'
+          ]
+        });
       }
-    } catch (err) {
-      console.error("[MODULES] Error loading coaching content:", err);
-      setError("Unable to load coaching guidance. Please try again.");
-      
-      // Set a fallback guidance
-      setCoachingGuidance({
-        focus: `Coaching Tips for ${module.title}`,
-        whyItMatters: "Focus on active listening and understanding customer needs. Practice the core skills regularly and seek feedback from colleagues. Build relationships based on trust and clinical value.",
-        nextAction: "Apply these coaching principles in your next customer interaction and document your learnings.",
-        keyPractices: [
-          'Practice active listening and ask open-ended questions',
-          'Focus on customer needs before presenting solutions',
-          'Use clinical evidence to support your recommendations',
-          'Follow up consistently and provide ongoing value'
-        ],
-        commonChallenges: [
-          'Talking too much instead of listening',
-          'Focusing on product features instead of customer needs',
-          'Not following up after initial conversations',
-          'Failing to document insights for future reference'
-        ],
-        developmentTips: [
-          'Record yourself (with permission) and review your approach',
-          'Role-play difficult scenarios with colleagues',
-          'Seek feedback from managers and peers regularly',
-          'Study best practices from top performers in your organization'
-        ]
-      });
     } finally {
       setIsGenerating(false);
     }
