@@ -9,6 +9,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationCenter } from "@/components/notification-center";
 import { ApiStatusBanner, ApiStatusBadge } from "@/components/api-status";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
@@ -66,7 +67,10 @@ function App() {
                     <SidebarTrigger data-testid="button-sidebar-toggle" />
                     <ApiStatusBadge />
                   </div>
-                  <ThemeToggle />
+                  <div className="flex items-center gap-4">
+                    <NotificationCenter />
+                    <ThemeToggle />
+                  </div>
                 </header>
                 <ApiStatusBanner />
                 <main className="flex-1 overflow-hidden">
