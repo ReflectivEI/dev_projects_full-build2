@@ -129,15 +129,18 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
-            R
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold leading-tight" data-testid="text-app-name">ReflectivAI</span>
-            <span className="text-xs text-muted-foreground">Sales Enablement</span>
-          </div>
-        </Link>
+        <div className="flex items-center justify-between gap-2">
+          <Link href="/" className="flex items-center gap-3 flex-1">
+            <div className="h-9 w-9 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+              R
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold leading-tight" data-testid="text-app-name">ReflectivAI</span>
+              <span className="text-xs text-muted-foreground">Sales Enablement</span>
+            </div>
+          </Link>
+          <NotificationCenter />
+        </div>
       </SidebarHeader>
 
       {/* User Profile - Moved above Main section */}
