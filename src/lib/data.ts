@@ -1459,6 +1459,11 @@ export interface SignalCapability {
   description: string;
   showsUpWhen: string;
   examples: string[];
+  whatItMeasures: string;
+  whatStrongPerformanceLooksLike: string[];
+  observableBehaviors: string[];
+  whyItMatters: string;
+  coachingInsight: string[];
   calculation?: string;
   keyTip?: string;
   whatGoodLooksLike?: string;
@@ -1485,6 +1490,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Questions advance understanding or clarify next steps',
       'Questions open productive dialogue and build momentum',
     ],
+    whatItMeasures: 'How well a rep notices what matters in the moment and asks questions that move the conversation forward.',
+    whatStrongPerformanceLooksLike: [
+      'Questions clearly reflect what the customer just said',
+      'Timing feels natural, not scripted',
+      'Each question advances understanding or momentum',
+    ],
+    observableBehaviors: [
+      'Builds directly on customer statements',
+      'Avoids generic or disconnected questions',
+      'Uses questions to clarify priorities and direction',
+    ],
+    whyItMatters: 'Signal Awareness is the foundation of effective conversations. When reps notice the right cues and respond with relevant questions, customers feel understood and engaged rather than interrogated.',
+    coachingInsight: [
+      'Missed relevance → coach noticing and timing',
+      'Low momentum → coach question purpose, not technique',
+    ],
     icon: 'Target',
     color: 'hsl(210, 100%, 50%)',
     isCore: true,
@@ -1501,6 +1522,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Avoids misinterpreting intent, priority, or meaning',
       'Response directly addresses the customer\'s input',
       'Adjusts message, depth, or direction appropriately',
+    ],
+    whatItMeasures: 'How accurately a rep understands customer input and responds in a way that clearly reflects that understanding.',
+    whatStrongPerformanceLooksLike: [
+      'Customer ideas are accurately reflected or paraphrased',
+      'Responses align with what the customer actually expressed',
+      'No assumptions or misreads',
+    ],
+    observableBehaviors: [
+      'Correctly summarizes customer points',
+      'Adjusts response based on customer meaning',
+      'Avoids default or pre-planned replies',
+    ],
+    whyItMatters: 'Understanding without alignment breaks trust. Signal Interpretation ensures the rep is responding to the customer\'s reality, not their own assumptions.',
+    coachingInsight: [
+      'Misinterpretation → coach listening precision',
+      'Poor alignment → coach response adaptability',
     ],
     icon: 'Ear',
     color: 'hsl(142, 76%, 36%)',
@@ -1519,6 +1556,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Connects features or data to implications for the customer',
       'Articulates "so what this means for you is..."',
     ],
+    whatItMeasures: 'How clearly the rep connects information to what matters to the customer and explains why it matters.',
+    whatStrongPerformanceLooksLike: [
+      'Value is framed in customer terms, not product terms',
+      '"So what" is clear without persuasion',
+      'Outcomes are easy to understand',
+    ],
+    observableBehaviors: [
+      'References customer priorities or challenges',
+      'Translates information into real-world impact',
+      'Avoids feature-centric explanations',
+    ],
+    whyItMatters: 'Information alone does not create value. Customers engage when relevance and impact are unmistakable.',
+    coachingInsight: [
+      'Low relevance → coach discovery usage',
+      'Low impact clarity → coach outcome articulation',
+    ],
     icon: 'Target',
     color: 'hsl(271, 76%, 53%)',
     isCore: true,
@@ -1535,6 +1588,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Rep responds promptly to subtle cues and adjusts pacing or direction',
       'Conversation flows with smooth transitions between topics',
       'Rep consistently deepens engagement by expanding on customer signals',
+    ],
+    whatItMeasures: 'How well the rep notices and responds to changes in customer participation and conversational momentum.',
+    whatStrongPerformanceLooksLike: [
+      'Balanced dialogue, not rep-dominated',
+      'Rep adjusts when engagement shifts',
+      'Momentum feels natural and sustained',
+    ],
+    observableBehaviors: [
+      'Customer actively participates and elaborates',
+      'Rep responds to verbal and pacing cues',
+      'Customer input is built upon, not bypassed',
+    ],
+    whyItMatters: 'Engagement is dynamic. Skilled reps continuously read participation signals and adjust before disengagement occurs.',
+    coachingInsight: [
+      'Low participation → coach invitation and pacing',
+      'Missed cues → coach real-time awareness',
     ],
     icon: 'Activity',
     color: 'hsl(24, 95%, 53%)',
@@ -1553,6 +1622,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Explores the objection to understand its basis',
       'Objection is clearly reframed or positioned for next steps',
     ],
+    whatItMeasures: 'How constructively a rep responds when resistance appears, without defensiveness or avoidance.',
+    whatStrongPerformanceLooksLike: [
+      'Objections are acknowledged, not dismissed',
+      'Rep explores the concern before responding',
+      'Dialogue remains calm and productive',
+    ],
+    observableBehaviors: [
+      'Maintains composure under resistance',
+      'Engages objections directly and respectfully',
+      'Leaves concerns clearer than before',
+    ],
+    whyItMatters: 'Objections are moments of risk and opportunity. Skillful navigation preserves trust and forward motion.',
+    coachingInsight: [
+      'Defensiveness → coach stance and regulation',
+      'Avoidance → coach curiosity and engagement',
+    ],
     icon: 'Shield',
     color: 'hsl(0, 84%, 60%)',
     isCore: true,
@@ -1569,6 +1654,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Transitions are framed rather than abrupt',
       'Integrates new topics without losing coherence',
       'Adjusts pacing, depth, or focus in response to customer input',
+    ],
+    whatItMeasures: 'How effectively the rep provides structure and direction while remaining responsive.',
+    whatStrongPerformanceLooksLike: [
+      'Clear conversational direction',
+      'Smooth transitions between topics',
+      'Intentional closure',
+    ],
+    observableBehaviors: [
+      'Frames purpose and transitions',
+      'Adapts structure without losing coherence',
+      'Summarizes and aligns on next steps',
+    ],
+    whyItMatters: 'Well-managed conversations feel purposeful, not rushed or scattered—supporting clarity and execution.',
+    coachingInsight: [
+      'Drift → coach framing',
+      'Rigidity → coach adaptive steering',
     ],
     icon: 'Map',
     color: 'hsl(221, 83%, 53%)',
@@ -1587,6 +1688,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Adjustment aligns with customer\'s needs or direction',
       'Adaptation feels intentional and maintains conversational coherence',
     ],
+    whatItMeasures: 'How effectively a rep adjusts approach, depth, tone, or pacing as conditions change.',
+    whatStrongPerformanceLooksLike: [
+      'Adjustments are timely and intentional',
+      'Changes improve clarity or momentum',
+      'Conversation remains coherent',
+    ],
+    observableBehaviors: [
+      'Recognizes shifts in context or constraints',
+      'Avoids autopilot responses',
+      'Adapts without disrupting flow',
+    ],
+    whyItMatters: 'Adaptability separates situational judgment from scripted behavior.',
+    coachingInsight: [
+      'Missed shifts → coach noticing',
+      'Poor adjustments → coach response quality',
+    ],
     icon: 'Shuffle',
     color: 'hsl(173, 58%, 39%)',
     isCore: true,
@@ -1603,6 +1720,22 @@ export const signalCapabilities: SignalCapability[] = [
       'Customer verbally agrees to or proposes the next step',
       'Language reflects ownership ("I will...", "We\'ll...")',
       'Commitment is firm, specific, and highly credible',
+    ],
+    whatItMeasures: 'How clearly and voluntarily the customer commits to next actions.',
+    whatStrongPerformanceLooksLike: [
+      'Next steps are explicit and concrete',
+      'Customer owns the commitment',
+      'Roles and timing are clear',
+    ],
+    observableBehaviors: [
+      'Specific actions are agreed upon',
+      'Customer language reflects ownership',
+      'No vague or forced endings',
+    ],
+    whyItMatters: 'Commitment is about clarity and ownership—not pressure or persuasion.',
+    coachingInsight: [
+      'Vague endings → coach specificity',
+      'Weak ownership → coach invitation vs. imposition',
     ],
     icon: 'CheckCircle',
     color: 'hsl(142, 71%, 45%)',
