@@ -634,7 +634,11 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
           <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2">
             {practiceModule && getPracticeQuestions(practiceModule.id).length > 0 ? (
               getPracticeQuestions(practiceModule.id).map((q, idx) => (
-                <Card key={idx} className="border-l-4 border-l-primary">
+                <Card 
+                  key={idx} 
+                  className="border-l-4 border-l-primary cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => setExpandedQuestionIndex(expandedQuestionIndex === idx ? null : idx)}
+                >
                   <CardContent className="pt-4">
                     <div className="space-y-3">
                       <div className="flex items-start justify-between gap-3">
@@ -648,6 +652,28 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
                           {q.context}
                         </p>
                       )}
+                      {expandedQuestionIndex === idx && (q.whyItMatters || q.howToUse) && (
+                        <div className="mt-4 pt-4 border-t space-y-3">
+                          {q.whyItMatters && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Lightbulb className="h-4 w-4 text-primary" />
+                                <p className="text-xs font-semibold">Why This Matters</p>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{q.whyItMatters}</p>
+                            </div>
+                          )}
+                          {q.howToUse && (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <Target className="h-4 w-4 text-primary" />
+                                <p className="text-xs font-semibold">How to Use This Question</p>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{q.howToUse}</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -660,6 +686,18 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
                 </AlertDescription>
               </Alert>
             )}
+          </div>
+          
+          <div className="sticky bottom-0 pt-4 pb-2 bg-background border-t mt-4">
+            <Button 
+              onClick={() => {
+                setShowPracticeModal(false);
+                setExpandedQuestionIndex(null);
+              }} 
+              className="w-full"
+            >
+              Done
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
