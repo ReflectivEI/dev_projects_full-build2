@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 // Logo removed - using text/icon instead
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest, getSessionId } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import type { Message } from "@shared/schema";
@@ -249,25 +249,20 @@ export default function ChatPage() {
           discEnabled,
         },
       });
-      
-      // P0 FIX: Read response body BEFORE checking status
-      const rawText = await response.text();
-      
-      if (!import.meta.env.DEV) {
-        console.log("[P0 CHAT] Response status:", response.status);
-        console.log("[P0 CHAT] Response body:", rawText.substring(0, 500));
-      }
-
-      if (!response.ok) {
-        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
-      }
-      
-      const normalized = normalizeAIResponse(rawText);
-      return normalized.json || { messages: [] };
+      return response.json();
     },
     onSuccess: (data) => {
-      // CRITICAL: Only invalidate to refetch, never replace message array directly
-      // This prevents messages from disappearing when API response is incomplete
+      // Immediately reflect returned messages to avoid UI gaps if refetch races
+      if (Array.isArray(data?.messages)) {
+        queryClient.setQueryData(["/api/chat/messages"], normalizeMessages(data.messages));
+      } else if (data?.userMessage || data?.aiMessage) {
+        queryClient.setQueryData(["/api/chat/messages"], (prev: Message[] | undefined) => {
+          const next = Array.isArray(prev) ? [...prev] : [];
+          const appended = normalizeMessages([data.userMessage, data.aiMessage]);
+          return [...next, ...appended];
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
 
       // Update observable signals from the AI response (normalized to prevent runtime crashes)
@@ -343,8 +338,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 bg-background p-4 md:p-6 border-b flex-shrink-0">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="p-6 border-b flex-shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
@@ -358,20 +353,22 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGetSummary}
-              disabled={summaryMutation.isPending}
-              data-testid="button-session-summary"
-            >
-              {summaryMutation.isPending ? (
-                <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-              ) : (
-                <FileText className="h-4 w-4 mr-2" />
-              )}
-              Session Summary
-            </Button>
+            {messages.length >= 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGetSummary}
+                disabled={summaryMutation.isPending}
+                data-testid="button-session-summary"
+              >
+                {summaryMutation.isPending ? (
+                  <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
+                Session Summary
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -506,9 +503,9 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0">
-        <div className="flex-1 flex flex-col min-w-0">
-          <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
+      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4">
             <div className="space-y-4 pb-4">
               {isLoading ? (
                 <div className="space-y-4">
@@ -638,8 +635,9 @@ export default function ChatPage() {
                 </div>
               )}
             </div>
-          </ScrollArea>
-          <div className="flex-shrink-0 pt-4 border-t bg-background">
+          </div>
+
+          <div className="pt-4 border-t">
             <div className="flex gap-2">
               <Textarea
                 ref={textareaRef}
@@ -662,7 +660,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="w-full md:w-72 flex-shrink-0 flex flex-col overflow-hidden md:max-h-full max-h-96">
+        <div className="w-72 flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-2">
             <Card className="mb-4">
               <CardContent className="pt-6">
