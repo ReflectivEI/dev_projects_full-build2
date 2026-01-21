@@ -142,6 +142,7 @@ export async function apiRequest(
   method: string,
   url: string,
   data?: unknown | undefined,
+  options?: { signal?: AbortSignal },
 ): Promise<Response> {
   if (!getSessionId()) {
     await ensureSessionId();
@@ -162,6 +163,7 @@ export async function apiRequest(
     body: data ? JSON.stringify(data) : undefined,
     // Only include credentials for same-origin requests (not for external APIs)
     credentials: isExternalApi ? "omit" : "include",
+    signal: options?.signal,
   });
 
   // P0 DIAGNOSTIC: Log response details WITHOUT consuming body
