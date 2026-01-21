@@ -293,6 +293,10 @@ JSON only:`,
     setIsGeneratingCustomization(true);
     setCustomizationError(null);
 
+    // Create AbortController with 12-second timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 12000);
+
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
@@ -306,7 +310,7 @@ Respond with this EXACT JSON structure (no markdown, no explanation):
 
 JSON only:`,
         content: "Generate template customization"
-      });
+      }, { signal: abortController.signal });
 
       // P0 FIX: Read response body BEFORE checking status
       const rawText = await response.text();
