@@ -58,27 +58,37 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
     {
       question: "How would you identify all the stakeholders involved in a hospital formulary decision beyond the primary contact?",
       focusArea: "Stakeholder identification",
-      context: "Map the complete decision-making unit"
+      context: "Map the complete decision-making unit",
+      whyItMatters: "Formulary decisions involve multiple stakeholders with different priorities. Missing a key decision-maker can derail your entire effort, even if your primary contact supports you.",
+      howToUse: "Ask your primary contact: 'Who else is involved in evaluating new treatments?' and 'Whose approval is required before this moves forward?' Map the org chart and decision process."
     },
     {
       question: "What questions would you ask to understand the power dynamics between different stakeholders?",
       focusArea: "Influence mapping",
-      context: "Identify who has veto power vs. advisory roles"
+      context: "Identify who has veto power vs. advisory roles",
+      whyItMatters: "Not all stakeholders have equal influence. Understanding who has veto power, who are influencers, and who are gatekeepers helps you prioritize your time and tailor your approach.",
+      howToUse: "Ask: 'When decisions like this have been made in the past, whose input carried the most weight?' and 'Is there anyone who could block this even if others support it?'"
     },
     {
       question: "How would you tailor your message differently for a CFO vs. a Chief Medical Officer?",
       focusArea: "Audience adaptation",
-      context: "Speak to each stakeholder's priorities and concerns"
+      context: "Speak to each stakeholder's priorities and concerns",
+      whyItMatters: "CFOs care about budget impact and ROI. CMOs care about clinical outcomes and quality of care. Using the same pitch for both wastes their time and shows you don't understand their role.",
+      howToUse: "For CFOs: Lead with cost-effectiveness, budget impact, and financial outcomes. For CMOs: Lead with clinical efficacy, safety data, and patient outcomes. Adapt your evidence and language to their priorities."
     },
     {
       question: "What approach would you use to gain access to stakeholders who are difficult to reach?",
       focusArea: "Access strategy",
-      context: "Leverage existing relationships and find creative entry points"
+      context: "Leverage existing relationships and find creative entry points",
+      whyItMatters: "Key decision-makers are often busy and hard to reach. Your ability to gain access through creative strategies and relationship leverage separates successful reps from those who get stuck at the gatekeeper level.",
+      howToUse: "Ask your champion: 'What's the best way to get on [stakeholder]'s calendar?' Offer value upfront (e.g., relevant clinical data, peer insights). Use warm introductions whenever possible."
     },
     {
       question: "How would you document and track stakeholder relationships over time?",
       focusArea: "Relationship management",
-      context: "Maintain institutional knowledge and continuity"
+      context: "Maintain institutional knowledge and continuity",
+      whyItMatters: "Stakeholder relationships evolve. People change roles, priorities shift, and new decision-makers emerge. Systematic tracking ensures you maintain continuity and don't lose ground when changes occur.",
+      howToUse: "Use your CRM to track: stakeholder roles, priorities, interaction history, and relationship strength. Update after every interaction. Review quarterly to identify gaps and opportunities."
     }
   ],
   "stakeholder-mapping": [
