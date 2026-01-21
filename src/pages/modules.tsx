@@ -87,19 +87,30 @@ export default function ModulesPage() {
     setError(null);
     setCoachingGuidance(null);
 
+    // Create AbortController with 12-second timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 12000);
+
     try {
+      const prompt = `You are a pharma sales coaching expert. Generate coaching guidance for the module: "${module.title}"
+
+Module Category: ${categoryLabels[module.category] || module.category}
+Description: ${module.description}
+
+Provide structured coaching guidance in this format:
+
+1. Coaching Focus (1 sentence): What is the core skill or mindset to develop?
+2. Why It Matters (2-3 sentences): Why is this critical for pharma sales success?
+3. Next Action (1-2 bullet points): Immediate steps to practice this skill
+4. Key Practices (3-5 bullet points): Specific techniques and approaches
+5. Sample Line (20 seconds): A specific phrase or question they can use in their next conversation
+
+Be specific to pharma sales context (HCPs, clinical data, formulary decisions, etc.)`;
+
       const response = await apiRequest("POST", "/api/chat/send", {
-        message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
-
-Generate coaching guidance for: "${module.title}"
-Description: "${module.description}"
-
-Respond with this EXACT JSON structure (no markdown, no explanation):
-{"focus": "main coaching focus", "whyItMatters": "why this matters", "nextAction": "next action to take", "keyPractices": ["practice1", "practice2", "practice3"], "commonChallenges": ["challenge1", "challenge2", "challenge3"], "developmentTips": ["tip1", "tip2", "tip3"]}
-
-JSON only:`,
+        message: prompt,
         content: "Generate coaching guidance"
-      });
+      }, { signal: abortController.signal });
 
       const rawText = await response.text();
       
@@ -116,7 +127,8 @@ JSON only:`,
 
         const guidanceNormalized = normalizeAIResponse(aiMessage);
         
-        if (guidanceNormalized.json && guidanceNormalized.json.focus && guidanceNormalized.json.whyItMatters && guidanceNormalized.json.nextAction) {
+        // Try to parse structured JSON response
+        if (guidanceNormalized.json && guidanceNormalized.json.focus) {
           setCoachingGuidance({
             focus: guidanceNormalized.json.focus || '',
             whyItMatters: guidanceNormalized.json.whyItMatters || '',
@@ -124,6 +136,19 @@ JSON only:`,
             keyPractices: Array.isArray(guidanceNormalized.json.keyPractices) ? guidanceNormalized.json.keyPractices : [],
             commonChallenges: Array.isArray(guidanceNormalized.json.commonChallenges) ? guidanceNormalized.json.commonChallenges : [],
             developmentTips: Array.isArray(guidanceNormalized.json.developmentTips) ? guidanceNormalized.json.developmentTips : []
+          });
+          return;
+        }
+        
+        // If AI returned prose, use it as-is
+        if (aiMessage && aiMessage.trim().length > 50) {
+          setCoachingGuidance({
+            focus: `AI Coaching for ${module.title}`,
+            whyItMatters: aiMessage,
+            nextAction: "Apply these insights in your next customer interaction.",
+            keyPractices: [],
+            commonChallenges: [],
+            developmentTips: []
           });
           return;
         }
@@ -138,24 +163,23 @@ JSON only:`,
       if (content) {
         setCoachingGuidance(content);
       } else {
+        // Deterministic fallback using module info
         setCoachingGuidance({
-          focus: `Coaching Tips for ${module.title}`,
-          whyItMatters: "Focus on active listening and understanding customer needs. Practice the core skills regularly and seek feedback from colleagues. Build relationships based on trust and clinical value.",
-          nextAction: "Apply these coaching principles in your next customer interaction and document your learnings.",
+          focus: `${module.title} Coaching`,
+          whyItMatters: `${module.description} This skill is essential for building trust with healthcare professionals and driving meaningful clinical conversations that lead to better patient outcomes.`,
+          nextAction: "Practice this skill in your next customer interaction and document what worked well.",
           keyPractices: [
-            'Practice active listening and ask open-ended questions',
-            'Focus on customer needs before presenting solutions',
-            'Use clinical evidence to support your recommendations',
-            'Follow up consistently and provide ongoing value'
+            'Focus on active listening and understanding customer needs',
+            'Use open-ended questions to uncover deeper insights',
+            'Connect clinical evidence to real-world patient scenarios',
+            'Build relationships based on trust and ongoing value'
           ],
           commonChallenges: [
             'Talking too much instead of listening',
             'Focusing on product features instead of customer needs',
-            'Not following up after initial conversations',
-            'Failing to document insights for future reference'
+            'Not following up consistently after initial conversations'
           ],
           developmentTips: [
-            'Record yourself (with permission) and review your approach',
             'Role-play difficult scenarios with colleagues',
             'Seek feedback from managers and peers regularly',
             'Study best practices from top performers in your organization'
@@ -163,6 +187,7 @@ JSON only:`,
         });
       }
     } finally {
+      clearTimeout(timeoutId);
       setIsGenerating(false);
     }
   };
