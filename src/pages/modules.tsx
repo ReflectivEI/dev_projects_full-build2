@@ -487,8 +487,9 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedModule(module);
-                        // Auto-generate AI coaching when clicking AI Coaching button
+                        setAICoachingModule(module);
+                        setShowAICoachingModal(true);
+                        // Auto-generate when modal opens
                         setTimeout(() => generateCoachingGuidance(module), 100);
                       }}
                     >
@@ -500,9 +501,8 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        setSelectedModule(module);
-                        // Don't auto-generate when viewing module details
-                        setCoachingGuidance(null);
+                        setPracticeModule(module);
+                        setShowPracticeModal(true);
                       }}
                     >
                       View Module
