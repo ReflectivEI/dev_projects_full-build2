@@ -135,7 +135,7 @@ Respond with this EXACT JSON structure (no markdown, no explanation):
 
 JSON only:`,
           content: "Answer knowledge base question",
-      });
+      }, { signal: abortController.signal });
 
       // P0 FIX: Read response body BEFORE checking status
       // Worker may return useful error messages in non-200 responses
