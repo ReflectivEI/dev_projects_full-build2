@@ -17,7 +17,6 @@ import {
   performanceLevels,
   type EQMetric 
 } from "@/lib/data";
-import { getMetricUIData } from "@/lib/metrics-ui-adapter";
 import { getAllImprovementTipsForMetric } from "@/lib/metric-improvement-guidance";
 import type { BehavioralMetricId } from "@/lib/signal-intelligence/metrics-spec";
 
