@@ -23,8 +23,12 @@ export default function Header() {
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-foreground">
-            App
+          <Link to="/" className="flex items-center gap-2">
+            <img 
+              src="/assets/reflectivai-logo.jpeg" 
+              alt="ReflectivAI Logo" 
+              className="h-8 w-auto"
+            />
           </Link>
 
           <nav className="hidden md:flex gap-6">
