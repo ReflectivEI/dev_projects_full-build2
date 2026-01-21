@@ -129,16 +129,18 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
-        <div className="flex items-center justify-between gap-2">
-          <Link href="/" className="flex flex-col gap-1 flex-1">
+        <div className="flex items-center justify-end mb-3">
+          <NotificationCenter />
+        </div>
+        <div className="bg-card border border-border rounded-lg p-4">
+          <Link href="/" className="flex flex-col items-center gap-2">
             <img 
               src="/assets/reflectivai-logo.jpeg" 
               alt="ReflectivAI Logo" 
-              className="h-8 w-auto"
+              className="h-12 w-auto"
             />
-            <span className="text-xs text-muted-foreground leading-tight">Sales Enablement</span>
+            <span className="text-sm font-medium text-foreground">Sales Enablement</span>
           </Link>
-          <NotificationCenter />
         </div>
       </SidebarHeader>
 
