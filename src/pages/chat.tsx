@@ -506,9 +506,10 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0 overflow-y-auto" ref={scrollRef}>
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0">
         <div className="flex-1 flex flex-col min-w-0">
-            <div className="space-y-4">
+          <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
+            <div className="space-y-4 pb-4">
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
