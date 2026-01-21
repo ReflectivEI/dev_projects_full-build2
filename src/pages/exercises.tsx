@@ -53,7 +53,7 @@ Respond with this EXACT JSON structure (no markdown, no explanation):
 
 JSON array only:`,
         content: "Generate practice exercises"
-      });
+      }, { signal: abortController.signal });
 
       const rawText = await response.text();
       const normalized = normalizeAIResponse(rawText);
