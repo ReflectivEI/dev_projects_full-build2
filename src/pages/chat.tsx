@@ -343,7 +343,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-dvh flex flex-col">
+    <div className="h-dvh flex flex-col overflow-hidden">
       <div className="sticky top-0 z-10 bg-background p-4 md:p-6 border-b flex-shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
@@ -506,10 +506,9 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0">
-        <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:pr-4 min-h-0 overscroll-contain pb-4">
-            <div className="space-y-4 pb-4">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0 overflow-y-auto" ref={scrollRef}>
+        <div className="flex-1 flex flex-col min-w-0">
+            <div className="space-y-4">
               {isLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
@@ -634,9 +633,7 @@ export default function ChatPage() {
                 </div>
               )}
             </div>
-          </div>
-
-          <div className="flex-shrink-0 pt-4 border-t bg-background">
+          <div className="flex-shrink-0 pt-4 border-t bg-background mt-4">
             <div className="flex gap-2">
               <Textarea
                 ref={textareaRef}
