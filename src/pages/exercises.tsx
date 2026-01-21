@@ -37,6 +37,10 @@ export default function ExercisesPage() {
     setSelectedAnswers({});
     setShowResults({});
 
+    // Create AbortController with 12-second timeout
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), 12000);
+
     try {
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
