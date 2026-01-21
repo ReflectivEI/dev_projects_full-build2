@@ -383,6 +383,7 @@ JSON only:`,
     } catch (err) {
       setCustomizationError(err instanceof Error ? err.message : "Failed to generate customization");
     } finally {
+      clearTimeout(timeoutId);
       setIsGeneratingCustomization(false);
     }
   };
