@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { BuildStamp } from '@/components/BuildStamp';
 
 /**
  * Footer component for website
@@ -32,6 +33,11 @@ export default function Footer() {
               Terms
             </Link>
           </nav>
+        </div>
+
+        {/* Build stamp for deployment verification */}
+        <div className="mt-4 text-center">
+          <BuildStamp />
         </div>
       </div>
     </footer>
