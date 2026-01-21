@@ -614,7 +614,7 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
 
       {/* Practice Questions Modal */}
       <Dialog open={showPracticeModal} onOpenChange={setShowPracticeModal}>
-        <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-2xl h-[85vh] flex flex-col overflow-hidden">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
@@ -631,7 +631,7 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
             </AlertDescription>
           </Alert>
 
-          <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2 min-h-0">
+          <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2 min-h-0 pb-2">
             {practiceModule && getPracticeQuestions(practiceModule.id).length > 0 ? (
               getPracticeQuestions(practiceModule.id).map((q, idx) => (
                 <Card 
