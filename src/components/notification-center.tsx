@@ -13,7 +13,7 @@ import {
   Check,
   Trophy,
   Target,
-  Calendar,
+
   TrendingUp,
   BookOpen,
   X,

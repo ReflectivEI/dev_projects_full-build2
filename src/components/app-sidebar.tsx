@@ -31,14 +31,14 @@ import {
   Library,
   Users,
   Brain,
-  Target,
+
   Activity,
   Dumbbell,
   Loader2,
   RotateCcw,
   HelpCircle,
   User,
-  Settings,
+
   ChevronDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
