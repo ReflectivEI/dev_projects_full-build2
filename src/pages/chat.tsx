@@ -352,8 +352,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="p-6 border-b flex-shrink-0 overflow-y-auto max-h-[35vh] md:max-h-[40vh]">
+    <div className="min-h-dvh flex flex-col">
+      <div className="sticky top-0 z-10 bg-background p-6 border-b flex-shrink-0 overflow-y-auto max-h-[35vh] md:max-h-[40vh]">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
@@ -367,34 +367,30 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            {messages.length > 0 && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleGetSummary}
-                  disabled={summaryMutation.isPending || messages.length === 0}
-                  data-testid="button-session-summary"
-                >
-                  {summaryMutation.isPending ? (
-                    <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-                  ) : (
-                    <FileText className="h-4 w-4 mr-2" />
-                  )}
-                  Session Summary
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => clearChatMutation.mutate()}
-                  disabled={clearChatMutation.isPending}
-                  data-testid="button-clear-chat"
-                >
-                  <RotateCcw className="h-4 w-4 mr-2" />
-                  New Chat
-                </Button>
-              </>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGetSummary}
+              disabled={summaryMutation.isPending || messages.length === 0}
+              data-testid="button-session-summary"
+            >
+              {summaryMutation.isPending ? (
+                <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+              ) : (
+                <FileText className="h-4 w-4 mr-2" />
+              )}
+              Session Summary
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => clearChatMutation.mutate()}
+              disabled={clearChatMutation.isPending || messages.length === 0}
+              data-testid="button-clear-chat"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              New Chat
+            </Button>
           </div>
         </div>
 
@@ -519,9 +515,9 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden min-h-0">
         <div className="flex-1 flex flex-col min-w-0 min-h-0">
-          <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4 min-h-0 overscroll-contain">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4 min-h-0 overscroll-contain pb-28">
             <div className="space-y-4 pb-4">
               {isLoading ? (
                 <div className="space-y-4">
