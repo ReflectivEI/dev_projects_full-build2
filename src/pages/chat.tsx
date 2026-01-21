@@ -531,19 +531,23 @@ export default function ChatPage() {
                     Ask me anything about pharma sales, signal intelligence frameworks,
                     objection handling, or clinical evidence communication.
                   </p>
-                  <div className="flex flex-wrap gap-2 justify-center max-w-lg">
-                    {(conversationStarters.length ? conversationStarters : []).slice(0, 3).map((prompt) => (
-                      <Button
-                        key={prompt}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs"
-                        onClick={() => handlePromptClick(prompt)}
-                        data-testid={`button-prompt-${prompt.slice(0, 20).replace(/\s+/g, '-')}`}
-                      >
-                        {prompt}
-                      </Button>
-                    ))}
+                  <div className="flex flex-col gap-4 items-center max-w-2xl w-full px-4">
+                    {(conversationStarters.length ? conversationStarters : []).slice(0, 3).map((prompt) => {
+                      // Shorten prompts for mobile display (max 60 chars)
+                      const displayPrompt = prompt.length > 60 ? prompt.slice(0, 57) + '...' : prompt;
+                      return (
+                        <Button
+                          key={prompt}
+                          variant="outline"
+                          size="lg"
+                          className="text-sm text-center whitespace-normal h-auto py-3 px-4 w-full max-w-md"
+                          onClick={() => handlePromptClick(prompt)}
+                          data-testid={`button-prompt-${prompt.slice(0, 20).replace(/\s+/g, '-')}`}
+                        >
+                          {displayPrompt}
+                        </Button>
+                      );
+                    })}
                     {!conversationStarters.length && !isPromptsLoading && (
                       <p className="text-xs text-muted-foreground">Unable to load conversation starters.</p>
                     )}
