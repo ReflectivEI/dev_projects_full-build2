@@ -185,6 +185,7 @@ export default function ChatPage() {
   const [selectedInfluenceDriver, setSelectedInfluenceDriver] = useState<string>("");
   const [discEnabled, setDiscEnabled] = useState<boolean>(false);
   const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
+  const [showSessionIndicator, setShowSessionIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
