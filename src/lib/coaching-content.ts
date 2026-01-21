@@ -30,7 +30,7 @@ type ModuleCoachingVariants = {
  * Content is rotated to simulate dynamic coaching while maintaining quality.
  */
 export const COACHING_LIBRARY: ModuleCoachingVariants = {
-  'discovery-questions': [
+  'discovery': [
     {
       focus: 'Open-Ended Question Mastery',
       whyItMatters: 'In pharmaceutical sales, open-ended questions uncover the clinical challenges and patient outcomes that matter most to healthcare providers. These insights allow you to position your product as a solution to real problems, not just another option. HCPs respond better when they feel heard and understood.',
@@ -148,7 +148,7 @@ export const COACHING_LIBRARY: ModuleCoachingVariants = {
     }
   ],
   
-  'stakeholder-mapping': [
+  'stakeholder': [
     {
       focus: 'Identifying Key Decision Makers',
       whyItMatters: 'In complex healthcare systems, prescribing decisions involve multiple stakeholders beyond the physician. Identifying who influences formulary decisions, treatment protocols, and prescribing patterns allows you to allocate your time strategically. Focusing only on prescribers while ignoring decision-makers limits your impact.',
@@ -266,7 +266,7 @@ export const COACHING_LIBRARY: ModuleCoachingVariants = {
     }
   ],
   
-  'clinical-data': [
+  'clinical': [
     {
       focus: 'Translating Data into Clinical Relevance',
       whyItMatters: 'HCPs are bombarded with clinical data daily. Simply presenting numbers doesn\'t create impact. Translating data into clinically meaningful outcomes - what it means for their patients - makes your message memorable and actionable. Data without context is noise.',
@@ -384,7 +384,7 @@ export const COACHING_LIBRARY: ModuleCoachingVariants = {
     }
   ],
   
-  'objection-handling': [
+  'objection': [
     {
       focus: 'Reframing Objections as Opportunities',
       whyItMatters: 'Objections signal engagement - the HCP is thinking critically about your product. Viewing objections as opportunities to provide value, rather than obstacles, changes your mindset and approach. Defensive responses shut down dialogue; curious, solution-oriented responses build trust.',
@@ -502,7 +502,7 @@ export const COACHING_LIBRARY: ModuleCoachingVariants = {
     }
   ],
   
-  'closing-techniques': [
+  'closing': [
     {
       focus: 'Recognizing Buying Signals',
       whyItMatters: 'HCPs give verbal and non-verbal signals when they\'re ready to commit: asking about dosing, inquiring about samples, discussing specific patients. Missing these signals means missed opportunities. Recognizing them allows you to close naturally and confidently.',
@@ -620,7 +620,7 @@ export const COACHING_LIBRARY: ModuleCoachingVariants = {
     }
   ],
   
-  'signal-intelligence': [
+  'eq-mastery': [
     {
       focus: 'Reading Non-Verbal Communication',
       whyItMatters: 'HCPs communicate as much through body language, tone, and facial expressions as through words. Reading these signals allows you to adjust your approach in real-time, address unspoken concerns, and build rapport. Ignoring non-verbal cues means missing critical information.',
