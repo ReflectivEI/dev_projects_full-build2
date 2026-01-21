@@ -99,7 +99,7 @@ Respond with this EXACT JSON structure (no markdown, no explanation):
 
 JSON only:`,
         content: "Generate framework advice"
-      });
+      }, { signal: abortController.signal });
 
       // P0 FIX: Read response body BEFORE checking status
       const rawText = await response.text();
