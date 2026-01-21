@@ -356,32 +356,34 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            {messages.length >= 2 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleGetSummary}
-                disabled={summaryMutation.isPending}
-                data-testid="button-session-summary"
-              >
-                {summaryMutation.isPending ? (
-                  <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-                ) : (
-                  <FileText className="h-4 w-4 mr-2" />
-                )}
-                Session Summary
-              </Button>
+            {messages.length > 0 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGetSummary}
+                  disabled={summaryMutation.isPending}
+                  data-testid="button-session-summary"
+                >
+                  {summaryMutation.isPending ? (
+                    <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+                  ) : (
+                    <FileText className="h-4 w-4 mr-2" />
+                  )}
+                  Session Summary
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => clearChatMutation.mutate()}
+                  disabled={clearChatMutation.isPending}
+                  data-testid="button-clear-chat"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  New Chat
+                </Button>
+              </>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => clearChatMutation.mutate()}
-              disabled={clearChatMutation.isPending}
-              data-testid="button-clear-chat"
-            >
-              <RotateCcw className="h-4 w-4 mr-2" />
-              New Chat
-            </Button>
           </div>
         </div>
 
