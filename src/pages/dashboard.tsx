@@ -19,10 +19,13 @@ import {
   Sparkles,
   Lightbulb,
   RotateCcw,
+  Download,
 } from "lucide-react";
 // Logo removed - using text/icon instead
 import { coachingModules, signalCapabilities } from "@/lib/data";
 import { useQuery } from "@tanstack/react-query";
+import { exportProgressReportPDF, generateFilename } from "@/lib/export-utils";
+import { toast } from "sonner";
 
 const moduleIcons: Record<string, any> = {
   Search,
