@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 // Logo removed - using text/icon instead
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest, getSessionId } from "@/lib/queryClient";
+import { apiRequest } from "@/lib/queryClient";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import type { Message } from "@shared/schema";
@@ -185,7 +185,6 @@ export default function ChatPage() {
   const [selectedInfluenceDriver, setSelectedInfluenceDriver] = useState<string>("");
   const [discEnabled, setDiscEnabled] = useState<boolean>(false);
   const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
-  const [showSessionIndicator, setShowSessionIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -249,25 +248,20 @@ export default function ChatPage() {
           discEnabled,
         },
       });
-      
-      // P0 FIX: Read response body BEFORE checking status
-      const rawText = await response.text();
-      
-      if (!import.meta.env.DEV) {
-        console.log("[P0 CHAT] Response status:", response.status);
-        console.log("[P0 CHAT] Response body:", rawText.substring(0, 500));
-      }
-
-      if (!response.ok) {
-        throw new Error(`Worker returned ${response.status}: ${rawText.substring(0, 100)}`);
-      }
-      
-      const normalized = normalizeAIResponse(rawText);
-      return normalized.json || { messages: [] };
+      return response.json();
     },
     onSuccess: (data) => {
-      // CRITICAL: Only invalidate to refetch, never replace message array directly
-      // This prevents messages from disappearing when API response is incomplete
+      // Immediately reflect returned messages to avoid UI gaps if refetch races
+      if (Array.isArray(data?.messages)) {
+        queryClient.setQueryData(["/api/chat/messages"], normalizeMessages(data.messages));
+      } else if (data?.userMessage || data?.aiMessage) {
+        queryClient.setQueryData(["/api/chat/messages"], (prev: Message[] | undefined) => {
+          const next = Array.isArray(prev) ? [...prev] : [];
+          const appended = normalizeMessages([data.userMessage, data.aiMessage]);
+          return [...next, ...appended];
+        });
+      }
+
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
 
       // Update observable signals from the AI response (normalized to prevent runtime crashes)
@@ -285,16 +279,6 @@ export default function ChatPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
       setObservableSignals([]);
-      setShowSummary(false); // Close summary dialog on session reset
-      
-      // Reset session ID for true fresh start
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("reflectivai-session-id");
-      }
-      
-      // Show "New Session" indicator (auto-dismiss after 3s)
-      setShowSessionIndicator(true);
-      setTimeout(() => setShowSessionIndicator(false), 3000);
     },
   });
 
@@ -343,8 +327,8 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden">
-      <div className="sticky top-0 z-10 bg-background p-4 md:p-6 border-b flex-shrink-0">
+    <div className="h-full flex flex-col overflow-hidden">
+      <div className="p-6 border-b flex-shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
@@ -358,20 +342,22 @@ export default function ChatPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGetSummary}
-              disabled={summaryMutation.isPending}
-              data-testid="button-session-summary"
-            >
-              {summaryMutation.isPending ? (
-                <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
-              ) : (
-                <FileText className="h-4 w-4 mr-2" />
-              )}
-              Session Summary
-            </Button>
+            {messages.length >= 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleGetSummary}
+                disabled={summaryMutation.isPending}
+                data-testid="button-session-summary"
+              >
+                {summaryMutation.isPending ? (
+                  <Sparkles className="h-4 w-4 mr-2 animate-pulse" />
+                ) : (
+                  <FileText className="h-4 w-4 mr-2" />
+                )}
+                Session Summary
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
@@ -496,19 +482,9 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* Session Indicator - Transient notification for session boundaries */}
-      {showSessionIndicator && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
-          <Badge variant="secondary" className="px-4 py-2 text-sm shadow-lg">
-            <Sparkles className="h-3 w-3 mr-2 inline" />
-            New Session Started
-          </Badge>
-        </div>
-      )}
-
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 min-h-0">
-        <div className="flex-1 flex flex-col min-w-0">
-          <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
+      <div className="flex-1 flex gap-6 p-6 overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4">
             <div className="space-y-4 pb-4">
               {isLoading ? (
                 <div className="space-y-4">
@@ -532,23 +508,19 @@ export default function ChatPage() {
                     Ask me anything about pharma sales, signal intelligence frameworks,
                     objection handling, or clinical evidence communication.
                   </p>
-                  <div className="flex flex-col gap-4 items-center max-w-2xl w-full px-4">
-                    {(conversationStarters.length ? conversationStarters : []).slice(0, 3).map((prompt) => {
-                      // Shorten prompts for mobile display (max 60 chars)
-                      const displayPrompt = prompt.length > 60 ? prompt.slice(0, 57) + '...' : prompt;
-                      return (
-                        <Button
-                          key={prompt}
-                          variant="outline"
-                          size="lg"
-                          className="text-sm text-center whitespace-normal h-auto py-3 px-4 w-full max-w-md"
-                          onClick={() => handlePromptClick(prompt)}
-                          data-testid={`button-prompt-${prompt.slice(0, 20).replace(/\s+/g, '-')}`}
-                        >
-                          {displayPrompt}
-                        </Button>
-                      );
-                    })}
+                  <div className="flex flex-wrap gap-2 justify-center max-w-lg">
+                    {(conversationStarters.length ? conversationStarters : []).slice(0, 3).map((prompt) => (
+                      <Button
+                        key={prompt}
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => handlePromptClick(prompt)}
+                        data-testid={`button-prompt-${prompt.slice(0, 20).replace(/\s+/g, '-')}`}
+                      >
+                        {prompt}
+                      </Button>
+                    ))}
                     {!conversationStarters.length && !isPromptsLoading && (
                       <p className="text-xs text-muted-foreground">Unable to load conversation starters.</p>
                     )}
@@ -638,8 +610,9 @@ export default function ChatPage() {
                 </div>
               )}
             </div>
-          </ScrollArea>
-          <div className="flex-shrink-0 pt-4 border-t bg-background">
+          </div>
+
+          <div className="pt-4 border-t">
             <div className="flex gap-2">
               <Textarea
                 ref={textareaRef}
@@ -662,7 +635,7 @@ export default function ChatPage() {
           </div>
         </div>
 
-        <div className="w-full md:w-72 flex-shrink-0 flex flex-col overflow-hidden md:max-h-full max-h-96">
+        <div className="w-72 flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-2">
             <Card className="mb-4">
               <CardContent className="pt-6">
