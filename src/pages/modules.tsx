@@ -515,6 +515,147 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
           })}
         </div>
       </div>
+
+      {/* AI Coaching Modal */}
+      <Dialog open={showAICoachingModal} onOpenChange={setShowAICoachingModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI Coaching Guidance
+            </DialogTitle>
+            <DialogDescription>
+              {aiCoachingModule?.title} • {categoryLabels[aiCoachingModule?.category || '']}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-4">
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                Generated for this session. Content may clear on navigation.
+              </AlertDescription>
+            </Alert>
+
+            {isGenerating && (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center space-y-3">
+                  <Sparkles className="h-8 w-8 text-primary animate-pulse mx-auto" />
+                  <p className="text-sm text-muted-foreground">Generating personalized coaching guidance...</p>
+                </div>
+              </div>
+            )}
+
+            {!isGenerating && coachingGuidance && (
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-sm text-primary mb-2 flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Coaching Focus
+                  </h4>
+                  <p className="text-sm">{coachingGuidance.focus}</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm text-primary mb-2 flex items-center gap-2">
+                    <Lightbulb className="h-4 w-4" />
+                    Why It Matters
+                  </h4>
+                  <p className="text-sm text-muted-foreground">{coachingGuidance.whyItMatters}</p>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-sm text-primary mb-2 flex items-center gap-2">
+                    <ChevronRight className="h-4 w-4" />
+                    Next Action
+                  </h4>
+                  <p className="text-sm">{coachingGuidance.nextAction}</p>
+                </div>
+
+                {coachingGuidance.keyPractices && coachingGuidance.keyPractices.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-primary mb-2 flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4" />
+                      Key Practices
+                    </h4>
+                    <ul className="space-y-2">
+                      {coachingGuidance.keyPractices.map((practice, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-primary mt-0.5">•</span>
+                          <span>{practice}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {coachingGuidance.developmentTips && coachingGuidance.developmentTips.length > 0 && (
+                  <div>
+                    <h4 className="font-semibold text-sm text-primary mb-2 flex items-center gap-2">
+                      <Brain className="h-4 w-4" />
+                      Development Tips
+                    </h4>
+                    <ul className="space-y-2">
+                      {coachingGuidance.developmentTips.map((tip, i) => (
+                        <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                          <span className="text-primary mt-0.5">•</span>
+                          <span>{tip}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Practice Questions Modal */}
+      <Dialog open={showPracticeModal} onOpenChange={setShowPracticeModal}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-primary" />
+              Practice Questions
+            </DialogTitle>
+            <DialogDescription>
+              {practiceModule?.title} • {categoryLabels[practiceModule?.category || '']}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 mt-4">
+            {practiceModule && getPracticeQuestions(practiceModule.id).length > 0 ? (
+              getPracticeQuestions(practiceModule.id).map((q, idx) => (
+                <Card key={idx} className="border-l-4 border-l-primary">
+                  <CardContent className="pt-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <p className="font-medium text-sm flex-1">{q.question}</p>
+                        <Badge variant="outline" className="text-xs shrink-0">
+                          {q.focusArea}
+                        </Badge>
+                      </div>
+                      {q.context && (
+                        <p className="text-xs text-muted-foreground italic border-l-2 border-muted pl-3">
+                          {q.context}
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Practice questions for this module are being developed. Check back soon!
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
