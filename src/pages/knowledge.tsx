@@ -111,6 +111,7 @@ export default function KnowledgePage() {
     
     setIsGenerating(true);
     setError(null);
+    setAiAnswer(null); // Clear previous answer
 
     // Create AbortController with 12-second timeout
     const abortController = new AbortController();
