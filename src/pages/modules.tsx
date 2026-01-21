@@ -615,7 +615,7 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
       {/* Practice Questions Modal */}
       <Dialog open={showPracticeModal} onOpenChange={setShowPracticeModal}>
         <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
-          <DialogHeader>
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle className="flex items-center gap-2">
               <BookOpen className="h-5 w-5 text-primary" />
               Practice Questions
@@ -625,13 +625,13 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
             </DialogDescription>
           </DialogHeader>
 
-          <Alert className="mt-4">
+          <Alert className="mt-4 flex-shrink-0">
             <AlertDescription className="text-sm">
               Review these questions and try answering them out loud or in writing.
             </AlertDescription>
           </Alert>
 
-          <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2">
+          <div className="space-y-4 mt-4 overflow-y-auto flex-1 pr-2 min-h-0">
             {practiceModule && getPracticeQuestions(practiceModule.id).length > 0 ? (
               getPracticeQuestions(practiceModule.id).map((q, idx) => (
                 <Card 
@@ -688,7 +688,7 @@ Be specific to pharma sales context (HCPs, clinical data, formulary decisions, e
             )}
           </div>
           
-          <div className="sticky bottom-0 pt-4 pb-2 bg-background border-t mt-4">
+          <div className="flex-shrink-0 pt-4 pb-2 bg-background border-t mt-4">
             <Button 
               onClick={() => {
                 setShowPracticeModal(false);
