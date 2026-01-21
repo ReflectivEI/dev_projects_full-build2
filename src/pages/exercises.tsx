@@ -256,6 +256,7 @@ JSON array only:`,
       
       setExercises([fallbackExercise]);
     } finally {
+      clearTimeout(timeoutId);
       setIsGenerating(false);
     }
   };
