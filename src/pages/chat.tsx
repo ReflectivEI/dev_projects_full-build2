@@ -280,6 +280,16 @@ export default function ChatPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
       setObservableSignals([]);
+      setShowSummary(false); // Close summary dialog on session reset
+      
+      // Reset session ID for true fresh start
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("reflectivai-session-id");
+      }
+      
+      // Show "New Session" indicator (auto-dismiss after 3s)
+      setShowSessionIndicator(true);
+      setTimeout(() => setShowSessionIndicator(false), 3000);
     },
   });
 
