@@ -27,6 +27,7 @@ import type { KnowledgeArticle } from "@shared/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
+
 const categoryIcons: Record<string, any> = {
   fda: Scale,
   "clinical-trials": Beaker,
@@ -44,6 +45,57 @@ const categoryLabels: Record<string, string> = {
   "market-access": "Market Access",
   pricing: "Pricing",
 };
+
+const PHARMA_DEFINITIONS: Record<string, { answer: string; relatedTopics: string[] }> = {
+  "pi": {
+    answer: "A Principal Investigator (PI) is a medical professional, typically a physician or researcher, who leads a clinical trial at a specific site. The PI is responsible for the overall conduct of the study, patient safety, data integrity, and regulatory compliance at their site.",
+    relatedTopics: ["Clinical Trials", "Study Coordinator", "IRB Approval"]
+  },
+  "ind": {
+    answer: "An Investigational New Drug (IND) application is a request for FDA authorization to administer an investigational drug to humans. It contains preclinical data, manufacturing information, clinical protocols, and investigator information.",
+    relatedTopics: ["FDA Approval Process", "Clinical Trials", "Phase 1 Studies"]
+  },
+  "nda": {
+    answer: "A New Drug Application (NDA) is the formal request to the FDA for approval to market a new drug in the United States. It includes all data from preclinical and clinical studies, manufacturing details, and proposed labeling.",
+    relatedTopics: ["FDA Approval", "Drug Development", "Clinical Trials"]
+  },
+  "irb": {
+    answer: "An Institutional Review Board (IRB) is an independent ethics committee that reviews and approves clinical research involving human subjects. The IRB ensures that the rights, safety, and welfare of research participants are protected.",
+    relatedTopics: ["Clinical Trials", "Ethics", "Informed Consent"]
+  },
+  "gcp": {
+    answer: "Good Clinical Practice (GCP) is an international ethical and scientific quality standard for designing, conducting, recording, and reporting clinical trials. GCP ensures the rights, safety, and well-being of trial subjects are protected.",
+    relatedTopics: ["Clinical Trials", "Regulatory Compliance", "ICH Guidelines"]
+  },
+  "hcp": {
+    answer: "A Healthcare Professional (HCP) is a licensed medical practitioner such as a physician, nurse practitioner, pharmacist, or other qualified healthcare provider who delivers medical care to patients.",
+    relatedTopics: ["Medical Affairs", "Sales Strategy", "Clinical Education"]
+  },
+  "kol": {
+    answer: "A Key Opinion Leader (KOL) is a respected healthcare professional or researcher who influences peers through expertise, publications, and presentations. KOLs play a critical role in shaping medical practice and treatment adoption.",
+    relatedTopics: ["Medical Affairs", "Thought Leadership", "Advisory Boards"]
+  },
+  "adverse event": {
+    answer: "An Adverse Event (AE) is any undesirable medical occurrence in a patient administered a pharmaceutical product, whether or not considered related to the treatment. AEs must be documented and reported according to regulatory requirements.",
+    relatedTopics: ["Pharmacovigilance", "Safety Monitoring", "Clinical Trials"]
+  },
+  "informed consent": {
+    answer: "Informed Consent is the process by which a patient or research subject voluntarily confirms their willingness to participate in a clinical trial or treatment, after being informed of all relevant aspects including risks, benefits, and alternatives.",
+    relatedTopics: ["Clinical Trials", "Patient Rights", "IRB Requirements"]
+  }
+};
+
+function getDefinitionFallback(question: string): { answer: string; relatedTopics: string[] } | null {
+  const normalized = question.toLowerCase().trim();
+  
+  for (const [key, value] of Object.entries(PHARMA_DEFINITIONS)) {
+    if (normalized.includes(key) || normalized.includes(key.replace(/\s+/g, ''))) {
+      return value;
+    }
+  }
+  
+  return null;
+}
 
 export default function KnowledgePage() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,29 +181,38 @@ JSON only:`,
           relatedTopics: Array.isArray(answerNormalized.json.relatedTopics) ? answerNormalized.json.relatedTopics : []
         });
       } else {
-        // Fallback: Use the raw response as the answer
         console.warn("[P0 KNOWLEDGE] Worker returned prose, using as plain text answer");
         
-        // Use the AI message directly, ensuring we have content
         const answerText = aiMessage && aiMessage.trim().length > 0 
           ? aiMessage 
-          : answerNormalized.text || 'Unable to generate a response. Please try rephrasing your question.';
+          : answerNormalized.text || '';
         
-        setAiAnswer({
-          answer: answerText,
-          relatedTopics: []
-        });
+        if (answerText.trim().length > 0) {
+          setAiAnswer({
+            answer: answerText,
+            relatedTopics: []
+          });
+        } else {
+          throw new Error('Empty AI response');
+        }
       }
     } catch (err) {
       console.error("[P0 KNOWLEDGE] Error in handleAskAi:", err);
-      const errorMessage = err instanceof Error ? err.message : "Failed to get answer";
-      setError(errorMessage);
       
-      // Set a fallback answer even on error
-      setAiAnswer({
-        answer: "I'm having trouble responding right now. Please try again or rephrase your question.",
-        relatedTopics: []
-      });
+      const definitionFallback = getDefinitionFallback(aiQuestion);
+      
+      if (definitionFallback) {
+        console.log("[P0 KNOWLEDGE] Using definition fallback for:", aiQuestion);
+        setAiAnswer(definitionFallback);
+        setError(null);
+      } else {
+        const errorMessage = err instanceof Error ? err.message : "Failed to get answer";
+        setError(errorMessage);
+        setAiAnswer({
+          answer: "I'm having trouble responding right now. Please try again or rephrase your question.",
+          relatedTopics: []
+        });
+      }
     } finally {
       setIsGenerating(false);
     }
