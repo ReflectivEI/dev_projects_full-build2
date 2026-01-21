@@ -124,17 +124,12 @@ export default function KnowledgePage() {
 
       // Use apiRequest helper for proper base URL handling (mobile + Cloudflare Pages)
       const response = await apiRequest("POST", "/api/chat/send", {
-          message: `CRITICAL: You MUST respond with ONLY valid JSON. No other text before or after.
-
-Question: "${aiQuestion}"
-
-${contextInfo}
-
-Respond with this EXACT JSON structure (no markdown, no explanation):
-{"answer": "your 2-3 sentence answer here", "relatedTopics": ["topic1", "topic2", "topic3"]}
-
-JSON only:`,
-          content: "Answer knowledge base question",
+          message: aiQuestion,
+          content: `Knowledge Base Question: ${aiQuestion}\n\nContext: ${contextInfo}`,
+          context: {
+            type: "knowledge_base",
+            article: selectedArticle?.title || null
+          }
       }, { signal: abortController.signal });
 
       // P0 FIX: Read response body BEFORE checking status
