@@ -515,8 +515,8 @@ export default function ChatPage() {
         </div>
       )}
 
-      <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden min-h-0">
-        <div className="flex-1 flex flex-col min-w-0 min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 overflow-hidden min-h-0">
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 md:pr-4 min-h-0 overscroll-contain pb-32">
             <div className="space-y-4 pb-4">
               {isLoading ? (
