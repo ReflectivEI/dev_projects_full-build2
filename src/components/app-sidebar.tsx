@@ -144,6 +144,38 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
+      {/* User Profile - Moved above Main section */}
+      <div className="px-4 py-3 border-b border-border">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 px-3 py-2 h-auto"
+            >
+              <Avatar className="h-8 w-8">
+                <AvatarImage src="" />
+                <AvatarFallback className="text-xs">SR</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 text-left">
+                <div className="text-sm font-medium">Sales Rep</div>
+                <div className="text-xs text-muted-foreground">rep@pharma.com</div>
+              </div>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/profile" className="cursor-pointer">
+                <User className="h-4 w-4 mr-2" />
+                Profile & Settings
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Main</SidebarGroupLabel>
@@ -188,37 +220,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 space-y-3">
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="w-full justify-start gap-3 px-3 py-2 h-auto"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarImage src="" />
-                <AvatarFallback className="text-xs">SR</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 text-left">
-                <div className="text-sm font-medium">Sales Rep</div>
-                <div className="text-xs text-muted-foreground">rep@pharma.com</div>
-              </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/profile" className="cursor-pointer">
-                <User className="h-4 w-4 mr-2" />
-                Profile & Settings
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
+      <SidebarFooter className="p-4">
         {/* Daily Focus */}
         <div className="rounded-md bg-muted p-3" data-testid="card-daily-focus">
           <div className="flex items-center justify-between gap-2 mb-2">
