@@ -20,12 +20,16 @@ export const MODULE_PRACTICE_QUESTIONS: Record<string, PracticeQuestion[]> = {
     {
       question: "What open-ended question would you ask to uncover a physician's biggest challenge with current treatment protocols?",
       focusArea: "Open-ended questioning",
-      context: "Focus on understanding pain points before presenting solutions"
+      context: "Focus on understanding pain points before presenting solutions",
+      whyItMatters: "Open-ended questions reveal the physician's true concerns and priorities, allowing you to position your solution as addressing their specific needs rather than generic benefits.",
+      howToUse: "Practice asking this question out loud. Notice how it invites detailed responses rather than yes/no answers. Use this in early conversations to build rapport and gather intelligence."
     },
     {
       question: "How would you follow up when a physician gives a surface-level answer like 'Everything is fine'?",
       focusArea: "Probing deeper",
-      context: "Challenge assumptions and dig beneath initial responses"
+      context: "Challenge assumptions and dig beneath initial responses",
+      whyItMatters: "Surface-level answers often hide real concerns. Physicians may be polite or guarded initially. Your ability to probe respectfully separates average reps from top performers.",
+      howToUse: "Role-play this scenario with a colleague. Practice follow-up questions like 'What does fine look like?' or 'If you could improve one thing, what would it be?'"
     },
     {
       question: "What would you ask to understand the physician's decision-making criteria for selecting treatments?",
