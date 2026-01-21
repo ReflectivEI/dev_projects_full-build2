@@ -153,48 +153,27 @@ export default function KnowledgePage() {
       }
       const normalized = normalizeAIResponse(rawText);
       
-      // Extract AI message from response structure
-      let aiMessage = normalized.text;
-      if (normalized.json) {
+      // Extract AI message from Worker response (messages array format)
+      let aiMessage = '';
+      if (normalized.json && normalized.json.messages && Array.isArray(normalized.json.messages)) {
         const messages = normalized.json.messages;
-        if (Array.isArray(messages) && messages.length > 0) {
-          aiMessage = messages[messages.length - 1]?.content || normalized.text;
-        }
-      }
-
-      // P0 DIAGNOSTIC: Log normalized structure
-      if (!import.meta.env.DEV) {
-        console.log("[P0 KNOWLEDGE] Normalized:", normalized);
-        console.log("[P0 KNOWLEDGE] AI Message:", aiMessage.substring(0, 500));
-      }
-
-      // Parse the AI message for answer object
-      const answerNormalized = normalizeAIResponse(aiMessage);
-      
-      if (!import.meta.env.DEV) {
-        console.log("[P0 KNOWLEDGE] Answer normalized:", answerNormalized);
-      }
-
-      if (answerNormalized.json && typeof answerNormalized.json === 'object' && answerNormalized.json.answer) {
-        setAiAnswer({
-          answer: answerNormalized.json.answer || '',
-          relatedTopics: Array.isArray(answerNormalized.json.relatedTopics) ? answerNormalized.json.relatedTopics : []
-        });
+        const lastMessage = messages[messages.length - 1];
+        aiMessage = lastMessage?.content || '';
       } else {
-        console.warn("[P0 KNOWLEDGE] Worker returned prose, using as plain text answer");
-        
-        const answerText = aiMessage && aiMessage.trim().length > 0 
-          ? aiMessage 
-          : answerNormalized.text || '';
-        
-        if (answerText.trim().length > 0) {
-          setAiAnswer({
-            answer: answerText,
-            relatedTopics: []
-          });
-        } else {
-          throw new Error('Empty AI response');
-        }
+        aiMessage = normalized.text || '';
+      }
+
+      console.log("[KNOWLEDGE] AI Response:", aiMessage.substring(0, 200));
+
+      // Use the AI message as the answer
+      if (aiMessage && aiMessage.trim().length > 0) {
+        setAiAnswer({
+          answer: aiMessage.trim(),
+          relatedTopics: [] // Worker doesn't return related topics for knowledge base
+        });
+        setError(null);
+      } else {
+        throw new Error('Empty AI response');
       }
     } catch (err) {
       console.error("[P0 KNOWLEDGE] Error in handleAskAi:", err);
