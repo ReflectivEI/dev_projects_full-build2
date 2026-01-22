@@ -110,10 +110,10 @@ function scoreQuestionQuality(transcript: Transcript): ComponentResult[] {
   const questions = repTurns.filter(t => isQuestion(t.text));
   if (questions.length === 0) {
     return [
-      { name: 'open_closed_ratio', score: 1, applicable: true, weight: 0.25, rationale: 'No questions asked' },
-      { name: 'relevance_to_goals', score: 1, applicable: true, weight: 0.25, rationale: 'No questions asked' },
-      { name: 'sequencing_logic', score: 1, applicable: true, weight: 0.25, rationale: 'No questions asked' },
-      { name: 'follow_up_depth', score: 1, applicable: true, weight: 0.25, rationale: 'No questions asked' }
+      { name: 'open_closed_ratio', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' },
+      { name: 'relevance_to_goals', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' },
+      { name: 'sequencing_logic', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' },
+      { name: 'follow_up_depth', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' }
     ];
   }
 
@@ -191,9 +191,9 @@ function scoreListeningResponsiveness(transcript: Transcript): ComponentResult[]
 
   if (customerTurns.length === 0) {
     return [
-      { name: 'paraphrasing', score: 1, applicable: true, weight: 0.33, rationale: 'No customer turns' },
+      { name: 'paraphrasing', score: null, applicable: false, weight: 0.33, rationale: 'No customer turns' },
       { name: 'acknowledgment_of_concerns', score: null, applicable: false, weight: 0.33, rationale: 'No customer turns' },
-      { name: 'adjustment_to_new_info', score: 1, applicable: true, weight: 0.34, rationale: 'No customer turns' }
+      { name: 'adjustment_to_new_info', score: null, applicable: false, weight: 0.34, rationale: 'No customer turns' }
     ];
   }
 
@@ -274,9 +274,9 @@ function scoreMakingItMatter(transcript: Transcript, goalTokens: Set<string>): C
 
   if (repStatements.length === 0) {
     return [
-      { name: 'outcome_based_language', score: 1, applicable: true, weight: 0.33, rationale: 'No rep statements' },
-      { name: 'link_to_customer_priorities', score: 1, applicable: true, weight: 0.34, rationale: 'No rep statements' },
-      { name: 'no_feature_dumping', score: 5, applicable: true, weight: 0.33, rationale: 'No rep statements' }
+      { name: 'outcome_based_language', score: null, applicable: false, weight: 0.33, rationale: 'No rep statements' },
+      { name: 'link_to_customer_priorities', score: null, applicable: false, weight: 0.34, rationale: 'No rep statements' },
+      { name: 'no_feature_dumping', score: null, applicable: false, weight: 0.33, rationale: 'No rep statements' }
     ];
   }
 
@@ -323,10 +323,10 @@ function scoreCustomerEngagement(transcript: Transcript): ComponentResult[] {
 
   if (customerTurns.length === 0) {
     return [
-      { name: 'customer_talk_time', score: 1, applicable: true, weight: 0.25, rationale: 'No customer turns' },
-      { name: 'customer_question_quality', score: 2, applicable: true, weight: 0.25, rationale: 'No customer turns' },
-      { name: 'forward_looking_cues', score: 3, applicable: true, weight: 0.25, rationale: 'No customer turns' },
-      { name: 'energy_shifts', score: 3, applicable: true, weight: 0.25, rationale: 'No customer turns' }
+      { name: 'customer_talk_time', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' },
+      { name: 'customer_question_quality', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' },
+      { name: 'forward_looking_cues', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' },
+      { name: 'energy_shifts', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' }
     ];
   }
 
@@ -455,10 +455,10 @@ function scoreConversationControl(transcript: Transcript): ComponentResult[] {
 
   if (repTurns.length === 0) {
     return [
-      { name: 'purpose_setting', score: 1, applicable: true, weight: 0.25, rationale: 'No rep turns' },
-      { name: 'topic_management', score: 1, applicable: true, weight: 0.25, rationale: 'No rep turns' },
-      { name: 'time_management', score: 3, applicable: true, weight: 0.25, rationale: 'No rep turns' },
-      { name: 'summarizing', score: 1, applicable: true, weight: 0.25, rationale: 'No rep turns' }
+      { name: 'purpose_setting', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' },
+      { name: 'topic_management', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' },
+      { name: 'time_management', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' },
+      { name: 'summarizing', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' }
     ];
   }
 
@@ -474,6 +474,12 @@ function scoreConversationControl(transcript: Transcript): ComponentResult[] {
   const transitionCount = repTurns.filter(t => containsAny(t.text, transitionPhrases)).length;
   const topicScore = transitionCount >= repTurns.length * 0.3 ? 5 : transitionCount >= repTurns.length * 0.15 ? 4 : transitionCount > 0 ? 3 : 2;
 
+  // 4. Summarizing (calculate early for use in early return)
+  const summaryPhrases = ['to recap', 'summary', 'what we covered', 'next steps'];
+  const lastThree = repTurns.slice(-3);
+  const hasSummary = lastThree.some(t => containsAny(t.text, summaryPhrases));
+  const summaryScore = hasSummary ? 5 : 1;
+
   // 3. Time Management
   const timeCues = ['have to go', 'another meeting', 'short on time'];
   const customerTurns = transcript.filter(t => t.speaker === 'customer');
@@ -482,8 +488,8 @@ function scoreConversationControl(transcript: Transcript): ComponentResult[] {
     return [
       { name: 'purpose_setting', score: purposeScore, applicable: true, weight: 0.25, rationale: hasEarlyAgenda ? 'Early agenda' : 'No agenda' },
       { name: 'topic_management', score: topicScore, applicable: true, weight: 0.25, rationale: `${transitionCount} transitions` },
-      { name: 'time_management', score: 3, applicable: true, weight: 0.25, rationale: 'No time constraints' },
-      { name: 'summarizing', score: 1, applicable: true, weight: 0.25, rationale: 'Not checked yet' }
+      { name: 'time_management', score: null, applicable: false, weight: 0.25, rationale: 'No time constraints' },
+      { name: 'summarizing', score: summaryScore, applicable: true, weight: 0.25, rationale: hasSummary ? 'Summary present' : 'No summary' }
     ];
   }
   const adaptPhrases = ['next step', 'follow up', 'send', 'schedule'];
@@ -497,12 +503,6 @@ function scoreConversationControl(transcript: Transcript): ComponentResult[] {
     }
   });
   const timeScore = adapted === timeCueTurns.length ? 5 : adapted > 0 ? 3 : 2;
-
-  // 4. Summarizing
-  const summaryPhrases = ['to recap', 'summary', 'what we covered', 'next steps'];
-  const lastThree = repTurns.slice(-3);
-  const hasSummary = lastThree.some(t => containsAny(t.text, summaryPhrases));
-  const summaryScore = hasSummary ? 5 : 1;
 
   return [
     { name: 'purpose_setting', score: purposeScore, applicable: true, weight: 0.25, rationale: hasEarlyAgenda ? 'Early agenda' : 'No agenda' },
