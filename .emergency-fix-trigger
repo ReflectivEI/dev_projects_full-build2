@@ -1,0 +1,3 @@
+Emergency fix deployed at 2026-01-22T11:53:00Z
+Reverted worker-probe import from App.tsx
+Site should be restored after deployment
