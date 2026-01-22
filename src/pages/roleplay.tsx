@@ -310,7 +310,26 @@ export default function RolePlayPage() {
         speaker: msg.role === 'user' ? 'rep' : 'customer',
         text: msg.content,
       }));
+      
+      console.log('[CRITICAL DEBUG] Transcript:', transcript);
+      console.log('[CRITICAL DEBUG] Transcript length:', transcript.length);
+      
       const scoredMetrics = scoreConversation(transcript);
+      
+      console.log('[CRITICAL DEBUG] Scored Metrics:', scoredMetrics);
+      console.log('[CRITICAL DEBUG] Scored Metrics length:', scoredMetrics.length);
+      scoredMetrics.forEach(m => {
+        console.log(`[CRITICAL DEBUG] Metric ${m.id}:`, {
+          overall_score: m.overall_score,
+          not_applicable: m.not_applicable,
+          components: m.components.map(c => ({
+            name: c.component,
+            applicable: c.applicable,
+            score: c.score
+          }))
+        });
+      });
+      
       setMetricResults(scoredMetrics);
 
       // Collect all detected cues from rep messages for feedback dialog
