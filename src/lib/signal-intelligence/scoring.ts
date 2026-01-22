@@ -92,6 +92,46 @@ export function startsWithAny(text: string, prefixes: string[]): boolean {
   return prefixes.some(p => lower.startsWith(p.toLowerCase()));
 }
 
+/**
+ * Detect if transcript contains any observable signals for a metric
+ * Returns true if at least one signal pattern is detected
+ */
+function hasObservableSignals(transcript: Transcript, signalPatterns: string[]): boolean {
+  const allText = transcript.map(t => t.text.toLowerCase()).join(' ');
+  return signalPatterns.some(pattern => allText.includes(pattern.toLowerCase()));
+}
+
+/**
+ * Apply weak-signal fallback: if signals exist but threshold not met,
+ * mark first component as applicable with score=1
+ */
+function applyWeakSignalFallback(
+  components: ComponentResult[],
+  transcript: Transcript,
+  signalPatterns: string[]
+): ComponentResult[] {
+  // If any component is already applicable, no fallback needed
+  if (components.some(c => c.applicable)) {
+    return components;
+  }
+  
+  // Check if observable signals exist
+  if (!hasObservableSignals(transcript, signalPatterns)) {
+    return components;
+  }
+  
+  // Apply fallback: mark first component as applicable with score=1
+  const fallbackComponents = [...components];
+  fallbackComponents[0] = {
+    ...fallbackComponents[0],
+    score: 1,
+    applicable: true,
+    rationale: 'Observable signals detected, but threshold not met for higher score'
+  };
+  
+  return fallbackComponents;
+}
+
 // ============================================================================
 // METRIC-SPECIFIC SCORING FUNCTIONS
 // ============================================================================
@@ -110,12 +150,15 @@ function scoreQuestionQuality(transcript: Transcript): ComponentResult[] {
 
   const questions = repTurns.filter(t => isQuestion(t.text));
   if (questions.length === 0) {
-    return [
+    const components = [
       { name: 'open_closed_ratio', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' },
       { name: 'relevance_to_goals', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' },
       { name: 'sequencing_logic', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' },
       { name: 'follow_up_depth', score: null, applicable: false, weight: 0.25, rationale: 'No questions asked' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['how', 'what', 'why', 'when', 'where', 'who', '?', 'tell me', 'walk me through', 'help me understand'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Open/Closed Ratio
@@ -191,11 +234,14 @@ function scoreListeningResponsiveness(transcript: Transcript): ComponentResult[]
   const customerTurns = transcript.filter(t => t.speaker === 'customer');
 
   if (customerTurns.length === 0) {
-    return [
+    const components = [
       { name: 'paraphrasing', score: null, applicable: false, weight: 0.33, rationale: 'No customer turns' },
       { name: 'acknowledgment_of_concerns', score: null, applicable: false, weight: 0.33, rationale: 'No customer turns' },
       { name: 'adjustment_to_new_info', score: null, applicable: false, weight: 0.34, rationale: 'No customer turns' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['what i\'m hearing', 'it sounds like', 'if i understand', 'so you\'re saying', 'i hear you', 'i understand', 'that makes sense', 'let me adjust'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Paraphrasing
@@ -274,11 +320,14 @@ function scoreMakingItMatter(transcript: Transcript, goalTokens: Set<string>): C
   const repStatements = repTurns.filter(t => !t.text.includes('?'));
 
   if (repStatements.length === 0) {
-    return [
+    const components = [
       { name: 'outcome_based_language', score: null, applicable: false, weight: 0.33, rationale: 'No rep statements' },
       { name: 'link_to_customer_priorities', score: null, applicable: false, weight: 0.34, rationale: 'No rep statements' },
       { name: 'no_feature_dumping', score: null, applicable: false, weight: 0.33, rationale: 'No rep statements' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['improve', 'reduce', 'increase', 'impact', 'outcome', 'results', 'so that', 'which means', 'so you can'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Outcome-Based Language
@@ -323,12 +372,15 @@ function scoreCustomerEngagement(transcript: Transcript): ComponentResult[] {
   const repTurns = transcript.filter(t => t.speaker === 'rep');
 
   if (customerTurns.length === 0) {
-    return [
+    const components = [
       { name: 'customer_talk_time', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' },
       { name: 'customer_question_quality', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' },
       { name: 'forward_looking_cues', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' },
       { name: 'energy_shifts', score: null, applicable: false, weight: 0.25, rationale: 'No customer turns' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['when', 'next', 'after', 'once', 'timeline', 'schedule', 'interesting', 'tell me more', 'how does', 'what about'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Customer Talk Time
@@ -384,11 +436,14 @@ function scoreObjectionNavigation(transcript: Transcript): ComponentResult[] {
   });
 
   if (objectionTurns.length === 0) {
-    return [
+    const components = [
       { name: 'acknowledge_before_response', score: null, applicable: false, weight: 0.33, rationale: 'No objections' },
       { name: 'explore_underlying_concern', score: null, applicable: false, weight: 0.34, rationale: 'No objections' },
       { name: 'calm_demeanor', score: null, applicable: false, weight: 0.33, rationale: 'No objections' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['not interested', 'no budget', 'too expensive', 'can\'t', 'won\'t', 'don\'t', 'concern', 'hesitant', 'problem', 'issue', 'i hear you', 'i understand', 'that makes sense'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Acknowledge Before Response
@@ -455,12 +510,15 @@ function scoreConversationControl(transcript: Transcript): ComponentResult[] {
   const repTurns = transcript.filter(t => t.speaker === 'rep');
 
   if (repTurns.length === 0) {
-    return [
+    const components = [
       { name: 'purpose_setting', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' },
       { name: 'topic_management', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' },
       { name: 'time_management', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' },
       { name: 'summarizing', score: null, applicable: false, weight: 0.25, rationale: 'No rep turns' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['today i\'d like', 'agenda', 'goal', 'building on that', 'to recap', 'summary', 'next steps'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Purpose Setting
@@ -571,12 +629,15 @@ function scoreAdaptability(transcript: Transcript): ComponentResult[] {
   const hasEmotionalCue = customerTurns.some(t => containsAny(t.text, emotionalCues));
 
   if (!hasTimeCue && !hasConfusionCue && !hasDisinterestCue && !hasEmotionalCue) {
-    return [
+    const components = [
       { name: 'approach_shift', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' },
       { name: 'tone_adjustment', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' },
       { name: 'depth_adjustment', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' },
       { name: 'pacing_adjustment', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' }
     ];
+    // Apply weak-signal fallback
+    const signalPatterns = ['have to go', 'another meeting', 'short on time', 'confused', 'don\'t understand', 'not interested', 'frustrated', 'upset', 'concerned', 'worried'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // Simple heuristic: if rep responds to cues, score higher
