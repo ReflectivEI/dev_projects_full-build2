@@ -475,7 +475,7 @@ export function RoleplayFeedbackDialog({
           key: `eq:${metricId}`,
           metricId,
           name: getMetricName(metricId),
-          score: typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw),
+          score: metricResult?.overall_score ?? (typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw)),
           feedbackText:
             typeof detail?.feedback === "string" && detail.feedback.trim()
               ? detail.feedback
