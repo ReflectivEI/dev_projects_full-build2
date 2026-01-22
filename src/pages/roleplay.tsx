@@ -318,6 +318,13 @@ export default function RolePlayPage() {
     },
   });
 
+  // Handler for sending messages (clears input after send)
+  const handleSendMessage = () => {
+    if (!input.trim() || sendResponseMutation.isPending) return;
+    sendResponseMutation.mutate(input.trim());
+    setInput("");
+  };
+
   const endScenarioMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest("POST", "/api/roleplay/end");
@@ -650,7 +657,7 @@ export default function RolePlayPage() {
                     }
                   }}
                 />
-                <Button onClick={() => sendResponseMutation.mutate(input)}>
+                <Button onClick={handleSendMessage} disabled={sendResponseMutation.isPending}>
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
