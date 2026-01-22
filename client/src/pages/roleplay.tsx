@@ -279,7 +279,7 @@ export default function RolePlayPage() {
       const res = await apiRequest("POST", "/api/roleplay/respond", { message: content });
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       // PROMPT #21: Worker Response Contract Adapter
       // Cloudflare Worker returns: { coach: { metricResults: {...}, overall: N } }
       // Node/Express returns: { analysis: { eqMetrics: {...}, overallScore: N } }
@@ -308,11 +308,17 @@ export default function RolePlayPage() {
           dedupeByStableKey(cap50([...prev, ...newSignals]))
         );
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+      
+      // PROMPT #23: Invalidate and wait for refetch before scoring
+      await queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/roleplay/session"] });
 
-      // PROMPT #22: Calculate live scores during conversation
-      // This updates the SignalIntelligencePanel with real-time metrics
-      const currentMessages = roleplayData?.messages ?? [];
+      // PROMPT #23: Get fresh messages after refetch
+      const freshData = queryClient.getQueryData<SessionPayload>(["/api/roleplay/session"]);
+      const currentMessages = freshData?.messages ?? [];
+      
+      console.log('[LIVE SCORING DEBUG] Current messages count:', currentMessages.length);
+      
       if (currentMessages.length >= 2) { // Need at least 1 exchange to score
         const transcript: Transcript = currentMessages.map((msg) => ({
           speaker: msg.role === 'user' ? 'rep' : 'customer',
@@ -321,6 +327,7 @@ export default function RolePlayPage() {
         const liveScores = scoreConversation(transcript);
         setMetricResults(liveScores);
         console.log('[LIVE SCORING] Updated metrics during conversation:', liveScores.length);
+        console.log('[LIVE SCORING] Scores:', liveScores.map(m => ({ id: m.id, score: m.overall_score, notApplicable: m.not_applicable })));
       }
     },
   });
