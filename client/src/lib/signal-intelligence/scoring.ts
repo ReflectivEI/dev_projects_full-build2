@@ -791,6 +791,14 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
       }
     }
 
+    // PROMPT #21: Minimum Viable Signal Seeding (Scoring Guardrail)
+    // If signals exist but score is 0 or null, seed minimum viable score
+    const MIN_SIGNAL_SCORE = 1.0;
+    const hasSignals = hasApplicableComponents || hasMetricSignals(transcript, spec.id);
+    if (hasSignals && (overallScore === null || overallScore === 0)) {
+      overallScore = MIN_SIGNAL_SCORE;
+    }
+
     results.push({
       id: spec.id,
       metric: spec.metric,
