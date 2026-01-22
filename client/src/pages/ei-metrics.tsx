@@ -7,7 +7,7 @@ import {
   DialogTitle 
 } from "@/components/ui/dialog";
 import { Activity, CheckCircle2, X, Radio } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 import { 
@@ -49,7 +49,11 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
           </span>
           <span className="text-sm text-muted-foreground">/5</span>
         </div>
-        <p className="text-xs text-muted-foreground">Not yet scored — connect to a Role Play transcript to calculate</p>
+        {metric.score === 3.0 ? (
+          <p className="text-xs text-muted-foreground">Not yet scored — complete a Role Play to calculate</p>
+        ) : (
+          <p className="text-xs text-green-600 dark:text-green-400">✓ Scored from recent Role Play</p>
+        )}
         
         <div className="flex items-center gap-2">
           <Badge className={`text-xs ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
@@ -232,10 +236,28 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
 
 export default function EIMetricsPage() {
   const [selectedMetric, setSelectedMetric] = useState<MetricWithScore | null>(null);
+  const [storedScores, setStoredScores] = useState<Record<string, number>>({});
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+
+  // PROMPT #22: Load scores from localStorage
+  useEffect(() => {
+    const loadScores = async () => {
+      const { getLatestRoleplayScores } = await import('../lib/signal-intelligence/score-storage');
+      const data = getLatestRoleplayScores();
+      if (data) {
+        setStoredScores(data.scores);
+        setLastUpdated(data.timestamp);
+        console.log('[EI_METRICS] Loaded scores from localStorage:', data.scores);
+      } else {
+        console.log('[EI_METRICS] No stored scores found, using defaults');
+      }
+    };
+    loadScores();
+  }, []);
 
   const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
     ...m,
-    score: 3.0
+    score: storedScores[m.id] ?? 3.0  // Use stored score or default to 3.0
   }));
 
   return (

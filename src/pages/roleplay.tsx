@@ -360,6 +360,17 @@ export default function RolePlayPage() {
       
       setMetricResults(scoredMetrics);
 
+      // PROMPT #22: Save scores to localStorage for EI Metrics page
+      const { saveRoleplayScores } = await import('@/lib/signal-intelligence/score-storage');
+      const scoresMap: Record<string, number> = {};
+      scoredMetrics.forEach(m => {
+        if (m.overall_score !== null && !m.not_applicable) {
+          scoresMap[m.id] = m.overall_score;
+        }
+      });
+      saveRoleplayScores(scoresMap);
+      console.log('[SCORE_STORAGE] Saved scores to localStorage:', scoresMap);
+
       // Collect all detected cues from rep messages for feedback dialog
       const allCues: ObservableCue[] = [];
       messages.forEach(msg => {
