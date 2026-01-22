@@ -4,7 +4,8 @@ import {
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle 
+  DialogTitle,
+  DialogClose 
 } from "@/components/ui/dialog";
 import { Activity, CheckCircle2, X, Radio, Lightbulb } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -90,13 +91,16 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
                 </Badge>
               </div>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <DialogClose asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+              >
+                <X className="h-5 w-5" />
+                <span className="sr-only">Close</span>
+              </Button>
+            </DialogClose>
           </div>
         </DialogHeader>
 
