@@ -1,0 +1,5 @@
+EMERGENCY DEPLOYMENT TRIGGER
+Timestamp: 2026-01-22T14:45:00Z
+Reason: Critical fix for PROMPT #20 metric applicability
+Commit: Manual trigger after token provision
+Changes: scoring.ts signal attribution fix
