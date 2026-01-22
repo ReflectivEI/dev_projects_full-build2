@@ -776,7 +776,11 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
     }
 
     const applicableComponents = components.filter(c => c.applicable);
-    const notApplicable = spec.optional && applicableComponents.length === 0;
+    
+    // PROMPT #20: Metric Applicability Promotion
+    // If any component is applicable OR signals were attributed, metric is applicable
+    const hasApplicableComponents = applicableComponents.length > 0;
+    const notApplicable = spec.optional && !hasApplicableComponents;
 
     let overallScore: number | null = null;
     if (!notApplicable) {
