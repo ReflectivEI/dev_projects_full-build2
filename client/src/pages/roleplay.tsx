@@ -338,7 +338,16 @@ export default function RolePlayPage() {
       if (!res.ok) throw new Error("end_failed");
       return res.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
+      // PROMPT #24: Wait for final refetch before scoring (same pattern as sendResponse)
+      await queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+      await queryClient.refetchQueries({ queryKey: ["/api/roleplay/session"] });
+      
+      // Get fresh messages after refetch
+      const freshData = queryClient.getQueryData<SessionPayload>(["/api/roleplay/session"]);
+      const finalMessages = freshData?.messages ?? [];
+      
+      console.log('[END SESSION DEBUG] Final messages count:', finalMessages.length);
       // PROMPT #21: Worker Response Contract Adapter
       // Cloudflare Worker returns: { coach: { metricResults: {...}, overall: N } }
       // Node/Express returns: { analysis: { eqMetrics: {...}, overallScore: N } }
@@ -369,9 +378,9 @@ export default function RolePlayPage() {
         console.log('[WORKER SCORES] Using Cloudflare Worker metricResults:', data.coach.metricResults);
         scoredMetrics = data.coach.metricResults;
       } else {
-        // Fallback to client-side scoring if Worker doesn't provide scores
+        // PROMPT #24: Use fresh messages for fallback scoring
         console.log('[FALLBACK] Worker metricResults not available, using client-side scoring');
-        const transcript: Transcript = messages.map((msg) => ({
+        const transcript: Transcript = finalMessages.map((msg) => ({
           speaker: msg.role === 'user' ? 'rep' : 'customer',
           text: msg.content,
         }));
