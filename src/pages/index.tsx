@@ -108,7 +108,7 @@ export default function HomePage() {
             </h1>
           </div>
           <p className="text-muted-foreground text-lg">
-            Your AI-Powered Emotional Intelligence Coach
+            Your AI-Powered Sales Coaching Platform
           </p>
         </div>
 
@@ -190,8 +190,8 @@ export default function HomePage() {
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           <Card className="text-center p-4 hover:shadow-lg transition-shadow">
             <Brain className="w-8 h-8 mx-auto mb-2 text-primary" />
-            <h3 className="font-semibold mb-1">Emotional Intelligence</h3>
-            <p className="text-sm text-muted-foreground">Develop self-awareness and empathy</p>
+            <h3 className="font-semibold mb-1">Signal Intelligence</h3>
+            <p className="text-sm text-muted-foreground">Develop behavioral awareness and empathy</p>
           </Card>
           <Card className="text-center p-4 hover:shadow-lg transition-shadow">
             <MessageSquare className="w-8 h-8 mx-auto mb-2 text-primary" />

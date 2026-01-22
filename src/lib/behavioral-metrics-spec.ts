@@ -53,7 +53,7 @@ export interface BehaviorMetric {
 export const BEHAVIORAL_METRICS: Record<BehaviorMetricId, BehaviorMetric> = {
   "empathy": {
     id: "empathy",
-    name: "Empathy & Emotional Intelligence",
+    name: "Empathy & Signal Intelligence",
     shortDescription: "Understanding and responding to HCP emotions and concerns",
     fullDescription: "The ability to recognize, understand, and appropriately respond to the emotional state and concerns of healthcare professionals. This includes acknowledging their challenges, validating their perspectives, and demonstrating genuine care for patient outcomes.",
     category: "emotional-intelligence",

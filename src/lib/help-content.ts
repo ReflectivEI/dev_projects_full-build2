@@ -91,7 +91,7 @@ ReflectivAI is your AI-powered sales enablement platform designed specifically f
 **Practice-First Learning**: Learn by doing through realistic roleplay simulations with AI-powered HCPs.
 
 **Behavioral Metrics**: Track 8 core behavioral skills that matter most in pharma sales:
-- Empathy & Emotional Intelligence
+- Empathy & Signal Intelligence
 - Active Listening
 - Objection Handling
 - Value Articulation

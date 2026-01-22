@@ -184,7 +184,7 @@ export function exportEIMetricsReportPDF(
   // Header
   doc.setFontSize(20);
   doc.setTextColor(40);
-  doc.text('Emotional Intelligence Metrics Report', 14, 22);
+  doc.text('Behavioral Metrics Report', 14, 22);
 
   // Date
   doc.setFontSize(10);
