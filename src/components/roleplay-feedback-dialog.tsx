@@ -637,11 +637,28 @@ export function RoleplayFeedbackDialog({
         // 1. metricResult.overall_score (Signal Intelligence)
         // 2. detail.score (legacy eqScores)
         // 3. fallback to 0 only if truly no data
+        
+        // DEBUG: Log metric resolution
+        if (metricId === 'question_quality') {
+          console.log('[PROMPT #21 DEBUG] Question Quality Resolution:', {
+            metricId,
+            metricResult,
+            overall_score: metricResult?.overall_score,
+            detail,
+            detailScore: detail?.score,
+          });
+        }
+        
         const resolvedScore =
           metricResult?.overall_score ??
           (typeof detail?.score === "number" ? detail.score : null);
         
         const displayScore = resolvedScore ?? 0;
+        
+        // DEBUG: Log final display score
+        if (metricId === 'question_quality') {
+          console.log('[PROMPT #21 DEBUG] Final Display Score:', displayScore);
+        }
         
         return {
           key: `eq:${metricId}`,
