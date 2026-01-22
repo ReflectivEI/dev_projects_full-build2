@@ -305,6 +305,28 @@ export default function RolePlayPage() {
       return res.json();
     },
     onSuccess: (data) => {
+      // PROMPT #21: Worker Response Contract Adapter
+      // Cloudflare Worker returns: { coach: { metricResults: {...}, overall: N } }
+      // Node/Express returns: { analysis: { eqMetrics: {...}, overallScore: N } }
+      // Normalize to the expected contract before processing
+      console.log('[WORKER ADAPTER] Raw response:', data);
+      
+      let normalizedData = data;
+      if (data?.coach && !data?.analysis) {
+        console.log('[WORKER ADAPTER] Detected Worker response, normalizing...');
+        normalizedData = {
+          ...data,
+          analysis: {
+            overallScore: data.coach.overall ?? 3,
+            eqMetrics: data.coach.metricResults ?? {},
+            strengths: data.coach.strengths ?? [],
+            improvements: data.coach.improvements ?? [],
+            recommendations: data.coach.recommendations ?? [],
+          }
+        };
+        console.log('[WORKER ADAPTER] Normalized data:', normalizedData);
+      }
+      
       // Execute scoring on transcript
       const transcript: Transcript = messages.map((msg) => ({
         speaker: msg.role === 'user' ? 'rep' : 'customer',
@@ -342,7 +364,7 @@ export default function RolePlayPage() {
       });
       setAllDetectedCues(allCues);
 
-      const feedback = mapToComprehensiveFeedback(data, scoredMetrics);
+      const feedback = mapToComprehensiveFeedback(normalizedData, scoredMetrics);
       
       console.log('[CRITICAL DEBUG] Mapped Feedback:', feedback);
       console.log('[CRITICAL DEBUG] Feedback eqScores:', feedback.eqScores);
