@@ -22,15 +22,16 @@ import { getAllImprovementTipsForMetric } from "@/lib/metric-improvement-guidanc
 import type { BehavioralMetricId } from "@/lib/signal-intelligence/metrics-spec";
 
 interface MetricWithScore extends EQMetric {
-  score: number;
+  score: number | null;
 }
 
 function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () => void }) {
-  const performanceLevel = getPerformanceLevel(metric.score);
+  const hasScore = metric.score !== null;
+  const performanceLevel = hasScore ? getPerformanceLevel(metric.score!) : null;
   
   return (
     <div
-      className={`rounded-xl p-5 cursor-pointer transition-all hover-elevate border ${getScoreBgColor(metric.score)}`}
+      className={`rounded-xl p-5 cursor-pointer transition-all hover-elevate border ${hasScore ? getScoreBgColor(metric.score!) : 'border-muted bg-muted/5'}`}
       onClick={onClick}
       data-testid={`card-metric-${metric.id}`}
     >
@@ -44,23 +45,32 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
           </Badge>
         </div>
         
-        <div className="flex items-baseline gap-2">
-          <span className={`text-3xl font-bold ${getScoreColor(metric.score)}`}>
-            {metric.score.toFixed(1)}
-          </span>
-          <span className="text-sm text-muted-foreground">/5</span>
-        </div>
-        {metric.score === 3.0 ? (
-          <p className="text-xs text-muted-foreground">Not yet scored — complete a Role Play to calculate</p>
+        {hasScore ? (
+          <>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-bold ${getScoreColor(metric.score!)}`}>
+                {metric.score!.toFixed(1)}
+              </span>
+              <span className="text-sm text-muted-foreground">/5</span>
+            </div>
+            <p className="text-xs text-green-600 dark:text-green-400">✓ Scored from recent Role Play</p>
+          </>
         ) : (
-          <p className="text-xs text-green-600 dark:text-green-400">✓ Scored from recent Role Play</p>
+          <>
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-muted-foreground">—</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Not yet scored — complete a Role Play to calculate</p>
+          </>
         )}
         
-        <div className="flex items-center gap-2">
-          <Badge className={`text-xs ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
-            {performanceLevel.label}
-          </Badge>
-        </div>
+        {hasScore && performanceLevel && (
+          <div className="flex items-center gap-2">
+            <Badge className={`text-xs ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
+              {performanceLevel.label}
+            </Badge>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -73,7 +83,8 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
 }) {
   if (!metric) return null;
   
-  const performanceLevel = getPerformanceLevel(metric.score);
+  const hasScore = metric.score !== null;
+  const performanceLevel = hasScore ? getPerformanceLevel(metric.score!) : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -83,12 +94,20 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
             <div>
               <DialogTitle className="text-xl">{metric.displayName || metric.name}</DialogTitle>
               <div className="flex items-center gap-2 mt-2">
-                <span className={`text-2xl font-bold ${getScoreColor(metric.score)}`}>
-                  {metric.score.toFixed(1)}/5
-                </span>
-                <Badge className={`${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
-                  {performanceLevel.label}
-                </Badge>
+                {hasScore ? (
+                  <>
+                    <span className={`text-2xl font-bold ${getScoreColor(metric.score!)}`}>
+                      {metric.score!.toFixed(1)}/5
+                    </span>
+                    {performanceLevel && (
+                      <Badge className={`${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
+                        {performanceLevel.label}
+                      </Badge>
+                    )}
+                  </>
+                ) : (
+                  <span className="text-lg text-muted-foreground">Not yet scored</span>
+                )}
               </div>
             </div>
             <DialogClose asChild>
@@ -299,7 +318,7 @@ export default function EIMetricsPage() {
 
   const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
     ...m,
-    score: storedScores[m.id] ?? 3.0  // Use stored score or default to 3.0
+    score: storedScores[m.id] ?? null  // Use stored score or null if not yet scored
   }));
 
   return (

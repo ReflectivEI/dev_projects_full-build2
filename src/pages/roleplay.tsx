@@ -410,15 +410,29 @@ export default function RolePlayPage() {
 
       // PROMPT #22: Save scores to localStorage for EI Metrics page
       const { saveRoleplayScores } = await import('@/lib/signal-intelligence/score-storage');
+      
+      // Canonical ID mapping: METRICS_SPEC IDs → Signal Intelligence capability IDs
+      const ID_MAPPING: Record<string, string> = {
+        'question_quality': 'signal-awareness',
+        'listening_responsiveness': 'signal-interpretation',
+        'making_it_matter': 'making-it-matter',
+        'customer_engagement_signals': 'customer-engagement-monitoring',
+        'conversation_control_structure': 'conversation-management',
+        'adaptability': 'adaptive-response',
+        'commitment_gaining': 'commitment-generation',
+        'objection_navigation': 'objection-navigation'
+      };
+      
       const scoresMap: Record<string, number> = {};
       scoredMetrics.forEach(m => {
-        console.log(`[SCORE_STORAGE] Processing metric ${m.id}:`, {
+        const canonicalId = ID_MAPPING[m.id] || m.id;
+        console.log(`[SCORE_STORAGE] Processing metric ${m.id} → ${canonicalId}:`, {
           overall_score: m.overall_score,
           not_applicable: m.not_applicable,
           willSave: m.overall_score !== null && !m.not_applicable
         });
         if (m.overall_score !== null && !m.not_applicable) {
-          scoresMap[m.id] = m.overall_score;
+          scoresMap[canonicalId] = m.overall_score;
         }
       });
       console.log('[SCORE_STORAGE] Scores to save:', scoresMap);
