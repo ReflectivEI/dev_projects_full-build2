@@ -597,14 +597,6 @@ export function RoleplayFeedbackDialog({
 
     const aggregateScore = normalizeToFive(root?.eqScore ?? feedback.overallScore);
 
-    const fallbackFieldByMetricId: Record<string, string> = {
-      empathy: "empathyScore",
-      clarity: "clarityScore",
-      discovery: "discoveryScore",
-      adaptability: "adaptabilityScore",
-      resilience: "resilienceScore",
-    };
-
     const coreMetricIds = eqMetrics.filter((m) => m.isCore).map((m) => m.id);
     const enabledSet = new Set(enabledExtras);
     const extraMetricIds = eqMetrics
