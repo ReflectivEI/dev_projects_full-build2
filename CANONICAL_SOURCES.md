@@ -45,6 +45,8 @@ The Signal Intelligence scoring system operates under a **dual-canonical model**
 
 **Authority:** This document governs **HOW** we calculate scores.
 
+**Version Tracking:** `metricsVersion` field identifies the active Signal Intelligence scoring contract (currently "SI-v1").
+
 ---
 
 ## CRITICAL GOVERNANCE RULES

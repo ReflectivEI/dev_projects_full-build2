@@ -31,6 +31,7 @@ export type MetricResult = {
   components: ComponentResult[];
   overall_score: number | null;
   not_applicable?: boolean;
+  metricsVersion?: string;
 };
 
 // ============================================================================
@@ -660,7 +661,8 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
       score_formula: spec.score_formula,
       components,
       overall_score: overallScore,
-      not_applicable: notApplicable
+      not_applicable: notApplicable,
+      metricsVersion: 'SI-v1'
     });
   });
 
