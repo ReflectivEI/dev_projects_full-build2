@@ -590,6 +590,12 @@ export function RoleplayFeedbackDialog({
   }, []);
 
   const metricItems = useMemo(() => {
+    console.log('[CRITICAL DEBUG - DIALOG] Props received:', {
+      feedback,
+      metricResults,
+      metricResultsLength: metricResults?.length
+    });
+    
     const root: any = (feedback as any)?.analysis ?? (feedback as any);
 
     const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
@@ -609,6 +615,8 @@ export function RoleplayFeedbackDialog({
     const metricResultsMap = new Map(
       (metricResults || []).map(mr => [mr.id, mr])
     );
+    
+    console.log('[CRITICAL DEBUG - DIALOG] metricResultsMap:', metricResultsMap);
 
     const items: Array<{
       key: string;
