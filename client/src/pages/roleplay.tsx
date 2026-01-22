@@ -341,12 +341,22 @@ export default function RolePlayPage() {
         console.log('[WORKER ADAPTER - END] Normalized data:', normalizedData);
       }
       
-      // Execute scoring on transcript
-      const transcript: Transcript = messages.map((msg) => ({
-        speaker: msg.role === 'user' ? 'rep' : 'customer',
-        text: msg.content,
-      }));
-      const scoredMetrics = scoreConversation(transcript);
+      // PROMPT #21: Use Worker's metricResults instead of client-side scoring
+      // Priority: Worker scores > Client-side fallback
+      let scoredMetrics: MetricResult[];
+      
+      if (data?.coach?.metricResults && Array.isArray(data.coach.metricResults)) {
+        console.log('[WORKER SCORES] Using Cloudflare Worker metricResults:', data.coach.metricResults);
+        scoredMetrics = data.coach.metricResults;
+      } else {
+        // Fallback to client-side scoring if Worker doesn't provide scores
+        console.log('[FALLBACK] Worker metricResults not available, using client-side scoring');
+        const transcript: Transcript = messages.map((msg) => ({
+          speaker: msg.role === 'user' ? 'rep' : 'customer',
+          text: msg.content,
+        }));
+        scoredMetrics = scoreConversation(transcript);
+      }
       setMetricResults(scoredMetrics);
 
       const feedback = mapToComprehensiveFeedback(normalizedData, scoredMetrics);
