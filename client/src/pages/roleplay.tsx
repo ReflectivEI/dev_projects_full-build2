@@ -309,6 +309,19 @@ export default function RolePlayPage() {
         );
       }
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
+
+      // PROMPT #22: Calculate live scores during conversation
+      // This updates the SignalIntelligencePanel with real-time metrics
+      const currentMessages = roleplayData?.messages ?? [];
+      if (currentMessages.length >= 2) { // Need at least 1 exchange to score
+        const transcript: Transcript = currentMessages.map((msg) => ({
+          speaker: msg.role === 'user' ? 'rep' : 'customer',
+          text: msg.content,
+        }));
+        const liveScores = scoreConversation(transcript);
+        setMetricResults(liveScores);
+        console.log('[LIVE SCORING] Updated metrics during conversation:', liveScores.length);
+      }
     },
   });
 

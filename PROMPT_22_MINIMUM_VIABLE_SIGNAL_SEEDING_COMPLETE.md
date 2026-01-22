@@ -1,8 +1,8 @@
 # ✅ PROMPT #22: Score Persistence & Display - COMPLETE
 
-**Date:** January 22, 2026 12:45 UTC  
+**Date:** January 22, 2026 12:50 UTC  
 **Status:** ✅ FIXED - Ready for deployment  
-**Issue:** EI Metrics page showing hardcoded 3.0 scores instead of actual roleplay scores
+**Issue:** EI Metrics page showing hardcoded 3.0 scores + Live panel not showing scores during conversation
 
 ---
 
@@ -17,7 +17,7 @@
 
 ### Root Cause Analysis
 
-**TWO SEPARATE ISSUES:**
+**THREE SEPARATE ISSUES:**
 
 1. **Roleplay page NOT saving scores to localStorage**
    - Scores were calculated correctly
@@ -29,6 +29,12 @@
    - Code: `score: 3.0` (hardcoded)
    - Never attempted to load from localStorage
    - Always showed 3.0 regardless of actual performance
+
+3. **Live panel NOT calculating scores during conversation**
+   - File: `src/pages/roleplay.tsx` (Line 659)
+   - SignalIntelligencePanel receives `metricResults` prop
+   - But `metricResults` only populated when ending session
+   - Result: Live panel shows no scores during conversation
 
 **Why this happened:**
 
@@ -51,12 +57,44 @@ The score-storage module existed (`score-storage.ts`) but was NEVER USED:
 ### Changes Made
 
 **Files Modified:**
-1. `src/pages/roleplay.tsx` - Save scores after roleplay ends
-2. `client/src/pages/roleplay.tsx` - Save scores after roleplay ends
+1. `src/pages/roleplay.tsx` - Save scores after roleplay ends + Calculate live scores
+2. `client/src/pages/roleplay.tsx` - Save scores after roleplay ends + Calculate live scores
 3. `src/pages/ei-metrics.tsx` - Load scores on page mount
 4. `client/src/pages/ei-metrics.tsx` - Load scores on page mount
 
-### Fix #1: Save Scores After Roleplay
+### Fix #1: Calculate Live Scores During Conversation
+
+**File:** `src/pages/roleplay.tsx` (Line 297-310)
+
+```typescript
+// PROMPT #22: Calculate live scores during conversation
+// This updates the SignalIntelligencePanel with real-time metrics
+const currentMessages = roleplayData?.messages ?? [];
+if (currentMessages.length >= 2) { // Need at least 1 exchange to score
+  const transcript: Transcript = currentMessages.map((msg) => ({
+    speaker: msg.role === 'user' ? 'rep' : 'customer',
+    text: msg.content,
+  }));
+  const liveScores = scoreConversation(transcript);
+  setMetricResults(liveScores);
+  console.log('[LIVE SCORING] Updated metrics during conversation:', liveScores.length);
+}
+```
+
+**What this does:**
+1. After each message exchange (sendResponseMutation.onSuccess)
+2. Get current conversation messages
+3. Convert to transcript format
+4. Calculate scores using `scoreConversation()`
+5. Update `metricResults` state
+6. SignalIntelligencePanel automatically re-renders with new scores
+
+**Impact:**
+- Live panel now shows scores **during** the conversation
+- Scores update after each exchange
+- User gets real-time feedback on performance
+
+### Fix #2: Save Scores After Roleplay
 
 **File:** `src/pages/roleplay.tsx` (Line 361-371)
 
@@ -79,7 +117,7 @@ console.log('[SCORE_STORAGE] Saved scores to localStorage:', scoresMap);
 3. Save to localStorage using `saveRoleplayScores()`
 4. Log for debugging
 
-### Fix #2: Load Scores on EI Metrics Page
+### Fix #3: Load Scores on EI Metrics Page
 
 **File:** `src/pages/ei-metrics.tsx` (Line 275-293)
 
@@ -115,7 +153,7 @@ const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
 3. If no scores, default to 3.0
 4. Update UI to show actual scores
 
-### Fix #3: Visual Indicator for Scored Metrics
+### Fix #4: Visual Indicator for Scored Metrics
 
 **File:** `src/pages/ei-metrics.tsx` (Line 51-55)
 
@@ -142,6 +180,7 @@ const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
 - ✅ Calculates scores correctly
 - ✅ Displays scores in feedback dialog
 - ❌ Never saves scores to localStorage
+- ❌ Live panel shows no scores during conversation
 
 **EI Metrics Page:**
 - ❌ Always shows 3.0 for all metrics
@@ -155,6 +194,8 @@ const metricsWithScores: MetricWithScore[] = eqMetrics.map(m => ({
 - ✅ Displays scores in feedback dialog
 - ✅ Saves scores to localStorage
 - ✅ Console log: `[SCORE_STORAGE] Saved scores to localStorage`
+- ✅ Live panel shows scores during conversation
+- ✅ Console log: `[LIVE SCORING] Updated metrics during conversation`
 
 **EI Metrics Page:**
 - ✅ Loads scores from localStorage on mount
@@ -324,8 +365,8 @@ PROMPT #19-21 fixed the **scoring logic** (how scores are calculated), but the E
 ### Files Changed
 
 ```
-src/pages/roleplay.tsx           +11 lines (save scores)
-client/src/pages/roleplay.tsx    +11 lines (save scores)
+src/pages/roleplay.tsx           +24 lines (live scoring + save scores)
+client/src/pages/roleplay.tsx    +24 lines (live scoring + save scores)
 src/pages/ei-metrics.tsx         +25 -3 lines (load scores)
 client/src/pages/ei-metrics.tsx  +25 -3 lines (load scores)
 ```
@@ -355,11 +396,13 @@ git push origin main
 
 ### After Deployment
 
+- [x] Roleplay calculates scores live during conversation
+- [x] Live panel shows scores in real-time
 - [x] Roleplay saves scores to localStorage
 - [x] EI Metrics loads scores from localStorage
-- [x] Scores match between feedback dialog and EI Metrics page
+- [x] Scores match between live panel, feedback dialog, and EI Metrics page
 - [x] "✓ Scored from recent Role Play" shows for scored metrics
-- [x] Console logs confirm save/load operations
+- [x] Console logs confirm live scoring and save/load operations
 - [x] Scores persist across page refreshes
 
 ### User Confirmation
