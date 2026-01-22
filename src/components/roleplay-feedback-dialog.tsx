@@ -643,30 +643,16 @@ export function RoleplayFeedbackDialog({
 
         const metricResult = metricResultsMap.get(metricId);
         
-        // PROMPT #21: UI Metric Rendering Alignment (Display-Only)
-        // Derive UI flag: metric has renderable score if any of these are true
-        const hasRenderableScore =
-          metricResult?.overall_score !== null ||
-          metricResult?.components?.some(c => c.applicable);
+        // PROMPT #21: UI Metric Score Resolution (Display-Only)
+        // Canonical priority order:
+        // 1. metricResult.overall_score (Signal Intelligence)
+        // 2. detail.score (legacy eqScores)
+        // 3. fallback to 0 only if truly no data
+        const resolvedScore =
+          metricResult?.overall_score ??
+          (typeof detail?.score === "number" ? detail.score : null);
         
-        // Compute display score: use overall_score if available, otherwise compute from applicable components
-        let displayScore: number;
-        if (metricResult?.overall_score !== null && metricResult?.overall_score !== undefined) {
-          displayScore = metricResult.overall_score;
-        } else if (hasRenderableScore && metricResult?.components) {
-          // Fallback: compute average of applicable component scores
-          const applicableComponents = metricResult.components.filter(c => c.applicable && c.score !== null);
-          if (applicableComponents.length > 0) {
-            const sum = applicableComponents.reduce((acc, c) => acc + (c.score ?? 0), 0);
-            displayScore = sum / applicableComponents.length;
-          } else {
-            // Has signals but no component scores yet - seed minimum viable score
-            displayScore = 1.0;
-          }
-        } else {
-          // No renderable score - use legacy fallbacks or 0
-          displayScore = typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw);
-        }
+        const displayScore = resolvedScore ?? 0;
         
         return {
           key: `eq:${metricId}`,
