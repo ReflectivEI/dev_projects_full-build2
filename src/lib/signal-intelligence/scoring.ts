@@ -762,6 +762,19 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
         break;
     }
 
+    // Apply metric-scoped signal attribution
+    // If no components are applicable but metric-specific signals exist,
+    // mark first component as applicable with score=1
+    if (!components.some(c => c.applicable) && hasMetricSignals(transcript, spec.id)) {
+      components = [...components];
+      components[0] = {
+        ...components[0],
+        score: 1,
+        applicable: true,
+        rationale: `Observable ${spec.metric.toLowerCase()} signals detected, but threshold not met for higher score`
+      };
+    }
+
     const applicableComponents = components.filter(c => c.applicable);
     const notApplicable = spec.optional && applicableComponents.length === 0;
 
