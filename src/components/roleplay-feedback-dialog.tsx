@@ -647,8 +647,7 @@ export function RoleplayFeedbackDialog({
         // Derive UI flag: metric has renderable score if any of these are true
         const hasRenderableScore =
           metricResult?.overall_score !== null ||
-          metricResult?.components?.some(c => c.applicable) ||
-          (metricResult?.signals && metricResult.signals.length > 0);
+          metricResult?.components?.some(c => c.applicable);
         
         // Compute display score: use overall_score if available, otherwise compute from applicable components
         let displayScore: number;
