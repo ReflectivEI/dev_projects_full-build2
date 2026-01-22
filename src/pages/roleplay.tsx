@@ -412,12 +412,27 @@ export default function RolePlayPage() {
       const { saveRoleplayScores } = await import('@/lib/signal-intelligence/score-storage');
       const scoresMap: Record<string, number> = {};
       scoredMetrics.forEach(m => {
+        console.log(`[SCORE_STORAGE] Processing metric ${m.id}:`, {
+          overall_score: m.overall_score,
+          not_applicable: m.not_applicable,
+          willSave: m.overall_score !== null && !m.not_applicable
+        });
         if (m.overall_score !== null && !m.not_applicable) {
           scoresMap[m.id] = m.overall_score;
         }
       });
+      console.log('[SCORE_STORAGE] Scores to save:', scoresMap);
+      console.log('[SCORE_STORAGE] Number of scores:', Object.keys(scoresMap).length);
       saveRoleplayScores(scoresMap);
-      console.log('[SCORE_STORAGE] Saved scores to localStorage:', scoresMap);
+      console.log('[SCORE_STORAGE] Saved to localStorage successfully');
+      
+      // Verify what was saved
+      const savedData = localStorage.getItem('reflectivai-roleplay-scores');
+      console.log('[SCORE_STORAGE] Verification - localStorage content:', savedData);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        console.log('[SCORE_STORAGE] Verification - parsed scores:', parsed.scores);
+      }
 
       // PROMPT #24: Collect all detected cues from fresh messages
       const allCues: ObservableCue[] = [];
