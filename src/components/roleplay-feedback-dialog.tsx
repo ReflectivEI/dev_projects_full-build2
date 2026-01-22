@@ -638,9 +638,6 @@ export function RoleplayFeedbackDialog({
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
-        const fallbackField = fallbackFieldByMetricId[metricId];
-        const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;
-
         const metricResult = metricResultsMap.get(metricId);
         
         // PROMPT #21: UI Metric Score Resolution (Display-Only)
