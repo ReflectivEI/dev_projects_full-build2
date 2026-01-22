@@ -1,9 +1,19 @@
 # 🎯 LIVE SITE SCORING SYSTEM TEST PLAN
 
-**Live Production URL:** https://reflectivei.github.io/dev_projects_full-build2/
+**Live Production URL:** https://reflectivai-app-prod.pages.dev/
 
 **Date:** January 22, 2026 15:05 UTC  
 **Focus:** Signal Intelligence Scoring System (based on uploaded source of truth document)
+
+---
+
+## ⚠️ CRITICAL: CORRECT LIVE SITE URL
+
+**✅ CORRECT LIVE SITE:** https://reflectivai-app-prod.pages.dev/  
+**❌ WRONG (GitHub Repo):** https://github.com/ReflectivEI/dev_projects_full-build2  
+**❌ WRONG (GitHub Pages):** https://reflectivei.github.io/dev_projects_full-build2/
+
+**This is a Cloudflare Pages deployment, NOT GitHub Pages!**
 
 ---
 
@@ -23,7 +33,7 @@
 
 ### Test 1: Role Play - Complete Conversation with Scoring
 
-**URL:** https://reflectivei.github.io/dev_projects_full-build2/roleplay
+**URL:** https://reflectivai-app-prod.pages.dev/roleplay
 
 **Steps:**
 1. Navigate to Role Play page
@@ -68,7 +78,7 @@
 
 ### Test 2: EI Metrics Page - Score Display
 
-**URL:** https://reflectivei.github.io/dev_projects_full-build2/ei-metrics
+**URL:** https://reflectivai-app-prod.pages.dev/ei-metrics
 
 **Steps:**
 1. Complete a Role Play session (Test 1)
@@ -101,7 +111,7 @@
 
 ### Test 3: Signal Intelligence Panel - Real-Time Detection
 
-**URL:** https://reflectivei.github.io/dev_projects_full-build2/roleplay
+**URL:** https://reflectivai-app-prod.pages.dev/roleplay
 
 **Steps:**
 1. Start a Role Play
