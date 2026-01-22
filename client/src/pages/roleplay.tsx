@@ -280,6 +280,28 @@ export default function RolePlayPage() {
       return res.json();
     },
     onSuccess: (data) => {
+      // PROMPT #21: Worker Response Contract Adapter
+      // Cloudflare Worker returns: { coach: { metricResults: {...}, overall: N } }
+      // Node/Express returns: { analysis: { eqMetrics: {...}, overallScore: N } }
+      // Normalize to the expected contract before processing
+      console.log('[WORKER ADAPTER] Raw response:', data);
+      
+      let normalizedData = data;
+      if (data?.coach && !data?.analysis) {
+        console.log('[WORKER ADAPTER] Detected Worker response, normalizing...');
+        normalizedData = {
+          ...data,
+          analysis: {
+            overallScore: data.coach.overall ?? 3,
+            eqMetrics: data.coach.metricResults ?? {},
+            strengths: data.coach.strengths ?? [],
+            improvements: data.coach.improvements ?? [],
+            recommendations: data.coach.recommendations ?? [],
+          }
+        };
+        console.log('[WORKER ADAPTER] Normalized data:', normalizedData);
+      }
+      
       const newSignals = extractSignals(data);
       if (newSignals.length) {
         setSessionSignals((prev) =>
