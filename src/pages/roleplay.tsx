@@ -343,6 +343,10 @@ export default function RolePlayPage() {
       setAllDetectedCues(allCues);
 
       const feedback = mapToComprehensiveFeedback(data, scoredMetrics);
+      
+      console.log('[CRITICAL DEBUG] Mapped Feedback:', feedback);
+      console.log('[CRITICAL DEBUG] Feedback eqScores:', feedback.eqScores);
+      
       setFeedbackScenarioTitle(
         data?.scenario?.title || selectedScenario?.title || "Role-Play Session"
       );
