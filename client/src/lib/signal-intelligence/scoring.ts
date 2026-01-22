@@ -92,6 +92,57 @@ export function startsWithAny(text: string, prefixes: string[]): boolean {
   return prefixes.some(p => lower.startsWith(p.toLowerCase()));
 }
 
+// ============================================================================
+// SIGNAL-TO-METRIC ATTRIBUTION MAP
+// ============================================================================
+
+/**
+ * Canonical mapping of signal patterns to behavioral metrics
+ * Each metric becomes applicable when its mapped signals are detected
+ */
+const SIGNAL_TO_METRIC_MAP: Record<string, string[]> = {
+  'question_quality': [
+    'how', 'what', 'why', 'when', 'where', 'who',
+    'tell me', 'walk me through', 'help me understand',
+    'can you explain', 'could you share'
+  ],
+  'listening_responsiveness': [
+    'what i\'m hearing', 'if i understand', 'let me make sure',
+    'so what you\'re saying', 'you mentioned', 'you said',
+    'building on that', 'that makes sense'
+  ],
+  'making_it_matter': [
+    'this means', 'impact', 'benefit', 'result',
+    'help you', 'for your', 'in your situation',
+    'specifically for', 'relevant to'
+  ],
+  'customer_engagement_signals': [
+    'tell me more', 'that\'s interesting', 'i see',
+    'makes sense', 'i understand', 'good point',
+    'question', 'concern', 'wondering'
+  ],
+  'objection_navigation': [
+    'concern', 'worry', 'hesitant', 'not sure',
+    'but what about', 'however', 'challenge',
+    'i understand your concern', 'that\'s a fair point'
+  ],
+  'conversation_control_structure': [
+    'let\'s start', 'first', 'next', 'finally',
+    'to summarize', 'in summary', 'key takeaway',
+    'agenda', 'plan', 'structure'
+  ],
+  'commitment_gaining': [
+    'next step', 'follow up', 'schedule', 'meeting',
+    'would you be open', 'can we', 'shall we',
+    'action item', 'move forward'
+  ],
+  'adaptability': [
+    'let me adjust', 'different approach', 'another way',
+    'based on what you said', 'given that', 'in light of',
+    'pivot', 'shift', 'change direction'
+  ]
+};
+
 /**
  * Detect if transcript contains any observable signals for a metric
  * Returns true if at least one signal pattern is detected
@@ -99,6 +150,14 @@ export function startsWithAny(text: string, prefixes: string[]): boolean {
 function hasObservableSignals(transcript: Transcript, signalPatterns: string[]): boolean {
   const allText = transcript.map(t => t.text.toLowerCase()).join(' ');
   return signalPatterns.some(pattern => allText.includes(pattern.toLowerCase()));
+}
+
+/**
+ * Check if transcript contains signals mapped to a specific metric
+ */
+function hasMetricSignals(transcript: Transcript, metricId: string): boolean {
+  const signalPatterns = SIGNAL_TO_METRIC_MAP[metricId] || [];
+  return hasObservableSignals(transcript, signalPatterns);
 }
 
 /**
