@@ -383,6 +383,8 @@ export default function RolePlayPage() {
       
       console.log('[CRITICAL DEBUG] Scored Metrics:', scoredMetrics);
       console.log('[CRITICAL DEBUG] Scored Metrics length:', scoredMetrics.length);
+      console.log('[CRITICAL DEBUG] Transcript length:', finalMessages.length);
+      console.log('[CRITICAL DEBUG] Transcript:', finalMessages.map(m => ({ role: m.role, content: m.content.substring(0, 100) })));
       scoredMetrics.forEach(m => {
         console.log(`[CRITICAL DEBUG] Metric ${m.id}:`, {
           overall_score: m.overall_score,
@@ -390,10 +392,19 @@ export default function RolePlayPage() {
           components: m.components.map(c => ({
             name: c.component,
             applicable: c.applicable,
-            score: c.score
+            score: c.score,
+            rationale: c.rationale
           }))
         });
       });
+      
+      // Additional diagnostic: Check if all scores are 3.0
+      const allScoresAre3 = scoredMetrics.every(m => m.overall_score === 3.0 || m.overall_score === null);
+      if (allScoresAre3) {
+        console.error('[CRITICAL BUG] All scores are 3.0! This indicates scoring logic failure.');
+        console.error('[CRITICAL BUG] Worker response:', data);
+        console.error('[CRITICAL BUG] Fallback scoring used?', !data?.coach?.metricResults);
+      }
       
       setMetricResults(scoredMetrics);
 
