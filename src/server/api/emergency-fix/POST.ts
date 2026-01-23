@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express';
 
 export default async function handler(req: Request, res: Response) {
+  // Try multiple token formats
   const GITHUB_TOKEN = '***REMOVED***';
+  
+  console.log('🔑 Testing GitHub authentication...');
   const REPO = 'ReflectivEI/dev_projects_full-build2';
   const FILE_PATH = 'client/src/pages/ei-metrics.tsx';
   const BRANCH = 'main';
