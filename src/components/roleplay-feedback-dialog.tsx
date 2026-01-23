@@ -615,32 +615,58 @@ export function RoleplayFeedbackDialog({
 
     const metricOrder = [...coreMetricIds, ...extraMetricIds];
 
-    // IMPLEMENTATION MODE: Derive Signal Intelligence capability scores from Behavioral Metrics
-    // Mapping: Signal Intelligence ID → Behavioral Metric IDs for averaging
-    const deriveCapabilityScore = (capabilityId: string, metricResults: MetricResult[]): number | null => {
-      const behavioralMetricMap: Record<string, string[]> = {
-        'signal-awareness': ['question_quality', 'listening_responsiveness'],
-        'signal-interpretation': ['making_it_matter'],
-        'making-it-matter': ['making_it_matter'],
-        'customer-engagement-monitoring': ['customer_engagement_signals'],
-        'objection-navigation': ['objection_navigation'],
-        'conversation-management': ['conversation_control_structure'],
-        'adaptive-response': ['adaptability'],
-        'commitment-generation': ['commitment_gaining'],
+    // CANONICAL SIGNAL INTELLIGENCE FIX
+    // Build behavioral scores map ONCE from metricResults
+    const behavioralScoresMap = Object.fromEntries(
+      (metricResults || []).map(m => [m.id, m.overall_score])
+    );
+
+    // Derive Signal Intelligence capability scores from Behavioral Metrics
+    function deriveSignalCapabilityScore(
+      capabilityId: string,
+      behavioralScores: Record<string, number | null>
+    ): number | null {
+      const map: Record<string, string[]> = {
+        "signal-awareness": [
+          "question_quality",
+          "listening_responsiveness"
+        ],
+        "signal-interpretation": [
+          "listening_responsiveness"
+        ],
+        "value-connection": [
+          "making_it_matter"
+        ],
+        "customer-engagement-monitoring": [
+          "customer_engagement_signals"
+        ],
+        "objection-navigation": [
+          "objection_navigation"
+        ],
+        "conversation-management": [
+          "conversation_control_structure"
+        ],
+        "adaptive-response": [
+          "adaptability"
+        ],
+        "commitment-generation": [
+          "commitment_gaining"
+        ]
       };
 
-      const metricIds = behavioralMetricMap[capabilityId];
-      if (!metricIds) return null;
+      const deps = map[capabilityId];
+      if (!deps) return null;
 
-      const scores = metricIds
-        .map(id => metricResults.find(mr => mr.id === id)?.overall_score)
-        .filter((s): s is number => typeof s === 'number' && !isNaN(s));
+      const values = deps
+        .map(id => behavioralScores[id])
+        .filter(v => typeof v === "number");
 
-      if (scores.length === 0) return null;
+      if (!values.length) return null;
 
-      const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
-      return Math.max(0, Math.min(5, Math.round(avg * 10) / 10)); // Clamp [0,5], round to 1 decimal
-    };
+      return Math.round(
+        (values.reduce((a, b) => a + b, 0) / values.length) * 10
+      ) / 10;
+    }
 
     const metricResultsMap = new Map(
       (metricResults || []).map(mr => [mr.id, mr])
