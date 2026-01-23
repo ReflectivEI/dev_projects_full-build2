@@ -4,15 +4,19 @@
  * Frontend-only, deterministic scoring framework
  */
 
-export type BehavioralMetricId =
-  | 'question_quality'
-  | 'listening_responsiveness'
-  | 'making_it_matter'
-  | 'customer_engagement_signals'
-  | 'objection_navigation'
-  | 'conversation_control_structure'
-  | 'commitment_gaining'
-  | 'adaptability';
+// CANONICAL LIST: All 8 Behavioral Metrics (MUST be used everywhere)
+export const BEHAVIORAL_METRIC_IDS = [
+  'question_quality',
+  'listening_responsiveness',
+  'making_it_matter',
+  'customer_engagement_signals',
+  'objection_navigation',
+  'conversation_control_structure',
+  'commitment_gaining',
+  'adaptability',
+] as const;
+
+export type BehavioralMetricId = typeof BEHAVIORAL_METRIC_IDS[number];
 
 export interface ComponentSpec {
   name: string;
