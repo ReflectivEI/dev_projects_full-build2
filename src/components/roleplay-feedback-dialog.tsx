@@ -615,27 +615,8 @@ export function RoleplayFeedbackDialog({
 
     const metricOrder = [...coreMetricIds, ...extraMetricIds];
 
-    // DIAGNOSTIC + FIX: Resolve behavioral scores from SAME source as UI
-    // Helper to resolve score from multiple sources (canonical priority)
-    function resolveBehavioralScoreById(
-      id: string,
-      metricResults: any[] | undefined,
-      detailsById: Map<string, any>
-    ): number | null {
-      const fromMetricResults =
-        metricResults?.find(m => m?.id === id)?.overall_score;
-
-      const fromDetails =
-        typeof detailsById?.get(id)?.score === "number" ? detailsById.get(id).score : null;
-
-      const v =
-        (typeof fromMetricResults === "number" ? fromMetricResults : null) ??
-        fromDetails;
-
-      return typeof v === "number" && !Number.isNaN(v) ? v : null;
-    }
-
-    // Build behavioral scores map from resolved scores
+    // FINAL WIRING FIX: ONE canonical source for behavioral scores
+    // Build behavioral scores map ONLY from detailsById (same source as Behavioral tab)
     const BEHAVIORAL_IDS = [
       "question_quality",
       "listening_responsiveness",
@@ -649,18 +630,9 @@ export function RoleplayFeedbackDialog({
 
     const behavioralScoresMap: Record<string, number> = {};
     for (const id of BEHAVIORAL_IDS) {
-      const v = resolveBehavioralScoreById(id, metricResults, byId);
+      const v = byId.get(id)?.score;
       if (typeof v === "number") behavioralScoresMap[id] = v;
     }
-
-    // DEBUG SNAPSHOT (no devtools required)
-    (window as any).__SI_DEBUG__ = {
-      metricResultsRaw: metricResults,
-      metricResultsIds: (metricResults ?? []).map((m:any)=>m?.id),
-      metricResultsScores: (metricResults ?? []).map((m:any)=>({id:m?.id, overall:m?.overall_score, score:(m as any)?.score})),
-      detailScoresUsedInUI: { ...behavioralScoresMap },
-      derivedCapabilityScores: null, // filled below
-    };
 
     // Derive Signal Intelligence capability scores from Behavioral Metrics
     function deriveSignalCapabilityScore(
@@ -691,16 +663,7 @@ export function RoleplayFeedbackDialog({
       return Math.round(avg * 10) / 10;
     }
 
-    const metricResultsMap = new Map(
-      (metricResults || []).map(mr => [mr.id, mr])
-    );
-    
-    console.log('[CRITICAL DEBUG - DIALOG] metricResultsMap:', metricResultsMap);
 
-    // Fill debug snapshot with derived scores
-    (window as any).__SI_DEBUG__.derivedCapabilityScores = {
-      ...Object.fromEntries(metricOrder.map(id => [id, deriveSignalCapabilityScore(id, behavioralScoresMap)]))
-    };
 
     // Compute aggregate score from derived capability scores only
     const derivedScores = metricOrder
@@ -731,21 +694,18 @@ export function RoleplayFeedbackDialog({
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
-        const metricResult = metricResultsMap.get(metricId);
         
-        // Derive score from Behavioral Metrics (no fallbacks, no defaults)
+        // Derive score from Behavioral Metrics ONLY (no fallbacks, no defaults)
         const score = deriveSignalCapabilityScore(
           metricId,
           behavioralScoresMap
         );
         
-        const displayScore = score; // null if not derivable
-        
         return {
           key: `eq:${metricId}`,
           metricId,
           name: getMetricName(metricId),
-          score: displayScore,
+          score: score, // null if not derivable
           feedbackText:
             typeof detail?.feedback === "string" && detail.feedback.trim()
               ? detail.feedback
@@ -753,7 +713,7 @@ export function RoleplayFeedbackDialog({
           observedBehaviors: detail?.observedBehaviors,
           totalOpportunities: detail?.totalOpportunities,
           calculationNote: detail?.calculationNote,
-          metricResult,
+          metricResult: undefined, // Not used for Signal Intelligence capabilities
         };
       }),
     ];
