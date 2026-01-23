@@ -606,8 +606,6 @@ export function RoleplayFeedbackDialog({
     const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
     const byId = new Map(detailedScores.map((m) => [m.metricId, m] as const));
 
-    const aggregateScore = normalizeToFive(root?.eqScore ?? feedback.overallScore);
-
     const coreMetricIds = eqMetrics.filter((m) => m.isCore).map((m) => m.id);
     const enabledSet = new Set(enabledExtras);
     const extraMetricIds = eqMetrics
@@ -649,6 +647,18 @@ export function RoleplayFeedbackDialog({
     );
     
     console.log('[CRITICAL DEBUG - DIALOG] metricResultsMap:', metricResultsMap);
+
+    // IMPLEMENTATION MODE: Compute aggregate score from derived capability scores
+    const capabilityScores = metricOrder
+      .map(id => deriveCapabilityScore(id, metricResults || []))
+      .filter((s): s is number => s !== null);
+    
+    const computedAggregateScore = capabilityScores.length > 0
+      ? Math.round((capabilityScores.reduce((sum, s) => sum + s, 0) / capabilityScores.length) * 10) / 10
+      : null;
+
+    // Use computed aggregate if available, otherwise fall back to legacy
+    const aggregateScore = computedAggregateScore ?? normalizeToFive(root?.eqScore ?? feedback.overallScore);
 
     const items: Array<{
       key: string;
