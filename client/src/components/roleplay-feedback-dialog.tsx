@@ -30,6 +30,19 @@ import {
 } from "lucide-react";
 import { eqMetrics } from "@/lib/data";
 import { readEnabledEIMetricIds, EI_METRICS_SETTINGS_EVENT } from "@/lib/eiMetricSettings";
+import { getCuesForMetric, type CueMetricMapping } from "@/lib/observable-cue-to-metric-map";
+import { CueBadge } from "@/components/CueBadge";
+import type { ObservableCue } from "@/lib/observable-cues";
+import type { MetricResult } from "@/lib/signal-intelligence/scoring";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ComprehensiveFeedback {
   overallScore: number;
@@ -64,6 +77,8 @@ interface RoleplayFeedbackDialogProps {
   feedback: ComprehensiveFeedback | null;
   scenarioTitle?: string;
   onStartNew?: () => void;
+  detectedCues?: ObservableCue[];
+  metricResults?: MetricResult[];
 }
 
 function getPerformanceBadgeColor(level: string): string {
@@ -234,15 +249,19 @@ function MetricScoreCard({
   totalOpportunities,
   calculationNote,
   icon: Icon,
+  detectedCues,
+  metricResult,
 }: {
   name: string;
-  score: number;
+  score: number | null;
   feedback: string;
   metricId?: string;
   observedBehaviors?: number;
   totalOpportunities?: number;
   calculationNote?: string;
   icon?: any;
+  detectedCues?: ObservableCue[];
+  metricResult?: MetricResult;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -263,7 +282,8 @@ function MetricScoreCard({
       ? Math.round((((observedBehaviors ?? 0) / totalOpportunities) * 100) * 10) / 10
       : null;
 
-  const safeScore = Number.isFinite(score) ? score : 0;
+  // IMPLEMENTATION MODE: Handle null scores (not yet scored)
+  const safeScore = score !== null && Number.isFinite(score) ? score : null;
 
   return (
     <motion.div
@@ -278,16 +298,20 @@ function MetricScoreCard({
           <span className="text-sm font-medium">{name}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`font-bold ${getScoreColor(safeScore)}`}>{safeScore}/5</span>
+          {safeScore !== null ? (
+            <span className={`font-bold ${getScoreColor(safeScore)}`}>{safeScore.toFixed(1)}/5</span>
+          ) : (
+            <span className="font-bold text-muted-foreground">—</span>
+          )}
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </div>
       </div>
 
       <div className="relative h-2 bg-muted rounded-full overflow-hidden">
         <motion.div
-          className={`absolute left-0 top-0 h-full rounded-full ${getProgressColor(safeScore)}`}
+          className={`absolute left-0 top-0 h-full rounded-full ${safeScore !== null ? getProgressColor(safeScore) : 'bg-muted'}`}
           initial={{ width: 0 }}
-          animate={{ width: `${(safeScore / 5) * 100}%` }}
+          animate={{ width: safeScore !== null ? `${(safeScore / 5) * 100}%` : '0%' }}
           transition={{ duration: 0.5, delay: 0.1 }}
         />
       </div>
@@ -300,6 +324,109 @@ function MetricScoreCard({
             exit={{ opacity: 0, height: 0 }}
             className="mt-3 pt-3 border-t space-y-3"
           >
+            {metricResult && metricResult.components && metricResult.components.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-semibold text-primary">How this score was derived</span>
+                <p className="text-xs text-muted-foreground">
+                  {safeScore === 3.0 && metricResult.components.filter(c => c.applicable).length === 0
+                    ? "Limited observable data resulted in a neutral baseline score."
+                    : "This score reflects how consistently observable behaviors aligned with this metric during the conversation."}
+                </p>
+                <div className="border rounded-lg overflow-hidden">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-muted/50">
+                        <TableHead className="text-xs font-semibold">Component</TableHead>
+                        <TableHead className="text-xs font-semibold text-center w-20">Weight</TableHead>
+                        <TableHead className="text-xs font-semibold text-center w-20">Score</TableHead>
+                        <TableHead className="text-xs font-semibold">Evidence</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {metricResult.components.map((component, idx) => {
+                        const evidenceItems = component.rationale ? [component.rationale] : [];
+                        const displayEvidence = evidenceItems.slice(0, 3);
+                        const hasMore = evidenceItems.length > 3;
+                        
+                        // Determine performance level
+                        const componentScore = component.score ?? 0;
+                        const performanceBadge = componentScore <= 2.5 
+                          ? { label: "Needs Attention", color: "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400", icon: "🔴" }
+                          : componentScore >= 4.0
+                          ? { label: "Strength", color: "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400", icon: "🟢" }
+                          : null;
+                        
+                        return (
+                          <TableRow key={idx} className={!component.applicable ? "opacity-50" : ""}>
+                            <TableCell className="text-xs font-medium">
+                              <div className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  {component.name}
+                                  {!component.applicable && (
+                                    <Badge variant="outline" className="ml-2 text-[10px] px-1 py-0">N/A</Badge>
+                                  )}
+                                  {performanceBadge && component.applicable && (
+                                    <Badge className={`text-[10px] px-1.5 py-0 ${performanceBadge.color} border-0`}>
+                                      {performanceBadge.icon} {performanceBadge.label}
+                                    </Badge>
+                                  )}
+                                </div>
+                                {component.applicable && component.rationale && (
+                                  <p className="text-[10px] text-muted-foreground italic">
+                                    This score was influenced by: {component.rationale.split('.')[0]}.
+                                  </p>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-xs text-center">
+                              {Math.round(component.weight * 100)}%
+                            </TableCell>
+                            <TableCell className="text-xs text-center font-medium">
+                              {component.score !== null ? `${component.score.toFixed(1)} / 5` : "—"}
+                            </TableCell>
+                            <TableCell className="text-xs">
+                              {displayEvidence.length > 0 ? (
+                                <div className="space-y-1">
+                                  {displayEvidence.map((evidence, eIdx) => (
+                                    <div key={eIdx} className="flex items-start gap-1.5">
+                                      <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
+                                      <span className="text-muted-foreground">{evidence}</span>
+                                    </div>
+                                  ))}
+                                  {hasMore && (
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <button className="text-primary hover:underline text-[10px]">
+                                            +{evidenceItems.length - 3} more
+                                          </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent className="max-w-xs">
+                                          <div className="space-y-1">
+                                            {evidenceItems.slice(3).map((evidence, eIdx) => (
+                                              <div key={eIdx} className="text-xs">
+                                                • {evidence}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-muted-foreground italic">No observable evidence detected in this session.</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            )}
+
             {(definitionText || scoringText) && (
               <div className="space-y-2">
                 {definitionText && (
@@ -388,6 +515,47 @@ function MetricScoreCard({
               </div>
             )}
 
+            {metricId && detectedCues && detectedCues.length > 0 && (() => {
+              const relevantMappings = getCuesForMetric(metricId as any);
+              const relevantCues = detectedCues.filter(cue => 
+                relevantMappings.some(m => m.cueType === cue.type)
+              );
+              
+              if (relevantCues.length === 0) return null;
+              
+              return (
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-primary">Observed Evidence During Role Play</span>
+                  <div className="space-y-2">
+                    {relevantCues.map((cue, idx) => {
+                      const mapping = relevantMappings.find(m => m.cueType === cue.type);
+                      return (
+                        <div key={idx} className="bg-muted/30 rounded-lg p-2 space-y-1">
+                          <CueBadge cue={cue} size="sm" />
+                          {mapping && (
+                            <p className="text-xs text-muted-foreground">{mapping.explanation}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
+
+            {metricId && (!detectedCues || detectedCues.length === 0 || (() => {
+              const relevantMappings = getCuesForMetric(metricId as any);
+              const relevantCues = (detectedCues || []).filter(cue => 
+                relevantMappings.some(m => m.cueType === cue.type)
+              );
+              return relevantCues.length === 0;
+            })()) && (
+              <div className="bg-muted/30 rounded-lg p-2">
+                <span className="text-xs font-semibold text-primary">Observed Evidence During Role Play</span>
+                <p className="text-xs text-muted-foreground mt-1">No observable cues detected for this metric</p>
+              </div>
+            )}
+
             <div>
               <span className="text-xs font-semibold text-primary">Feedback</span>
               <p className="text-xs text-muted-foreground">{feedback}</p>
@@ -405,6 +573,8 @@ export function RoleplayFeedbackDialog({
   feedback,
   scenarioTitle,
   onStartNew,
+  detectedCues,
+  metricResults,
 }: RoleplayFeedbackDialogProps) {
   if (!feedback) return null;
 
@@ -430,16 +600,6 @@ export function RoleplayFeedbackDialog({
     const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
     const byId = new Map(detailedScores.map((m) => [m.metricId, m] as const));
 
-    const aggregateScore = normalizeToFive(root?.eqScore ?? feedback.overallScore);
-
-    const fallbackFieldByMetricId: Record<string, string> = {
-      empathy: "empathyScore",
-      clarity: "clarityScore",
-      discovery: "discoveryScore",
-      adaptability: "adaptabilityScore",
-      resilience: "resilienceScore",
-    };
-
     const coreMetricIds = eqMetrics.filter((m) => m.isCore).map((m) => m.id);
     const enabledSet = new Set(enabledExtras);
     const extraMetricIds = eqMetrics
@@ -449,15 +609,75 @@ export function RoleplayFeedbackDialog({
 
     const metricOrder = [...coreMetricIds, ...extraMetricIds];
 
+    // FINAL WIRING FIX: ONE canonical source for behavioral scores
+    // Build behavioral scores map ONLY from detailsById (same source as Behavioral tab)
+    const BEHAVIORAL_IDS = [
+      "question_quality",
+      "listening_responsiveness",
+      "making_it_matter",
+      "customer_engagement_signals",
+      "objection_navigation",
+      "conversation_control_structure",
+      "commitment_gaining",
+      "adaptability",
+    ];
+
+    const behavioralScoresMap: Record<string, number> = {};
+    for (const id of BEHAVIORAL_IDS) {
+      const v = byId.get(id)?.score;
+      if (typeof v === "number") behavioralScoresMap[id] = v;
+    }
+
+    // Derive Signal Intelligence capability scores from Behavioral Metrics
+    function deriveSignalCapabilityScore(
+      capabilityId: string,
+      behavioralScores: Record<string, number>
+    ): number | null {
+      const map: Record<string, string[]> = {
+        "signal-awareness": ["question_quality", "listening_responsiveness"],
+        "signal-interpretation": ["listening_responsiveness"],
+        "value-connection": ["making_it_matter"],
+        "customer-engagement-monitoring": ["customer_engagement_signals"],
+        "objection-navigation": ["objection_navigation"],
+        "conversation-management": ["conversation_control_structure"],
+        "adaptive-response": ["adaptability"],
+        "commitment-generation": ["commitment_gaining"],
+      };
+
+      const deps = map[capabilityId];
+      if (!deps) return null;
+
+      const values = deps
+        .map(id => behavioralScores[id])
+        .filter(v => typeof v === "number");
+
+      if (!values.length) return null;
+
+      const avg = values.reduce((a,b)=>a+b,0) / values.length;
+      return Math.round(avg * 10) / 10;
+    }
+
+
+
+    // Compute aggregate score from derived capability scores only
+    const derivedScores = metricOrder
+      .map(id => deriveSignalCapabilityScore(id, behavioralScoresMap))
+      .filter((v): v is number => typeof v === "number");
+
+    const aggregateScore = derivedScores.length
+      ? Math.round((derivedScores.reduce((a,b)=>a+b,0) / derivedScores.length) * 10) / 10
+      : null;
+
     const items: Array<{
       key: string;
       metricId?: string;
       name: string;
-      score: number;
+      score: number | null;
       feedbackText: string;
       observedBehaviors?: number;
       totalOpportunities?: number;
       calculationNote?: string;
+      metricResult?: MetricResult;
     }> = [
       {
         key: "eq:aggregate",
@@ -468,14 +688,18 @@ export function RoleplayFeedbackDialog({
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
-        const fallbackField = fallbackFieldByMetricId[metricId];
-        const fallbackRaw = fallbackField ? root?.[fallbackField] : undefined;
-
+        
+        // Derive score from Behavioral Metrics ONLY (no fallbacks, no defaults)
+        const score = deriveSignalCapabilityScore(
+          metricId,
+          behavioralScoresMap
+        );
+        
         return {
           key: `eq:${metricId}`,
           metricId,
           name: getMetricName(metricId),
-          score: metricResult?.overall_score ?? (typeof detail?.score === "number" ? detail.score : normalizeToFive(fallbackRaw)),
+          score: score, // null if not derivable
           feedbackText:
             typeof detail?.feedback === "string" && detail.feedback.trim()
               ? detail.feedback
@@ -483,6 +707,7 @@ export function RoleplayFeedbackDialog({
           observedBehaviors: detail?.observedBehaviors,
           totalOpportunities: detail?.totalOpportunities,
           calculationNote: detail?.calculationNote,
+          metricResult: undefined, // Not used for Signal Intelligence capabilities
         };
       }),
     ];
@@ -575,6 +800,8 @@ export function RoleplayFeedbackDialog({
                         totalOpportunities={item.totalOpportunities}
                         calculationNote={item.calculationNote}
                         icon={Brain}
+                        detectedCues={detectedCues}
+                        metricResult={item.metricResult}
                       />
                     </motion.div>
                   ))}
@@ -799,6 +1026,22 @@ export function RoleplayFeedbackDialog({
                 </Card>
               </TabsContent>
             </Tabs>
+
+            {/* DEBUG PANEL (TEMPORARY) */}
+            <Card className="mt-6 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-mono">🔍 SI Debug Snapshot</CardTitle>
+              </CardHeader>
+              <CardContent className="text-xs font-mono space-y-1">
+                <div><strong>Behavioral IDs count:</strong> {BEHAVIORAL_IDS.length}</div>
+                <div><strong>Behavioral IDs:</strong> {BEHAVIORAL_IDS.join(", ")}</div>
+                <div><strong>question_quality exists:</strong> {behavioralScoresMap.question_quality !== undefined ? `✅ ${behavioralScoresMap.question_quality}` : "❌"}</div>
+                <div><strong>listening_responsiveness exists:</strong> {behavioralScoresMap.listening_responsiveness !== undefined ? `✅ ${behavioralScoresMap.listening_responsiveness}` : "❌"}</div>
+                <div><strong>making_it_matter exists:</strong> {behavioralScoresMap.making_it_matter !== undefined ? `✅ ${behavioralScoresMap.making_it_matter}` : "❌"}</div>
+                <div><strong>commitment_gaining exists:</strong> {behavioralScoresMap.commitment_gaining !== undefined ? `✅ ${behavioralScoresMap.commitment_gaining}` : "❌"}</div>
+                <div className="pt-2"><strong>Check console for:</strong> window.__SI_DEBUG__</div>
+              </CardContent>
+            </Card>
           </div>
         </ScrollArea>
 
