@@ -253,7 +253,7 @@ function MetricScoreCard({
   metricResult,
 }: {
   name: string;
-  score: number;
+  score: number | null;
   feedback: string;
   metricId?: string;
   observedBehaviors?: number;
@@ -282,7 +282,8 @@ function MetricScoreCard({
       ? Math.round((((observedBehaviors ?? 0) / totalOpportunities) * 100) * 10) / 10
       : null;
 
-  const safeScore = Number.isFinite(score) ? score : 0;
+  // IMPLEMENTATION MODE: Handle null scores (not yet scored)
+  const safeScore = score !== null && Number.isFinite(score) ? score : null;
 
   return (
     <motion.div
@@ -297,16 +298,20 @@ function MetricScoreCard({
           <span className="text-sm font-medium">{name}</span>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`font-bold ${getScoreColor(safeScore)}`}>{safeScore}/5</span>
+          {safeScore !== null ? (
+            <span className={`font-bold ${getScoreColor(safeScore)}`}>{safeScore.toFixed(1)}/5</span>
+          ) : (
+            <span className="font-bold text-muted-foreground">—</span>
+          )}
           {expanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
         </div>
       </div>
 
       <div className="relative h-2 bg-muted rounded-full overflow-hidden">
         <motion.div
-          className={`absolute left-0 top-0 h-full rounded-full ${getProgressColor(safeScore)}`}
+          className={`absolute left-0 top-0 h-full rounded-full ${safeScore !== null ? getProgressColor(safeScore) : 'bg-muted'}`}
           initial={{ width: 0 }}
-          animate={{ width: `${(safeScore / 5) * 100}%` }}
+          animate={{ width: safeScore !== null ? `${(safeScore / 5) * 100}%` : '0%' }}
           transition={{ duration: 0.5, delay: 0.1 }}
         />
       </div>
