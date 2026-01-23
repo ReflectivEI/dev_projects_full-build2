@@ -89,6 +89,9 @@ function MetricDetailDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+        <DialogHeader className="sr-only">
+          <DialogTitle>{metric.displayName || metric.name}</DialogTitle>
+        </DialogHeader>
         {/* Header with gradient background */}
         <div className="bg-gradient-to-br from-teal-500/10 via-teal-500/5 to-background p-8 pb-6 border-b">
           <div className="flex items-start gap-4">
@@ -96,9 +99,9 @@ function MetricDetailDialog({
               <Icon className="h-7 w-7 text-teal-600 dark:text-teal-400" />
             </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold mb-2">
+              <h2 className="text-2xl font-bold mb-2">
                 {metric.displayName || metric.name}
-              </DialogTitle>
+              </h2>
               <p className="text-sm text-muted-foreground leading-relaxed">
                 {metric.description}
               </p>
