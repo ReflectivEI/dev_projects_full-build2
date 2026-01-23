@@ -1,5 +1,4 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { 
   Dialog, 
   DialogContent, 
@@ -7,15 +6,23 @@ import {
   DialogTitle,
   DialogClose 
 } from "@/components/ui/dialog";
-import { Activity, CheckCircle2, X, Radio, Lightbulb } from "lucide-react";
+import { 
+  MessageSquare, 
+  Ear, 
+  Target, 
+  TrendingUp, 
+  Shield, 
+  GitBranch, 
+  Handshake, 
+  Shuffle,
+  X,
+  Lightbulb,
+  Radio
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
-  eqMetrics, 
-  getPerformanceLevel, 
-  getScoreColor, 
-  getScoreBgColor,
-  performanceLevels,
+  eqMetrics,
   type EQMetric 
 } from "@/lib/data";
 import { getAllImprovementTipsForMetric } from "@/lib/metric-improvement-guidance";
@@ -25,264 +32,140 @@ interface MetricWithScore extends EQMetric {
   score: number | null;
 }
 
+// Icon mapping for each metric
+const metricIcons: Record<string, any> = {
+  'question_quality': MessageSquare,
+  'listening_responsiveness': Ear,
+  'making_it_matter': Target,
+  'customer_engagement_signals': TrendingUp,
+  'objection_navigation': Shield,
+  'conversation_control_structure': GitBranch,
+  'commitment_gaining': Handshake,
+  'adaptability': Shuffle,
+};
+
 function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () => void }) {
-  const hasScore = metric.score !== null;
-  const performanceLevel = hasScore ? getPerformanceLevel(metric.score!) : null;
+  const Icon = metricIcons[metric.id] || MessageSquare;
   
   return (
-    <div
-      className={`rounded-xl p-5 cursor-pointer transition-all hover-elevate border ${hasScore ? getScoreBgColor(metric.score!) : 'border-muted bg-muted/5'}`}
+    <Card 
+      className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 border-border/50"
       onClick={onClick}
       data-testid={`card-metric-${metric.id}`}
     >
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            {metric.displayName || metric.name}
-          </span>
-          <Badge variant="outline" className="text-xs py-0 bg-muted/50 text-muted-foreground border-muted">
-            Behavioral Metric
-          </Badge>
-        </div>
-        
-        {hasScore ? (
-          <>
-            <div className="flex items-baseline gap-2">
-              <span className={`text-3xl font-bold ${getScoreColor(metric.score!)}`}>
-                {metric.score!.toFixed(1)}
-              </span>
-              <span className="text-sm text-muted-foreground">/5</span>
-            </div>
-            <p className="text-xs text-green-600 dark:text-green-400">✓ Scored from recent Role Play</p>
-          </>
-        ) : (
-          <>
-            <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-bold text-muted-foreground">—</span>
-            </div>
-            <p className="text-xs text-muted-foreground">Not yet scored — complete a Role Play to calculate</p>
-          </>
-        )}
-        
-        {hasScore && performanceLevel && (
-          <div className="flex items-center gap-2">
-            <Badge className={`text-xs ${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
-              {performanceLevel.label}
-            </Badge>
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-primary" />
           </div>
-        )}
-      </div>
-    </div>
+          <div className="flex-1 space-y-2">
+            <h3 className="font-semibold text-lg">
+              {metric.displayName || metric.name}
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {metric.description}
+            </p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
-function MetricDetailDialog({ metric, open, onOpenChange }: { 
+function MetricDetailDialog({ 
+  metric, 
+  open, 
+  onOpenChange 
+}: { 
   metric: MetricWithScore | null; 
   open: boolean; 
   onOpenChange: (open: boolean) => void;
 }) {
   if (!metric) return null;
-  
-  const hasScore = metric.score !== null;
-  const performanceLevel = hasScore ? getPerformanceLevel(metric.score!) : null;
+
+  const improvementTips = getAllImprovementTipsForMetric(metric.id as BehavioralMetricId);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md overflow-hidden">
-        <DialogHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-xl">{metric.displayName || metric.name}</DialogTitle>
-              <div className="flex items-center gap-2 mt-2">
-                {hasScore ? (
-                  <>
-                    <span className={`text-2xl font-bold ${getScoreColor(metric.score!)}`}>
-                      {metric.score!.toFixed(1)}/5
-                    </span>
-                    {performanceLevel && (
-                      <Badge className={`${performanceLevel.bgColor} ${performanceLevel.color} border-0`}>
-                        {performanceLevel.label}
-                      </Badge>
-                    )}
-                  </>
-                ) : (
-                  <span className="text-lg text-muted-foreground">Not yet scored</span>
-                )}
-              </div>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <DialogTitle className="text-2xl mb-2">
+                {metric.displayName || metric.name}
+              </DialogTitle>
+              <p className="text-muted-foreground">
+                {metric.description}
+              </p>
             </div>
-            <DialogClose asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-              >
-                <X className="h-5 w-5" />
-                <span className="sr-only">Close</span>
-              </Button>
+            <DialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
             </DialogClose>
           </div>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* What it measures */}
-          <div>
-            <h4 className="font-semibold text-sm mb-1 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-primary" />
-              What it measures
-            </h4>
-            <p className="text-sm text-muted-foreground">{metric.whatItMeasures}</p>
-          </div>
+        <div className="space-y-6 pt-4">
+          {/* Observable Sub-Metrics */}
+          {metric.examples && metric.examples.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Radio className="h-4 w-4 text-primary" />
+                Observable Sub-Metrics
+              </h3>
+              <ul className="space-y-2">
+                {metric.examples.map((example, idx) => (
+                  <li key={idx} className="flex items-start gap-2 text-sm">
+                    <span className="text-primary mt-1">•</span>
+                    <span className="text-muted-foreground">{example}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-          {/* What strong performance looks like */}
-          <div>
-            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              What strong performance looks like
-            </h4>
-            <ul className="space-y-1.5">
-              {metric.whatStrongPerformanceLooksLike.map((item, idx) => (
-                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Roll-Up Rule */}
+          {metric.whyItMatters && (
+            <div className="space-y-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary" />
+                Roll-Up Rule
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {metric.whyItMatters}
+              </p>
+            </div>
+          )}
 
-          {/* Observable behaviors */}
-          <div>
-            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <Radio className="h-4 w-4 text-primary" />
-              Observable behaviors
-            </h4>
-            <ul className="space-y-1.5">
-              {metric.observableBehaviors.map((behavior, idx) => (
-                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                  {behavior}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* What It Measures */}
+          {metric.whatItMeasures && (
+            <div className="space-y-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                What It Measures
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {metric.whatItMeasures}
+              </p>
+            </div>
+          )}
 
-          {/* Why it matters */}
-          <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
-            <h4 className="font-semibold text-sm mb-1">Why it matters</h4>
-            <p className="text-sm text-muted-foreground">{metric.whyItMatters}</p>
-          </div>
-
-          {/* Coaching insight */}
-          <div>
-            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              Coaching insight
-            </h4>
-            <ul className="space-y-1.5">
-              {metric.coachingInsight.map((insight, idx) => (
-                <li key={idx} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                  {insight}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-
-          <div>
-            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <Radio className="h-4 w-4 text-muted-foreground" />
-              Signals observed during Role Play
-            </h4>
-            <p className="text-sm text-muted-foreground mb-2">
-              During Role Play and real-world conversations, Signal Intelligence is informed by observable cues that vary by scenario and customer behavior.
-            </p>
-            <p className="text-sm text-muted-foreground mb-2">
-              These signals reflect what is happening in the interaction and provide context for how a Behavioral Metric is demonstrated.
-            </p>
-            <ul className="space-y-1.5 mb-2">
-              <li className="text-sm text-muted-foreground flex items-start gap-2">
-                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                Changes in tone or pacing
-              </li>
-              <li className="text-sm text-muted-foreground flex items-start gap-2">
-                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                Interruptions or shortened responses
-              </li>
-              <li className="text-sm text-muted-foreground flex items-start gap-2">
-                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                Hesitation or delayed replies
-              </li>
-              <li className="text-sm text-muted-foreground flex items-start gap-2">
-                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                Follow-up questions after new information
-              </li>
-              <li className="text-sm text-muted-foreground flex items-start gap-2">
-                <span className="mt-1.5 w-1 h-1 rounded-full bg-muted-foreground flex-shrink-0" />
-                Shifts from openness to resistance (or vice versa)
-              </li>
-            </ul>
-            <p className="text-xs text-muted-foreground italic">
-              Signals support reflection and coaching. They do not independently determine outcomes, intent, or capability.
-            </p>
-          </div>
-
-          <div className="bg-primary/5 p-3 rounded-lg border border-primary/20">
-            <h4 className="font-semibold text-sm mb-1">Key Tip</h4>
-            <p className="text-sm text-muted-foreground italic">
-              {metric.keyTip || 'Focus on observable behaviors and adjust your approach based on customer cues.'}
-            </p>
-          </div>
-
-          {/* How to Improve This Score */}
-          <div>
-            <h4 className="font-semibold text-sm mb-2 flex items-center gap-2">
-              <Lightbulb className="h-4 w-4 text-amber-500" />
-              How to Improve This Score
-            </h4>
-            {metric.score === null ? (
-              <div className="bg-muted/50 p-3 rounded-lg">
-                <p className="text-sm text-muted-foreground">
-                  Complete a Role Play to receive personalized guidance based on your performance.
-                </p>
+          {/* Coaching Insights */}
+          {improvementTips.length > 0 && (
+            <div className="space-y-3">
+              <h3 className="font-semibold flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-primary" />
+                Coaching Insights
+              </h3>
+              <div className="space-y-2">
+                {improvementTips.map((tip, idx) => (
+                  <div key={idx} className="p-3 rounded-lg bg-muted/50 border border-border/50">
+                    <p className="text-sm text-muted-foreground">{tip}</p>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <div className="space-y-3">
-                {(() => {
-                  const improvementGuidance = getAllImprovementTipsForMetric(metric.id as BehavioralMetricId);
-                  if (improvementGuidance.length === 0) {
-                    return (
-                      <div className="bg-muted/50 p-3 rounded-lg">
-                        <p className="text-sm text-muted-foreground">
-                          Complete a Role Play to receive personalized guidance.
-                        </p>
-                      </div>
-                    );
-                  }
-                  
-                  // Find the lowest-scoring component (simulated for now)
-                  const lowestComponent = improvementGuidance[0];
-                  
-                  return (
-                    <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg border border-amber-200 dark:border-amber-900/30">
-                      <div className="text-xs font-medium text-amber-900 dark:text-amber-100 mb-2">
-                        Focus Area: {lowestComponent.componentName.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
-                      </div>
-                      <ul className="space-y-2">
-                        {lowestComponent.improvementTips.slice(0, 3).map((tip, idx) => (
-                          <li key={idx} className="text-sm text-amber-900 dark:text-amber-100 flex items-start gap-2">
-                            <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                            {tip}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  );
-                })()}
-              </div>
-            )}
-          </div>
+            </div>
+          )}
 
           <div className="pt-2 border-t">
             <p className="text-xs text-muted-foreground italic">
@@ -323,69 +206,38 @@ export default function EIMetricsPage() {
 
   return (
     <div className="h-full overflow-auto">
-      <div className="p-6 space-y-6 max-w-4xl mx-auto">
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <Activity className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold" data-testid="text-ei-metrics-title">Behavioral Metrics Overview</h1>
-          </div>
-          <p className="text-muted-foreground">
-            The 8 foundational metrics that measure observable behaviors during sales interactions. Signal Intelligence capabilities are derived from these metrics.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Click any metric to view its definition, measurement method, and coaching guidance.
-          </p>
-        </div>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-bold text-primary">1</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium mb-1">Behavioral Metrics - The Foundation</p>
-                <p className="text-sm text-muted-foreground">
-                  These 8 metrics are the <strong>only directly measured layer</strong>. They score observable behaviors (1-5) from role-play transcripts. 
-                  Signal Intelligence capabilities are <strong>derived</strong> from these behavioral scores—never measured directly.
-                </p>
-              </div>
+      <div className="p-6 space-y-8 max-w-7xl mx-auto">
+        {/* Hero Card */}
+        <Card className="border-none bg-gradient-to-br from-primary/10 via-primary/5 to-background">
+          <CardContent className="p-8 md:p-12">
+            <div className="max-w-3xl space-y-4">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
+                Behavioral Metrics
+              </h1>
+              <p className="text-xl text-muted-foreground">
+                The Foundation of Signal Intelligence
+              </p>
+              <p className="text-muted-foreground leading-relaxed">
+                These 8 metrics are the <strong>only directly measured layer</strong>. They score observable behaviors (1-5) from role-play transcripts. Signal Intelligence capabilities are <strong>derived</strong> from these behavioral scores—never measured directly.
+              </p>
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span className="font-medium">Performance Levels:</span>
-          {Object.values(performanceLevels).map(level => (
-            <span key={level.level} className={`flex items-center gap-1 ${level.color}`}>
-              <span className={`w-2 h-2 rounded-full ${level.bgColor.replace('/10', '')}`} />
-              {level.label} ({level.range})
-            </span>
+        {/* Metrics Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {metricsWithScores.map((metric) => (
+            <MetricCard 
+              key={metric.id} 
+              metric={metric} 
+              onClick={() => setSelectedMetric(metric)}
+            />
           ))}
         </div>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
-                Behavioral Metrics (Always Active)
-              </h2>
-              <p className="text-sm text-muted-foreground">
-                These eight metrics are scored ONLY during Role Play sessions based on observable behaviors. They form the foundation from which Signal Intelligence capabilities are derived.
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {metricsWithScores.map((metric) => (
-              <MetricCard 
-                key={metric.id} 
-                metric={metric} 
-                onClick={() => setSelectedMetric(metric)}
-              />
-            ))}
-          </div>
+        {/* Footer Note */}
+        <div className="text-center text-sm text-muted-foreground">
+          <p>Click any metric to view its definition, observable sub-metrics, and coaching guidance.</p>
         </div>
       </div>
 
