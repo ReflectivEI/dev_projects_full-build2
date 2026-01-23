@@ -41,10 +41,9 @@ import {
   Radio,
   HelpCircle,
 } from "lucide-react";
-import reflectivAILogo from "@assets/E2ABF40D-E679-443C-A1B7-6681EF25E7E7_1764541714586.png";
+// Logo removed - using text/icon instead
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
 import type { Message } from "@shared/schema";
@@ -186,6 +185,7 @@ export default function ChatPage() {
   const [selectedInfluenceDriver, setSelectedInfluenceDriver] = useState<string>("");
   const [discEnabled, setDiscEnabled] = useState<boolean>(false);
   const [observableSignals, setObservableSignals] = useState<ObservableSignal[]>([]);
+  const [showSessionIndicator, setShowSessionIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
@@ -203,14 +203,7 @@ export default function ChatPage() {
         hcpCategory: selectedHcpCategory,
         influenceDriver: selectedInfluenceDriver,
       });
-      const rawText = await response.text();
-      const normalized = normalizeAIResponse(rawText);
-      // Return in expected format with fallback
-      if (normalized.json && (normalized.json.conversationStarters || normalized.json.suggestedTopics)) {
-        return normalized.json as CoachPromptBundle;
-      }
-      // Fallback: empty bundle
-      return { conversationStarters: [], suggestedTopics: [] } as CoachPromptBundle;
+      return response.json() as Promise<CoachPromptBundle>;
     },
     staleTime: 1000 * 60,
   });
@@ -234,19 +227,11 @@ export default function ChatPage() {
     queryKey: ["/api/chat/messages"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/chat/messages");
-      const rawText = await response.text();
-      const normalized = normalizeAIResponse(rawText);
-      // Try to parse as JSON array or object with messages
-      if (normalized.json) {
-        if (Array.isArray(normalized.json)) {
-          return normalizeMessages(normalized.json);
-        }
-        if (normalized.json.messages && Array.isArray(normalized.json.messages)) {
-          return normalizeMessages(normalized.json.messages);
-        }
+      const data = await response.json().catch(() => null);
+      if (Array.isArray(data)) {
+        return normalizeMessages(data);
       }
-      // Fallback: empty array
-      return [];
+      return normalizeMessages((data as any)?.messages);
     },
   });
 
@@ -264,17 +249,7 @@ export default function ChatPage() {
           discEnabled,
         },
       });
-      const rawText = await response.text();
-      const normalized = normalizeAIResponse(rawText);
-      // Return in expected format with fallback
-      if (normalized.json && (normalized.json.messages || normalized.json.userMessage || normalized.json.aiMessage)) {
-        return normalized.json;
-      }
-      // Fallback: create message structure from raw text
-      return {
-        aiMessage: { role: "assistant", content: normalized.text, timestamp: Date.now() },
-        userMessage: { role: "user", content, timestamp: Date.now() }
-      };
+      return response.json();
     },
     onSuccess: (data) => {
       // Immediately reflect returned messages to avoid UI gaps if refetch races
@@ -305,6 +280,16 @@ export default function ChatPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
       setObservableSignals([]);
+      setShowSummary(false); // Close summary dialog on session reset
+      
+      // Reset session ID for true fresh start
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("reflectivai-session-id");
+      }
+      
+      // Show "New Session" indicator (auto-dismiss after 3s)
+      setShowSessionIndicator(true);
+      setTimeout(() => setShowSessionIndicator(false), 3000);
     },
   });
 
@@ -334,6 +319,9 @@ export default function ChatPage() {
     }
   }, [messages]);
 
+  // Session persists across navigation - only cleared by explicit "New Session" button
+  // Removed automatic cleanup to preserve conversation history
+
   const handleSend = () => {
     if (!input.trim() || sendMessageMutation.isPending) return;
     sendMessageMutation.mutate(input.trim());
@@ -357,11 +345,9 @@ export default function ChatPage() {
       <div className="p-6 border-b flex-shrink-0">
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-3">
-            <img
-              src={reflectivAILogo}
-              alt="ReflectivAI Logo"
-              className="h-10 w-10 rounded-md"
-            />
+            <div className="h-10 w-10 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-lg">
+              R
+            </div>
             <div>
               <h1 className="text-xl font-semibold" data-testid="text-chat-title">AI Coach</h1>
               <p className="text-sm text-muted-foreground">
@@ -510,6 +496,16 @@ export default function ChatPage() {
         )}
       </div>
 
+      {/* Session Indicator - Transient notification for session boundaries */}
+      {showSessionIndicator && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top-2 duration-300">
+          <Badge variant="secondary" className="px-4 py-2 text-sm shadow-lg">
+            <Sparkles className="h-3 w-3 mr-2 inline" />
+            New Session Started
+          </Badge>
+        </div>
+      )}
+
       <div className="flex-1 flex gap-6 p-6 overflow-hidden">
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <div ref={scrollRef} className="flex-1 overflow-y-auto pr-4">
@@ -536,19 +532,23 @@ export default function ChatPage() {
                     Ask me anything about pharma sales, signal intelligence frameworks,
                     objection handling, or clinical evidence communication.
                   </p>
-                  <div className="flex flex-wrap gap-2 justify-center max-w-lg">
-                    {(conversationStarters.length ? conversationStarters : []).slice(0, 3).map((prompt) => (
-                      <Button
-                        key={prompt}
-                        variant="outline"
-                        size="sm"
-                        className="text-xs"
-                        onClick={() => handlePromptClick(prompt)}
-                        data-testid={`button-prompt-${prompt.slice(0, 20).replace(/\s+/g, '-')}`}
-                      >
-                        {prompt}
-                      </Button>
-                    ))}
+                  <div className="flex flex-col gap-4 items-center max-w-2xl w-full px-4">
+                    {(conversationStarters.length ? conversationStarters : []).slice(0, 3).map((prompt) => {
+                      // Shorten prompts for mobile display (max 60 chars)
+                      const displayPrompt = prompt.length > 60 ? prompt.slice(0, 57) + '...' : prompt;
+                      return (
+                        <Button
+                          key={prompt}
+                          variant="outline"
+                          size="lg"
+                          className="text-sm text-center whitespace-normal h-auto py-3 px-4 w-full max-w-md"
+                          onClick={() => handlePromptClick(prompt)}
+                          data-testid={`button-prompt-${prompt.slice(0, 20).replace(/\s+/g, '-')}`}
+                        >
+                          {displayPrompt}
+                        </Button>
+                      );
+                    })}
                     {!conversationStarters.length && !isPromptsLoading && (
                       <p className="text-xs text-muted-foreground">Unable to load conversation starters.</p>
                     )}
@@ -570,7 +570,7 @@ export default function ChatPage() {
                       {message.role === "user" ? (
                         <span className="text-sm font-medium">You</span>
                       ) : (
-                        <img src={reflectivAILogo} alt="AI" className="h-8 w-8 rounded-full" />
+                        <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">R</div>
                       )}
                     </div>
                     <div
@@ -622,8 +622,7 @@ export default function ChatPage() {
               )}
               {sendMessageMutation.isPending && (
                 <div className="flex gap-3">
-                  <div className="h-8 w-8 rounded-full overflow-hidden relative">
-                    <img src={reflectivAILogo} alt="AI" className="h-8 w-8 rounded-full" />
+                  <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm relative">R
                     <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-full">
                       <Loader2 className="h-5 w-5 text-primary animate-spin" />
                     </div>
@@ -666,17 +665,6 @@ export default function ChatPage() {
 
         <div className="w-72 flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-2">
-            <Card className="mb-4">
-              <CardContent className="pt-6">
-                <SignalIntelligencePanel
-                  signals={observableSignals}
-                  isLoading={sendMessageMutation.isPending}
-                  hasActivity={messages.length > 0}
-                  compact={false}
-                />
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
