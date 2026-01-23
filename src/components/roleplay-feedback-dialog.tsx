@@ -620,10 +620,10 @@ export function RoleplayFeedbackDialog({
     const deriveCapabilityScore = (capabilityId: string, metricResults: MetricResult[]): number | null => {
       const behavioralMetricMap: Record<string, string[]> = {
         'signal-awareness': ['question_quality', 'listening_responsiveness'],
-        'signal-interpretation': ['value_framing', 'adaptability'],
-        'making-it-matter': ['value_framing'],
-        'customer-engagement-monitoring': ['customer_engagement_cues'],
-        'objection-navigation': ['objection_handling'],
+        'signal-interpretation': ['making_it_matter'],
+        'making-it-matter': ['making_it_matter'],
+        'customer-engagement-monitoring': ['customer_engagement_signals'],
+        'objection-navigation': ['objection_navigation'],
         'conversation-management': ['conversation_control_structure'],
         'adaptive-response': ['adaptability'],
         'commitment-generation': ['commitment_gaining'],
