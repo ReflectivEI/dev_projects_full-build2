@@ -241,7 +241,7 @@ function MetricDetailDialog({ metric, open, onOpenChange }: {
               <Lightbulb className="h-4 w-4 text-amber-500" />
               How to Improve This Score
             </h4>
-            {metric.score === 3.0 ? (
+            {metric.score === null ? (
               <div className="bg-muted/50 p-3 rounded-lg">
                 <p className="text-sm text-muted-foreground">
                   Complete a Role Play to receive personalized guidance based on your performance.
