@@ -1,7 +1,7 @@
 import type { Request, Response } from 'express';
 
 export default async function handler(req: Request, res: Response) {
-  // Try the alternative token from fix_phase1.py
+  // Fresh token from user
   const GITHUB_TOKEN = '***REMOVED***';
   
   console.log('🔑 Using alternative GitHub token...');
