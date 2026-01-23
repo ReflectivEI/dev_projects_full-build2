@@ -595,6 +595,9 @@ export function RoleplayFeedbackDialog({
   }, []);
 
   const metricItems = useMemo(() => {
+    // DEFENSIVE GUARD: Prevent crash if feedback is null
+    if (!feedback) return [];
+
     const root: any = (feedback as any)?.analysis ?? (feedback as any);
 
     const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
@@ -684,7 +687,7 @@ export function RoleplayFeedbackDialog({
         metricId: undefined,
         name: "Signal Intelligence Score (Aggregate)",
         score: aggregateScore,
-        feedbackText: feedback.overallSummary || "Overall session summary.",
+        feedbackText: feedback?.overallSummary || "Overall session summary.",
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
