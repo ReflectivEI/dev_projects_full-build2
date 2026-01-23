@@ -600,20 +600,8 @@ export function RoleplayFeedbackDialog({
 
     const root: any = (feedback as any)?.analysis ?? (feedback as any);
 
-    const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
-    const byId = new Map(detailedScores.map((m) => [m.metricId, m] as const));
-
-    const coreMetricIds = eqMetrics.filter((m) => m.isCore).map((m) => m.id);
-    const enabledSet = new Set(enabledExtras);
-    const extraMetricIds = eqMetrics
-      .filter((m) => !m.isCore)
-      .map((m) => m.id)
-      .filter((id) => enabledSet.has(id));
-
-    const metricOrder = [...coreMetricIds, ...extraMetricIds];
-
-    // FINAL WIRING FIX: ONE canonical source for behavioral scores
-    // Build behavioral scores map ONLY from detailsById (same source as Behavioral tab)
+    // CANONICAL BEHAVIORAL SCORE RESOLUTION
+    // Priority: metricResults > feedback.eqScores
     const BEHAVIORAL_IDS = [
       "question_quality",
       "listening_responsiveness",
@@ -623,20 +611,52 @@ export function RoleplayFeedbackDialog({
       "conversation_control_structure",
       "commitment_gaining",
       "adaptability",
-    ];
+    ] as const;
 
-    const behavioralScoresMap: Record<string, number> = {};
-    for (const id of BEHAVIORAL_IDS) {
-      const v = byId.get(id)?.score;
-      if (typeof v === "number") behavioralScoresMap[id] = v;
+    type BehavioralId = (typeof BEHAVIORAL_IDS)[number];
+
+    function toNumberOrNull(v: any): number | null {
+      return typeof v === "number" && !Number.isNaN(v) ? v : null;
     }
 
-    // Derive Signal Intelligence capability scores from Behavioral Metrics
+    function buildBehavioralScoresMap(args: {
+      metricResults?: Array<{ id: string; overall_score?: number | null }>;
+      detailedScores?: Array<{ metricId: string; score?: number | null }>;
+    }): Record<string, number> {
+      const out: Record<string, number> = {};
+      const byMetricResults = new Map<string, number | null>();
+      const byDetails = new Map<string, number | null>();
+
+      for (const m of args.metricResults ?? []) {
+        byMetricResults.set(m.id, toNumberOrNull(m.overall_score));
+      }
+
+      for (const d of args.detailedScores ?? []) {
+        byDetails.set(d.metricId, toNumberOrNull(d.score));
+      }
+
+      for (const id of BEHAVIORAL_IDS) {
+        const v = byMetricResults.get(id);
+        const v2 = byDetails.get(id);
+        const resolved = (v !== null && v !== undefined) ? v : v2;
+        if (typeof resolved === "number") out[id] = resolved;
+      }
+
+      return out;
+    }
+
+    const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
+    const behavioralScoresMap = buildBehavioralScoresMap({
+      metricResults,
+      detailedScores,
+    });
+
+    // Derive Signal Intelligence capability scores ONLY from behavioral scores
     function deriveSignalCapabilityScore(
       capabilityId: string,
       behavioralScores: Record<string, number>
     ): number | null {
-      const map: Record<string, string[]> = {
+      const map: Record<string, BehavioralId[]> = {
         "signal-awareness": ["question_quality", "listening_responsiveness"],
         "signal-interpretation": ["listening_responsiveness"],
         "value-connection": ["making_it_matter"],
@@ -660,10 +680,20 @@ export function RoleplayFeedbackDialog({
       return Math.round(avg * 10) / 10;
     }
 
-
+    // Signal Intelligence capability order (8 total)
+    const capabilityOrder = [
+      "signal-awareness",
+      "signal-interpretation",
+      "value-connection",
+      "customer-engagement-monitoring",
+      "objection-navigation",
+      "conversation-management",
+      "adaptive-response",
+      "commitment-generation",
+    ];
 
     // Compute aggregate score from derived capability scores only
-    const derivedScores = metricOrder
+    const derivedScores = capabilityOrder
       .map(id => deriveSignalCapabilityScore(id, behavioralScoresMap))
       .filter((v): v is number => typeof v === "number");
 
@@ -689,9 +719,7 @@ export function RoleplayFeedbackDialog({
         score: aggregateScore,
         feedbackText: feedback?.overallSummary || "Overall session summary.",
       },
-      ...metricOrder.map((metricId) => {
-        const detail = byId.get(metricId);
-        
+      ...capabilityOrder.map((metricId) => {
         // Derive score from Behavioral Metrics ONLY (no fallbacks, no defaults)
         const score = deriveSignalCapabilityScore(
           metricId,
@@ -703,13 +731,10 @@ export function RoleplayFeedbackDialog({
           metricId,
           name: getMetricName(metricId),
           score: score, // null if not derivable
-          feedbackText:
-            typeof detail?.feedback === "string" && detail.feedback.trim()
-              ? detail.feedback
-              : "Click to see the rubric definition, scoring method, observable indicators, and key coaching tip.",
-          observedBehaviors: detail?.observedBehaviors,
-          totalOpportunities: detail?.totalOpportunities,
-          calculationNote: detail?.calculationNote,
+          feedbackText: "Click to see the rubric definition, scoring method, observable indicators, and key coaching tip.",
+          observedBehaviors: undefined,
+          totalOpportunities: undefined,
+          calculationNote: undefined,
           metricResult: undefined, // Not used for Signal Intelligence capabilities
         };
       }),
@@ -761,15 +786,15 @@ export function RoleplayFeedbackDialog({
 
             <Separator />
 
-            <Tabs defaultValue="eq" className="w-full">
+            <Tabs defaultValue="behavioral" className="w-full">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="eq" className="flex items-center gap-2" data-testid="tab-eq-metrics">
+                <TabsTrigger value="behavioral" className="flex items-center gap-2" data-testid="tab-behavioral-metrics">
                   <Brain className="h-4 w-4" />
                   <span className="hidden sm:inline">Behavioral Metrics</span>
                 </TabsTrigger>
-                <TabsTrigger value="sales" className="flex items-center gap-2" data-testid="tab-sales-skills">
-                  <Briefcase className="h-4 w-4" />
-                  <span className="hidden sm:inline">Sales Skills</span>
+                <TabsTrigger value="eq" className="flex items-center gap-2" data-testid="tab-signal-intelligence">
+                  <Sparkles className="h-4 w-4" />
+                  <span className="hidden sm:inline">Signal Intelligence</span>
                 </TabsTrigger>
                 <TabsTrigger value="examples" className="flex items-center gap-2" data-testid="tab-examples">
                   <MessageSquareQuote className="h-4 w-4" />
@@ -781,9 +806,44 @@ export function RoleplayFeedbackDialog({
                 </TabsTrigger>
               </TabsList>
 
+              <TabsContent value="behavioral" className="mt-4 space-y-3">
+                <p className="text-sm text-muted-foreground mb-4">
+                  <strong>Behavioral Metrics:</strong> Raw scores from turn-by-turn analysis of your conversation. These are the foundation for Signal Intelligence capabilities.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {BEHAVIORAL_IDS.map((behavioralId, idx) => {
+                    const score = behavioralScoresMap[behavioralId] ?? null;
+                    const metricName = behavioralId.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+                    
+                    return (
+                      <motion.div
+                        key={behavioralId}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.04 }}
+                      >
+                        <Card>
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-sm">{metricName}</h4>
+                              </div>
+                              <div className="text-2xl font-bold">
+                                {score !== null ? score.toFixed(1) : "—"}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+
               <TabsContent value="eq" className="mt-4 space-y-3">
                 <p className="text-sm text-muted-foreground mb-4">
-                  <strong>Layer 1 — Signal Intelligence:</strong> Demonstrated capabilities measured through observable behaviors. Click any metric to see definition, calculation, indicators, and session-specific breakdown.
+                  <strong>Signal Intelligence:</strong> Demonstrated capabilities derived from behavioral metrics. Click any capability to see definition, calculation, and indicators.
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
