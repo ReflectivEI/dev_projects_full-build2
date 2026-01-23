@@ -1,1 +1,12 @@
-1768947526
+CANONICAL BEHAVIORAL METRICS - FINAL DEPLOYMENT
+
+Timestamp: 2026-01-23 09:45 UTC
+
+Changes:
+1. ✅ Canonical 8 behavioral metric definitions (data.ts)
+2. ✅ Null-only scoring enforcement (roleplay-feedback-dialog.tsx)
+3. ✅ Behavioral Metrics page content updated (ei-metrics.tsx)
+4. ✅ Corrected conceptual model (Behavioral Metrics = foundation, Signal Intelligence = derived)
+
+All changes synced to client/ directory.
+Ready for deployment to main branch.

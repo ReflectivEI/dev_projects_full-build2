@@ -288,7 +288,7 @@ export default function EIMetricsPage() {
             <h1 className="text-3xl font-bold" data-testid="text-ei-metrics-title">Behavioral Metrics Overview</h1>
           </div>
           <p className="text-muted-foreground">
-            Observable behaviors derived from Signal Intelligence capabilities. Scores shown are illustrative.
+            The 8 foundational metrics that measure observable behaviors during sales interactions. Signal Intelligence capabilities are derived from these metrics.
           </p>
           <p className="text-sm text-muted-foreground">
             Click any metric to view its definition, measurement method, and coaching guidance.
@@ -302,11 +302,10 @@ export default function EIMetricsPage() {
                 <span className="text-sm font-bold text-primary">1</span>
               </div>
               <div>
-                <p className="text-sm font-medium mb-1">Layer 1 - Signal Intelligence (Core Measurement)</p>
+                <p className="text-sm font-medium mb-1">Behavioral Metrics - The Foundation</p>
                 <p className="text-sm text-muted-foreground">
-                  Signal Intelligence refers to <strong>demonstrated capability</strong>: how effectively you perceive observable signals, 
-                  interpret them in context, and adapt your communication. Metrics are scored 1-5 based on observable 
-                  behaviors, not personality traits.
+                  These 8 metrics are the <strong>only directly measured layer</strong>. They score observable behaviors (1-5) from role-play transcripts. 
+                  Signal Intelligence capabilities are <strong>derived</strong> from these behavioral scores—never measured directly.
                 </p>
               </div>
             </div>
@@ -331,7 +330,7 @@ export default function EIMetricsPage() {
                 Behavioral Metrics (Always Active)
               </h2>
               <p className="text-sm text-muted-foreground">
-                These eight Behavioral Metrics are foundational to Signal Intelligence and are consistently applied across coaching, Role Play, and evaluation.
+                These eight metrics are scored ONLY during Role Play sessions based on observable behaviors. They form the foundation from which Signal Intelligence capabilities are derived.
               </p>
             </div>
           </div>
