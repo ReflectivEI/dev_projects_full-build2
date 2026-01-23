@@ -1,18 +1,18 @@
 import type { Request, Response } from 'express';
 
 export default async function handler(req: Request, res: Response) {
-  // Try multiple token formats
+  // Try the alternative token from fix_phase1.py
   const GITHUB_TOKEN = '***REMOVED***';
   
-  console.log('🔑 Testing GitHub authentication...');
+  console.log('🔑 Using alternative GitHub token...');
   const REPO = 'ReflectivEI/dev_projects_full-build2';
   const FILE_PATH = 'client/src/pages/ei-metrics.tsx';
   const BRANCH = 'main';
 
   const headers = {
-    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
-    'User-Agent': 'Node.js'
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'User-Agent': 'ReflectivAI-Emergency-Fix'
   };
 
   try {
