@@ -674,17 +674,14 @@ export function RoleplayFeedbackDialog({
     
     console.log('[CRITICAL DEBUG - DIALOG] metricResultsMap:', metricResultsMap);
 
-    // IMPLEMENTATION MODE: Compute aggregate score from derived capability scores
+    // CANONICAL FIX: Compute aggregate score from derived capability scores only
     const capabilityScores = metricOrder
-      .map(id => deriveCapabilityScore(id, metricResults || []))
+      .map(id => deriveSignalCapabilityScore(id, behavioralScoresMap))
       .filter((s): s is number => s !== null);
     
-    const computedAggregateScore = capabilityScores.length > 0
+    const aggregateScore = capabilityScores.length > 0
       ? Math.round((capabilityScores.reduce((sum, s) => sum + s, 0) / capabilityScores.length) * 10) / 10
       : null;
-
-    // Use computed aggregate if available, otherwise fall back to legacy
-    const aggregateScore = computedAggregateScore ?? normalizeToFive(root?.eqScore ?? feedback.overallScore);
 
     const items: Array<{
       key: string;
