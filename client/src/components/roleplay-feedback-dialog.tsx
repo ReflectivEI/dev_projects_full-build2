@@ -595,6 +595,9 @@ export function RoleplayFeedbackDialog({
   }, []);
 
   const metricItems = useMemo(() => {
+    // DEFENSIVE GUARD: Prevent crash if feedback is null
+    if (!feedback) return [];
+
     const root: any = (feedback as any)?.analysis ?? (feedback as any);
 
     const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
@@ -684,7 +687,7 @@ export function RoleplayFeedbackDialog({
         metricId: undefined,
         name: "Signal Intelligence Score (Aggregate)",
         score: aggregateScore,
-        feedbackText: feedback.overallSummary || "Overall session summary.",
+        feedbackText: feedback?.overallSummary || "Overall session summary.",
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
@@ -1026,22 +1029,6 @@ export function RoleplayFeedbackDialog({
                 </Card>
               </TabsContent>
             </Tabs>
-
-            {/* DEBUG PANEL (TEMPORARY) */}
-            <Card className="mt-6 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-mono">🔍 SI Debug Snapshot</CardTitle>
-              </CardHeader>
-              <CardContent className="text-xs font-mono space-y-1">
-                <div><strong>Behavioral IDs count:</strong> {BEHAVIORAL_IDS.length}</div>
-                <div><strong>Behavioral IDs:</strong> {BEHAVIORAL_IDS.join(", ")}</div>
-                <div><strong>question_quality exists:</strong> {behavioralScoresMap.question_quality !== undefined ? `✅ ${behavioralScoresMap.question_quality}` : "❌"}</div>
-                <div><strong>listening_responsiveness exists:</strong> {behavioralScoresMap.listening_responsiveness !== undefined ? `✅ ${behavioralScoresMap.listening_responsiveness}` : "❌"}</div>
-                <div><strong>making_it_matter exists:</strong> {behavioralScoresMap.making_it_matter !== undefined ? `✅ ${behavioralScoresMap.making_it_matter}` : "❌"}</div>
-                <div><strong>commitment_gaining exists:</strong> {behavioralScoresMap.commitment_gaining !== undefined ? `✅ ${behavioralScoresMap.commitment_gaining}` : "❌"}</div>
-                <div className="pt-2"><strong>Check console for:</strong> window.__SI_DEBUG__</div>
-              </CardContent>
-            </Card>
           </div>
         </ScrollArea>
 
