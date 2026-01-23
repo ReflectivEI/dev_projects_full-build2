@@ -665,17 +665,6 @@ export default function ChatPage() {
 
         <div className="w-72 flex-shrink-0 hidden lg:flex flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto pr-2">
-            <Card className="mb-4">
-              <CardContent className="pt-6">
-                <SignalIntelligencePanel
-                  signals={observableSignals}
-                  isLoading={sendMessageMutation.isPending}
-                  hasActivity={messages.length > 0}
-                  compact={false}
-                />
-              </CardContent>
-            </Card>
-
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
