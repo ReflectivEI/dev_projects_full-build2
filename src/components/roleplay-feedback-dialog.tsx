@@ -703,44 +703,15 @@ export function RoleplayFeedbackDialog({
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
-        
-        // IMPLEMENTATION MODE: Derive score from Behavioral Metrics
-        const derivedScore = deriveCapabilityScore(metricId, metricResults || []);
         const metricResult = metricResultsMap.get(metricId);
         
-        // PROMPT #21: UI Metric Score Resolution (Display-Only)
-        // Canonical priority order:
-        // 1. metricResult.overall_score (Signal Intelligence)
-        // 2. detail.score (legacy eqScores)
-        // 3. fallback to 0 only if truly no data
+        // CANONICAL FIX: Derive score from Behavioral Metrics
+        const score = deriveSignalCapabilityScore(
+          metricId,
+          behavioralScoresMap
+        );
         
-        // DEBUG: Log metric resolution
-        if (metricId === 'question_quality') {
-          console.log('[PROMPT #21 DEBUG] Question Quality Resolution:', {
-            metricId,
-            metricResult,
-            overall_score: metricResult?.overall_score,
-            detail,
-            detailScore: detail?.score,
-          });
-        }
-        
-        // IMPLEMENTATION MODE: Priority order for score resolution
-        // 1. derivedScore (computed from Behavioral Metrics)
-        // 2. metricResult.overall_score (if available)
-        // 3. detail.score (legacy)
-        // 4. null (not 0)
-        const resolvedScore =
-          derivedScore ??
-          metricResult?.overall_score ??
-          (typeof detail?.score === "number" ? detail.score : null);
-        
-        const displayScore = resolvedScore;
-        
-        // DEBUG: Log final display score
-        if (metricId === 'question_quality') {
-          console.log('[PROMPT #21 DEBUG] Final Display Score:', displayScore);
-        }
+        const displayScore = score;
         
         return {
           key: `eq:${metricId}`,
