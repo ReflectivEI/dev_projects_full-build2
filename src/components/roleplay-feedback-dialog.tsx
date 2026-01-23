@@ -594,62 +594,62 @@ export function RoleplayFeedbackDialog({
     return () => window.removeEventListener(EI_METRICS_SETTINGS_EVENT, handler);
   }, []);
 
+  // CANONICAL BEHAVIORAL SCORE RESOLUTION
+  // Priority: metricResults > feedback.eqScores
+  const BEHAVIORAL_IDS = [
+    "question_quality",
+    "listening_responsiveness",
+    "making_it_matter",
+    "customer_engagement_signals",
+    "objection_navigation",
+    "conversation_control_structure",
+    "commitment_gaining",
+    "adaptability",
+  ] as const;
+
+  type BehavioralId = (typeof BEHAVIORAL_IDS)[number];
+
+  function toNumberOrNull(v: any): number | null {
+    return typeof v === "number" && !Number.isNaN(v) ? v : null;
+  }
+
+  function buildBehavioralScoresMap(args: {
+    metricResults?: Array<{ id: string; overall_score?: number | null }>;
+    detailedScores?: Array<{ metricId: string; score?: number | null }>;
+  }): Record<string, number> {
+    const out: Record<string, number> = {};
+    const byMetricResults = new Map<string, number | null>();
+    const byDetails = new Map<string, number | null>();
+
+    for (const m of args.metricResults ?? []) {
+      byMetricResults.set(m.id, toNumberOrNull(m.overall_score));
+    }
+
+    for (const d of args.detailedScores ?? []) {
+      byDetails.set(d.metricId, toNumberOrNull(d.score));
+    }
+
+    for (const id of BEHAVIORAL_IDS) {
+      const v = byMetricResults.get(id);
+      const v2 = byDetails.get(id);
+      const resolved = (v !== null && v !== undefined) ? v : v2;
+      if (typeof resolved === "number") out[id] = resolved;
+    }
+
+    return out;
+  }
+
+  const detailedScores = Array.isArray(feedback?.eqScores) ? feedback.eqScores : [];
+  const behavioralScoresMap = buildBehavioralScoresMap({
+    metricResults,
+    detailedScores,
+  });
+
   const metricItems = useMemo(() => {
     // DEFENSIVE GUARD: Prevent crash if feedback is null
     if (!feedback) return [];
 
     const root: any = (feedback as any)?.analysis ?? (feedback as any);
-
-    // CANONICAL BEHAVIORAL SCORE RESOLUTION
-    // Priority: metricResults > feedback.eqScores
-    const BEHAVIORAL_IDS = [
-      "question_quality",
-      "listening_responsiveness",
-      "making_it_matter",
-      "customer_engagement_signals",
-      "objection_navigation",
-      "conversation_control_structure",
-      "commitment_gaining",
-      "adaptability",
-    ] as const;
-
-    type BehavioralId = (typeof BEHAVIORAL_IDS)[number];
-
-    function toNumberOrNull(v: any): number | null {
-      return typeof v === "number" && !Number.isNaN(v) ? v : null;
-    }
-
-    function buildBehavioralScoresMap(args: {
-      metricResults?: Array<{ id: string; overall_score?: number | null }>;
-      detailedScores?: Array<{ metricId: string; score?: number | null }>;
-    }): Record<string, number> {
-      const out: Record<string, number> = {};
-      const byMetricResults = new Map<string, number | null>();
-      const byDetails = new Map<string, number | null>();
-
-      for (const m of args.metricResults ?? []) {
-        byMetricResults.set(m.id, toNumberOrNull(m.overall_score));
-      }
-
-      for (const d of args.detailedScores ?? []) {
-        byDetails.set(d.metricId, toNumberOrNull(d.score));
-      }
-
-      for (const id of BEHAVIORAL_IDS) {
-        const v = byMetricResults.get(id);
-        const v2 = byDetails.get(id);
-        const resolved = (v !== null && v !== undefined) ? v : v2;
-        if (typeof resolved === "number") out[id] = resolved;
-      }
-
-      return out;
-    }
-
-    const detailedScores = Array.isArray(feedback.eqScores) ? feedback.eqScores : [];
-    const behavioralScoresMap = buildBehavioralScoresMap({
-      metricResults,
-      detailedScores,
-    });
 
     // Derive Signal Intelligence capability scores ONLY from behavioral scores
     function deriveSignalCapabilityScore(
