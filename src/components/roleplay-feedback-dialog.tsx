@@ -328,9 +328,7 @@ function MetricScoreCard({
               <div className="space-y-2">
                 <span className="text-xs font-semibold text-primary">How this score was derived</span>
                 <p className="text-xs text-muted-foreground">
-                  {safeScore === 3.0 && metricResult.components.filter(c => c.applicable).length === 0
-                    ? "Limited observable data resulted in a neutral baseline score."
-                    : "This score reflects how consistently observable behaviors aligned with this metric during the conversation."}
+                  This score reflects how consistently observable behaviors aligned with this metric during the conversation.
                 </p>
                 <div className="border rounded-lg overflow-hidden">
                   <Table>
