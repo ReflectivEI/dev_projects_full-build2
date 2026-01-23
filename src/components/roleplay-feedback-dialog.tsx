@@ -612,6 +612,33 @@ export function RoleplayFeedbackDialog({
 
     const metricOrder = [...coreMetricIds, ...extraMetricIds];
 
+    // IMPLEMENTATION MODE: Derive Signal Intelligence capability scores from Behavioral Metrics
+    // Mapping: Signal Intelligence ID → Behavioral Metric IDs for averaging
+    const deriveCapabilityScore = (capabilityId: string, metricResults: MetricResult[]): number | null => {
+      const behavioralMetricMap: Record<string, string[]> = {
+        'signal-awareness': ['question_quality', 'listening_responsiveness'],
+        'signal-interpretation': ['value_framing', 'adaptability'],
+        'making-it-matter': ['value_framing'],
+        'customer-engagement-monitoring': ['customer_engagement_cues'],
+        'objection-navigation': ['objection_handling'],
+        'conversation-management': ['conversation_control_structure'],
+        'adaptive-response': ['adaptability'],
+        'commitment-generation': ['commitment_gaining'],
+      };
+
+      const metricIds = behavioralMetricMap[capabilityId];
+      if (!metricIds) return null;
+
+      const scores = metricIds
+        .map(id => metricResults.find(mr => mr.id === id)?.overall_score)
+        .filter((s): s is number => typeof s === 'number' && !isNaN(s));
+
+      if (scores.length === 0) return null;
+
+      const avg = scores.reduce((sum, s) => sum + s, 0) / scores.length;
+      return Math.max(0, Math.min(5, Math.round(avg * 10) / 10)); // Clamp [0,5], round to 1 decimal
+    };
+
     const metricResultsMap = new Map(
       (metricResults || []).map(mr => [mr.id, mr])
     );
@@ -622,7 +649,7 @@ export function RoleplayFeedbackDialog({
       key: string;
       metricId?: string;
       name: string;
-      score: number;
+      score: number | null;
       feedbackText: string;
       observedBehaviors?: number;
       totalOpportunities?: number;
@@ -638,6 +665,9 @@ export function RoleplayFeedbackDialog({
       },
       ...metricOrder.map((metricId) => {
         const detail = byId.get(metricId);
+        
+        // IMPLEMENTATION MODE: Derive score from Behavioral Metrics
+        const derivedScore = deriveCapabilityScore(metricId, metricResults || []);
         const metricResult = metricResultsMap.get(metricId);
         
         // PROMPT #21: UI Metric Score Resolution (Display-Only)
@@ -657,11 +687,17 @@ export function RoleplayFeedbackDialog({
           });
         }
         
+        // IMPLEMENTATION MODE: Priority order for score resolution
+        // 1. derivedScore (computed from Behavioral Metrics)
+        // 2. metricResult.overall_score (if available)
+        // 3. detail.score (legacy)
+        // 4. null (not 0)
         const resolvedScore =
+          derivedScore ??
           metricResult?.overall_score ??
           (typeof detail?.score === "number" ? detail.score : null);
         
-        const displayScore = resolvedScore ?? 0;
+        const displayScore = resolvedScore;
         
         // DEBUG: Log final display score
         if (metricId === 'question_quality') {
