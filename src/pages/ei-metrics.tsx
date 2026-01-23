@@ -49,14 +49,14 @@ function MetricCard({ metric, onClick }: { metric: MetricWithScore; onClick: () 
   
   return (
     <Card 
-      className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 border-border/50"
+      className="cursor-pointer transition-all duration-300 hover:shadow-[0_0_20px_rgba(20,184,166,0.4)] hover:-translate-y-1 hover:border-teal-500/50 border-border/50"
       onClick={onClick}
       data-testid={`card-metric-${metric.id}`}
     >
       <CardContent className="p-6">
         <div className="flex items-start gap-4">
-          <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <Icon className="h-6 w-6 text-primary" />
+          <div className="h-12 w-12 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+            <Icon className="h-6 w-6 text-teal-600 dark:text-teal-400" />
           </div>
           <div className="flex-1 space-y-2">
             <h3 className="font-semibold text-lg">
@@ -84,40 +84,46 @@ function MetricDetailDialog({
   if (!metric) return null;
 
   const improvementTips = getAllImprovementTipsForMetric(metric.id as BehavioralMetricId);
+  const Icon = metricIcons[metric.id] || MessageSquare;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-start justify-between">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto p-0">
+        {/* Header with gradient background */}
+        <div className="bg-gradient-to-br from-teal-500/10 via-teal-500/5 to-background p-8 pb-6 border-b">
+          <div className="flex items-start gap-4">
+            <div className="h-14 w-14 rounded-xl bg-teal-500/20 flex items-center justify-center flex-shrink-0">
+              <Icon className="h-7 w-7 text-teal-600 dark:text-teal-400" />
+            </div>
             <div className="flex-1">
-              <DialogTitle className="text-2xl mb-2">
+              <DialogTitle className="text-2xl font-bold mb-2">
                 {metric.displayName || metric.name}
               </DialogTitle>
-              <p className="text-muted-foreground">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 {metric.description}
               </p>
             </div>
-            <DialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-              <X className="h-4 w-4" />
+            <DialogClose className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+              <X className="h-5 w-5" />
               <span className="sr-only">Close</span>
             </DialogClose>
           </div>
-        </DialogHeader>
+        </div>
 
-        <div className="space-y-6 pt-4">
+        {/* Content sections */}
+        <div className="p-8 space-y-6">
           {/* Observable Sub-Metrics */}
           {metric.examples && metric.examples.length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Radio className="h-4 w-4 text-primary" />
-                Observable Sub-Metrics
-              </h3>
-              <ul className="space-y-2">
+              <div className="flex items-center gap-2 pb-2 border-b border-teal-500/20">
+                <Radio className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <h3 className="font-semibold text-base">Observable Sub-Metrics</h3>
+              </div>
+              <ul className="space-y-2.5 pl-1">
                 {metric.examples.map((example, idx) => (
-                  <li key={idx} className="flex items-start gap-2 text-sm">
-                    <span className="text-primary mt-1">•</span>
-                    <span className="text-muted-foreground">{example}</span>
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <span className="text-teal-600 dark:text-teal-400 mt-0.5 font-bold">•</span>
+                    <span className="text-muted-foreground leading-relaxed">{example}</span>
                   </li>
                 ))}
               </ul>
@@ -127,11 +133,11 @@ function MetricDetailDialog({
           {/* Roll-Up Rule */}
           {metric.whyItMatters && (
             <div className="space-y-3">
-              <h3 className="font-semibold flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-primary" />
-                Roll-Up Rule
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <div className="flex items-center gap-2 pb-2 border-b border-teal-500/20">
+                <TrendingUp className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <h3 className="font-semibold text-base">Roll-Up Rule</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed pl-1">
                 {metric.whyItMatters}
               </p>
             </div>
@@ -140,11 +146,11 @@ function MetricDetailDialog({
           {/* What It Measures */}
           {metric.whatItMeasures && (
             <div className="space-y-3">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Target className="h-4 w-4 text-primary" />
-                What It Measures
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
+              <div className="flex items-center gap-2 pb-2 border-b border-teal-500/20">
+                <Target className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <h3 className="font-semibold text-base">What It Measures</h3>
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed pl-1">
                 {metric.whatItMeasures}
               </p>
             </div>
@@ -153,22 +159,23 @@ function MetricDetailDialog({
           {/* Coaching Insights */}
           {improvementTips.length > 0 && (
             <div className="space-y-3">
-              <h3 className="font-semibold flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-primary" />
-                Coaching Insights
-              </h3>
-              <div className="space-y-2">
+              <div className="flex items-center gap-2 pb-2 border-b border-teal-500/20">
+                <Lightbulb className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <h3 className="font-semibold text-base">Coaching Insights</h3>
+              </div>
+              <div className="space-y-2.5">
                 {improvementTips.map((tip, idx) => (
-                  <div key={idx} className="p-3 rounded-lg bg-muted/50 border border-border/50">
-                    <p className="text-sm text-muted-foreground">{tip}</p>
+                  <div key={idx} className="p-3.5 rounded-lg bg-muted/30 border border-border/50">
+                    <p className="text-sm text-muted-foreground leading-relaxed">{tip}</p>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          <div className="pt-2 border-t">
-            <p className="text-xs text-muted-foreground italic">
+          {/* Footer note */}
+          <div className="pt-4 border-t">
+            <p className="text-xs text-muted-foreground italic text-center">
               Metrics reflect observable behaviors, not traits, intent, or personality.
             </p>
           </div>
