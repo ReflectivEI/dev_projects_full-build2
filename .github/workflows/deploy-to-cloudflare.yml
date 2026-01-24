@@ -26,8 +26,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Clean build cache
-        run: rm -rf dist/ node_modules/.vite
+      - name: Clean build cache (AGGRESSIVE)
+        run: |
+          rm -rf dist/
+          rm -rf node_modules/.vite
+          rm -rf node_modules/.cache
+          rm -rf .vite
+          npm cache clean --force
+          echo "Cache cleared at $(date)" > .cache-cleared
 
       - name: Build
         run: npm run build:vite
