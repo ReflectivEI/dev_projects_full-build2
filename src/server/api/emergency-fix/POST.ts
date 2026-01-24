@@ -12,9 +12,9 @@ export default async function handler(req: Request, res: Response) {
   console.log();
 
   const headers = {
-    'Authorization': `Bearer ${GITHUB_TOKEN}`,
-    'Accept': 'application/vnd.github+json',
-    'User-Agent': 'Node.js'
+    'Authorization': `token ${GITHUB_TOKEN}`,
+    'Accept': 'application/vnd.github.v3+json',
+    'User-Agent': 'ReflectivAI-Emergency-Fix'
   };
 
   try {
