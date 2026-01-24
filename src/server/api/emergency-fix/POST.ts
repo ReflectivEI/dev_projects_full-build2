@@ -1,17 +1,11 @@
 import type { Request, Response } from 'express';
 
 export default async function handler(req: Request, res: Response) {
-  // Fresh token from user
   const GITHUB_TOKEN = '***REMOVED***';
-  
   const REPO = 'ReflectivEI/dev_projects_full-build2';
   const BRANCH = 'main';
 
-  // Get file path from request body, default to ei-metrics
-  const FILE_PATH = req.body?.filePath || 'client/src/pages/ei-metrics.tsx';
-  
-  console.log('🔑 Using GitHub token...');
-  console.log('📁 Target file:', FILE_PATH);
+  console.log('🚨🚨🚨 EMERGENCY FIX - SCANNING ALL FILES 🚨🚨🚨');
 
   const headers = {
     'Authorization': `token ${GITHUB_TOKEN}`,
@@ -19,151 +13,191 @@ export default async function handler(req: Request, res: Response) {
     'User-Agent': 'ReflectivAI-Emergency-Fix'
   };
 
+  // List of ALL possible files to check
+  const filesToCheck = [
+    'client/src/pages/ei-metrics.tsx',
+    'client/src/pages/dashboard.tsx',
+    'client/src/pages/projects.tsx',
+    'client/src/pages/project-card.tsx',
+    'client/src/pages/roleplay.tsx',
+    'client/src/pages/knowledge.tsx',
+    'client/src/components/ProjectCard.tsx',
+    'client/src/components/MetricCard.tsx'
+  ];
+
+  const results = [];
+  const fixedFiles = [];
+
   try {
-    console.log('🚨 EMERGENCY FIX - Fetching file from GitHub...');
-    
-    // Step 1: Fetch current file
-    const url = `https://api.github.com/repos/${REPO}/contents/${FILE_PATH}?ref=${BRANCH}`;
-    const response = await fetch(url, { headers });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch file: ${response.status}`);
-    }
-    
-    const fileData = await response.json();
-    const sha = fileData.sha;
-    const currentContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
-    
-    console.log('✅ Fetched successfully, SHA:', sha);
-    console.log('📄 File size:', currentContent.length, 'bytes');
-    
-    // Detect what kind of fix is needed
-    let newContent = currentContent;
-    let fixApplied = false;
-    let fixDescription = '';
-    
-    // FIX 1: MetricDetailDialog - DialogHeader issue
-    if (currentContent.includes('function MetricDetailDialog')) {
-      const startIdx = currentContent.indexOf('function MetricDetailDialog');
-      const dialogContentIdx = currentContent.indexOf('<DialogContent', startIdx);
-      const dialogContentEnd = currentContent.indexOf('>', dialogContentIdx);
-      const nextSection = currentContent.substring(dialogContentEnd + 1, dialogContentEnd + 500);
+    for (const filePath of filesToCheck) {
+      console.log(`\n🔍 Checking: ${filePath}`);
       
-      if (!nextSection.includes('DialogHeader') || !nextSection.includes('sr-only')) {
-        console.log('🔧 Applying MetricDetailDialog fix...');
+      const url = `https://api.github.com/repos/${REPO}/contents/${filePath}?ref=${BRANCH}`;
+      const response = await fetch(url, { headers });
+      
+      if (response.status === 404) {
+        console.log(`  ⚠️  File not found, skipping`);
+        continue;
+      }
+      
+      if (!response.ok) {
+        console.log(`  ❌ Error fetching: ${response.status}`);
+        continue;
+      }
+      
+      const fileData = await response.json();
+      const sha = fileData.sha;
+      const currentContent = Buffer.from(fileData.content, 'base64').toString('utf-8');
+      
+      console.log(`  ✅ Fetched (${currentContent.length} bytes)`);
+      
+      let newContent = currentContent;
+      let fixApplied = false;
+      const fixes = [];
+      
+      // FIX 1: Find ALL Dialog components with DialogTitle but no DialogHeader
+      const dialogRegex = /<Dialog[^>]*>([\s\S]*?)<\/Dialog>/g;
+      let dialogMatch;
+      
+      while ((dialogMatch = dialogRegex.exec(currentContent)) !== null) {
+        const dialogContent = dialogMatch[1];
+        const dialogStart = dialogMatch.index;
         
-        // Change visible DialogTitle to h2
-        const visibleTitlePattern = '<DialogTitle className="text-2xl font-bold mb-2">{metric.name}</DialogTitle>';
-        if (newContent.includes(visibleTitlePattern)) {
-          newContent = newContent.replace(
-            visibleTitlePattern,
-            '<h2 className="text-2xl font-bold mb-2">{metric.name}</h2>'
-          );
+        // Check if this Dialog has DialogTitle but no DialogHeader
+        if (dialogContent.includes('<DialogTitle') && !dialogContent.includes('<DialogHeader')) {
+          console.log(`  🔧 Found Dialog without DialogHeader!`);
+          
+          // Find DialogContent opening
+          const contentMatch = dialogContent.match(/<DialogContent[^>]*>/);
+          if (contentMatch) {
+            const contentTag = contentMatch[0];
+            const contentIndex = dialogContent.indexOf(contentTag);
+            const contentEnd = contentIndex + contentTag.length;
+            
+            // Find the DialogTitle
+            const titleMatch = dialogContent.match(/<DialogTitle[^>]*>([\s\S]*?)<\/DialogTitle>/);
+            if (titleMatch) {
+              const titleContent = titleMatch[1];
+              const titleElement = titleMatch[0];
+              
+              // Create the fix
+              const fixToInsert = `\n        {/* EMERGENCY FIX: DialogHeader required for accessibility */}
+        <DialogHeader className="sr-only">
+          <DialogTitle>${titleContent}</DialogTitle>
+        </DialogHeader>
+        `;
+              
+              // Find where to insert (after DialogContent opening)
+              const insertPoint = dialogStart + contentEnd;
+              
+              // Remove the old DialogTitle
+              newContent = newContent.replace(titleElement, '');
+              
+              // Insert the new DialogHeader with DialogTitle
+              const beforeInsert = newContent.substring(0, insertPoint);
+              const afterInsert = newContent.substring(insertPoint);
+              newContent = beforeInsert + fixToInsert + afterInsert;
+              
+              fixApplied = true;
+              fixes.push('Added DialogHeader wrapper');
+              console.log(`  ✅ Fixed Dialog component`);
+            }
+          }
         }
-        
-        // Insert hidden DialogHeader
-        const fixToInsert = `\n        {/* CRITICAL: DialogHeader with DialogTitle for accessibility */}
+      }
+      
+      // FIX 2: Check for specific MetricDetailDialog pattern
+      if (currentContent.includes('function MetricDetailDialog')) {
+        const startIdx = currentContent.indexOf('function MetricDetailDialog');
+        const dialogContentIdx = currentContent.indexOf('<DialogContent', startIdx);
+        if (dialogContentIdx > 0) {
+          const dialogContentEnd = currentContent.indexOf('>', dialogContentIdx);
+          const nextSection = currentContent.substring(dialogContentEnd + 1, dialogContentEnd + 500);
+          
+          if (!nextSection.includes('DialogHeader') || !nextSection.includes('sr-only')) {
+            console.log(`  🔧 Fixing MetricDetailDialog...`);
+            
+            // Change visible DialogTitle to h2
+            const visibleTitlePattern = '<DialogTitle className="text-2xl font-bold mb-2">{metric.name}</DialogTitle>';
+            if (newContent.includes(visibleTitlePattern)) {
+              newContent = newContent.replace(
+                visibleTitlePattern,
+                '<h2 className="text-2xl font-bold mb-2">{metric.name}</h2>'
+              );
+            }
+            
+            // Insert hidden DialogHeader
+            const fixToInsert = `\n        {/* CRITICAL: DialogHeader with DialogTitle for accessibility */}
         <DialogHeader className="sr-only">
           <DialogTitle>{metric.name}</DialogTitle>
         </DialogHeader>
 
         {/* Visual header */}`;
-        
-        const insertPosition = dialogContentEnd + 1;
-        newContent = newContent.substring(0, insertPosition) + fixToInsert + newContent.substring(insertPosition);
-        
-        fixApplied = true;
-        fixDescription = 'Added DialogHeader wrapper to MetricDetailDialog';
-        console.log('✅', fixDescription);
+            
+            const insertPosition = dialogContentEnd + 1;
+            newContent = newContent.substring(0, insertPosition) + fixToInsert + newContent.substring(insertPosition);
+            
+            fixApplied = true;
+            fixes.push('Fixed MetricDetailDialog');
+            console.log(`  ✅ Fixed MetricDetailDialog`);
+          }
+        }
       }
-    }
-    
-    // FIX 2: Any Dialog component missing DialogHeader
-    const dialogMatches = currentContent.matchAll(/<Dialog[^>]*>[\s\S]*?<DialogContent[^>]*>/g);
-    for (const match of dialogMatches) {
-      const dialogSection = match[0];
-      const afterContent = currentContent.substring(match.index! + dialogSection.length, match.index! + dialogSection.length + 500);
       
-      // Check if DialogTitle exists without DialogHeader
-      if (afterContent.includes('<DialogTitle') && !afterContent.includes('<DialogHeader')) {
-        console.log('🔧 Found Dialog with DialogTitle but no DialogHeader');
+      // If we made changes, push them
+      if (fixApplied) {
+        console.log(`  🚀 Pushing fixes for ${filePath}...`);
         
-        // Find the DialogTitle
-        const titleMatch = afterContent.match(/<DialogTitle[^>]*>([\s\S]*?)<\/DialogTitle>/);
-        if (titleMatch) {
-          const titleElement = titleMatch[0];
-          const titleContent = titleMatch[1];
-          
-          // Replace with wrapped version
-          const wrappedTitle = `<DialogHeader className="sr-only">
-          <DialogTitle>${titleContent}</DialogTitle>
-        </DialogHeader>`;
-          
-          newContent = newContent.replace(titleElement, wrappedTitle);
-          fixApplied = true;
-          fixDescription += (fixDescription ? ' + ' : '') + 'Wrapped DialogTitle in DialogHeader';
-          console.log('✅ Wrapped DialogTitle in DialogHeader');
+        const encodedContent = Buffer.from(newContent).toString('base64');
+        const pushPayload = {
+          message: `🚨 EMERGENCY: ${fixes.join(', ')} in ${filePath}`,
+          content: encodedContent,
+          sha: sha,
+          branch: BRANCH
+        };
+        
+        const pushResponse = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+          method: 'PUT',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(pushPayload)
+        });
+        
+        if (pushResponse.ok) {
+          const result = await pushResponse.json();
+          console.log(`  ✅✅✅ PUSHED! New SHA: ${result.content.sha}`);
+          fixedFiles.push({
+            file: filePath,
+            fixes: fixes,
+            commitUrl: result.commit.html_url
+          });
+        } else {
+          console.log(`  ❌ Push failed: ${pushResponse.status}`);
         }
+      } else {
+        console.log(`  ✅ No fixes needed`);
       }
     }
     
-    // FIX 3: Loading state issues - add error boundaries
-    if (currentContent.includes('Loading...') && !currentContent.includes('ErrorBoundary')) {
-      console.log('🔧 Found Loading state without error handling');
-      // This is informational - we can't auto-fix without knowing the component structure
-    }
-    
-    if (!fixApplied) {
-      console.log('⚠️ No fixes needed or fix already applied');
-      return res.json({ 
-        success: true, 
-        message: 'No fixes needed - file is already correct',
-        alreadyFixed: true,
-        fileAnalysis: {
-          hasMetricDialog: currentContent.includes('MetricDetailDialog'),
-          hasDialogHeader: currentContent.includes('DialogHeader'),
-          hasLoadingState: currentContent.includes('Loading...')
-        }
+    if (fixedFiles.length === 0) {
+      return res.json({
+        success: true,
+        message: 'All files are already correct - no fixes needed',
+        filesChecked: filesToCheck.length,
+        filesFixed: 0
       });
     }
     
-    // Step 3: Push to GitHub
-    console.log('🚀 Pushing fix to GitHub...');
-    
-    const encodedContent = Buffer.from(newContent).toString('base64');
-    const pushPayload = {
-      message: `🚨 EMERGENCY: ${fixDescription}`,
-      content: encodedContent,
-      sha: sha,
-      branch: BRANCH
-    };
-    
-    const pushResponse = await fetch(`https://api.github.com/repos/${REPO}/contents/${FILE_PATH}`, {
-      method: 'PUT',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(pushPayload)
-    });
-    
-    if (!pushResponse.ok) {
-      const errorData = await pushResponse.text();
-      throw new Error(`Push failed: ${pushResponse.status} - ${errorData}`);
-    }
-    
-    const result = await pushResponse.json();
-    
-    console.log('✅✅✅ SUCCESS! FIX PUSHED TO GITHUB!');
-    console.log('✅ New SHA:', result.content.sha);
-    console.log('✅ Commit URL:', result.commit.html_url);
+    console.log('\n✅✅✅ ALL FIXES PUSHED! ✅✅✅');
     
     res.json({
       success: true,
-      message: 'Fix pushed successfully to GitHub',
-      fixDescription,
-      sha: result.content.sha,
-      commitUrl: result.commit.html_url,
+      message: `Fixed ${fixedFiles.length} file(s)`,
+      filesChecked: filesToCheck.length,
+      filesFixed: fixedFiles.length,
+      fixedFiles: fixedFiles,
       deploymentInfo: {
         message: 'Cloudflare Pages will auto-deploy in 2-3 minutes',
         monitorUrl: 'https://github.com/ReflectivEI/dev_projects_full-build2/actions',
