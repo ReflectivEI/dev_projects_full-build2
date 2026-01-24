@@ -6,35 +6,35 @@
  */
 
 export const SIGNAL_CAPABILITY_TO_METRIC: Record<string, { metricId: string; displayName: string }> = {
-  'Signal Awareness': {
+  'signal-awareness': {
     metricId: 'question_quality',
     displayName: 'Question Quality',
   },
-  'Signal Interpretation': {
+  'signal-interpretation': {
     metricId: 'listening_responsiveness',
     displayName: 'Listening & Responsiveness',
   },
-  'Value Connection': {
+  'value-connection': {
     metricId: 'making_it_matter',
     displayName: 'Making It Matter',
   },
-  'Customer Engagement Monitoring': {
+  'customer-engagement-monitoring': {
     metricId: 'customer_engagement_signals',
     displayName: 'Customer Engagement Signals',
   },
-  'Objection Navigation': {
+  'objection-navigation': {
     metricId: 'objection_navigation',
     displayName: 'Objection Navigation',
   },
-  'Conversation Management': {
+  'conversation-management': {
     metricId: 'conversation_control_structure',
     displayName: 'Conversation Control & Structure',
   },
-  'Adaptive Response': {
+  'adaptive-response': {
     metricId: 'adaptability',
     displayName: 'Adaptability',
   },
-  'Commitment Generation': {
+  'commitment-generation': {
     metricId: 'commitment_gaining',
     displayName: 'Commitment Gaining',
   },
