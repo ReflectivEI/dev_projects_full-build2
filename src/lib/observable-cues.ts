@@ -1,12 +1,7 @@
 /**
- * 🚨 CRITICAL FIX: Observable Cues Detection
- * 
- * FUNDAMENTAL PRINCIPLE:
- * - Sales Rep Cues = Evaluate what the REP does (role === "user")
- * - HCP Cues = Context signals from HCP that rep should respond to (role === "assistant")
- * - ONLY the sales rep is being evaluated!
- * - HCP cues are observable signals (frustration, time pressure, etc.) that appear
- *   below the HCP's message so the rep can see and adapt their response
+ * Observable Cues Detection System
+ * Last updated: 2026-01-24T10:19:55.428Z
+ * CACHE BUST: Force new bundle hash for Cloudflare deployment
  */
 
 export type CueType =
