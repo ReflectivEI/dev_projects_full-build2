@@ -169,7 +169,7 @@ function MetricDetailDialog({
               <div className="space-y-2.5">
                 {improvementTips.map((tip, idx) => (
                   <div key={idx} className="p-3.5 rounded-lg bg-muted/30 border border-border/50">
-                    <p className="text-sm text-muted-foreground leading-relaxed">{tip}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{typeof tip === "string" ? tip : tip.description || tip.title}</p>
                   </div>
                 ))}
               </div>
