@@ -41,8 +41,7 @@ export function detectObservableCues(
   content: string,
   role: 'user' | 'assistant'
 ): ObservableCue[] {
-  // Only analyze user (rep) messages
-  if (role !== 'user') return [];
+  // Analyze both user (rep) and assistant (HCP) messages
   
   const cues: ObservableCue[] = [];
   const lowerContent = content.toLowerCase();
@@ -175,6 +174,96 @@ export function detectObservableCues(
       confidence: 'low'
     });
   }
+  // ========================================================================
+  // HCP CUES (assistant role)
+  // ========================================================================
+  if (role === "assistant") {
+    const lower = content.toLowerCase();
+    const wordCount = content.split(/\s+/).length;
+    
+    // Time pressure
+    if (lower.includes("have to go") || lower.includes("another meeting") || 
+        lower.includes("short on time") || lower.includes("running late") ||
+        lower.includes("only have a few minutes") || lower.includes("another patient")) {
+      cues.push({
+        type: "time-pressure" as CueType,
+        label: "Time Pressure",
+        description: "HCP indicates time constraints",
+        confidence: "high",
+        variant: "informational"
+      });
+    }
+    
+    // Confusion
+    if (lower.includes("don't understand") || lower.includes("not sure i follow") ||
+        lower.includes("confused") || lower.includes("unclear") ||
+        lower.includes("can you clarify") || lower.includes("don't fully understand")) {
+      cues.push({
+        type: "confusion" as CueType,
+        label: "Confusion",
+        description: "HCP needs clarification",
+        confidence: "high",
+        variant: "informational"
+      });
+    }
+    
+    // Low engagement
+    if (wordCount < 5 && (lower.trim() === "okay" || lower.trim() === "fine" || 
+        lower.trim() === "sure" || lower.trim() === "ok")) {
+      cues.push({
+        type: "disinterest" as CueType,
+        label: "Low Engagement",
+        description: "Very short response",
+        confidence: "medium",
+        variant: "informational"
+      });
+    }
+    
+    // Workload concern
+    if (lower.includes("too many prior auth") || lower.includes("overwhelmed with paperwork") ||
+        lower.includes("administrative burden") || lower.includes("too much paperwork")) {
+      cues.push({
+        type: "workload-concern" as CueType,
+        label: "Workload Concern",
+        description: "HCP expresses workload stress",
+        confidence: "high",
+        variant: "informational"
+      });
+    }
+  }
+  
+  // ========================================================================
+  // ADDITIONAL REP CUES (user role)
+  // ========================================================================
+  if (role === "user") {
+    const lower = content.toLowerCase();
+    
+    // Approach shift
+    if (lower.includes("let's look at it this way") || lower.includes("alternatively") ||
+        lower.includes("another way to think") || lower.includes("different approach")) {
+      cues.push({
+        type: "approach-shift" as CueType,
+        label: "Approach Shift",
+        description: "Rep pivots strategy",
+        confidence: "high",
+        variant: "positive"
+      });
+    }
+    
+    // Pacing adjustment
+    if (lower.includes("to keep it brief") || lower.includes("long story short") ||
+        lower.includes("send details later") || lower.includes("in summary")) {
+      cues.push({
+        type: "pacing-adjustment" as CueType,
+        label: "Pacing Adjustment",
+        description: "Rep adjusts conversation pace",
+        confidence: "high",
+        variant: "positive"
+      });
+    }
+  }
+
+
   
   // Deduplicate by type (keep highest confidence)
   const uniqueCues = new Map<CueType, ObservableCue>();
