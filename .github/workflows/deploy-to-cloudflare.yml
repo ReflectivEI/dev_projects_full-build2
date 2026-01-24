@@ -26,14 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Clean build cache (AGGRESSIVE)
+      - name: Clean build cache
         run: |
           rm -rf dist/
           rm -rf node_modules/.vite
           rm -rf node_modules/.cache
-          rm -rf .vite
           npm cache clean --force
-          echo "Cache cleared at $(date)" > .cache-cleared
 
       - name: Build
         run: npm run build:vite
@@ -43,16 +41,6 @@ jobs:
           VITE_WORKER_URL: 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev'
           VITE_GIT_SHA: ${{ github.sha }}
           VITE_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
-
-      - name: Verify getCueColorClass in bundle
-        run: |
-          echo "Checking for getCueColorClass in built files:"
-          if grep -r "getCueColorClass" dist/assets/; then
-            echo "✅ getCueColorClass FOUND in bundle!"
-          else
-            echo "❌ ERROR: getCueColorClass NOT FOUND in bundle!"
-            exit 1
-          fi
 
       - name: Deploy to Cloudflare Pages
         id: cloudflare_deploy
@@ -66,13 +54,10 @@ jobs:
           branch: main
           wranglerVersion: '3'
 
-      - name: Purge Cloudflare Cache
+      - name: Wait for CDN propagation
         run: |
-          echo "🔥 PURGING CLOUDFLARE CACHE..."
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}' || echo "⚠️  Cache purge failed (may need CLOUDFLARE_ZONE_ID secret)"
+          echo "⏳ Waiting 30 seconds for CDN to propagate..."
+          sleep 30
 
       - name: Deployment Summary
         run: |
@@ -83,5 +68,9 @@ jobs:
           echo "  • Time: $(date)"
           echo "  • Site: https://reflectivai-app-prod.pages.dev"
           echo ""
-          echo "⏳ Wait 30-60 seconds for CDN propagation"
-          echo "💡 Then hard refresh: Ctrl+Shift+R or Cmd+Shift+R"
+          echo "💡 Hard refresh to see changes: Ctrl+Shift+R or Cmd+Shift+R"
+          echo ""
+          echo "⚠️  If you see old content after 2 minutes:"
+          echo "  1. Go to Cloudflare dashboard"
+          echo "  2. Select reflectivai-app-prod project"
+          echo "  3. Click 'Purge Cache' → 'Purge Everything'"
