@@ -50,12 +50,9 @@ export function averageApplicable(components: ComponentResult[]): number | null 
 }
 
 export function weightedAverageApplicable(components: ComponentResult[]): number | null {
-  const applicable = components.filter(c => c.applicable && c.score !== null);
-  if (applicable.length === 0) return null;
-  const totalWeight = applicable.reduce((acc, c) => acc + c.weight, 0);
-  if (totalWeight === 0) return null;
-  const weightedSum = applicable.reduce((acc, c) => acc + (c.score || 0) * c.weight, 0);
-  return round1(weightedSum / totalWeight);
+  // Kept for backward compatibility; now intentionally identical to averageApplicable
+  // Canonical rule: all metrics roll up via simple arithmetic mean over applicable components
+  return averageApplicable(components);
 }
 
 const STOPWORDS = new Set([
@@ -786,11 +783,8 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
 
     let overallScore: number | null = null;
     if (!notApplicable) {
-      if (spec.score_formula === 'average') {
-        overallScore = averageApplicable(components);
-      } else {
-        overallScore = weightedAverageApplicable(components);
-      }
+      // Canonical rule: all metrics roll up via simple arithmetic mean over applicable components
+      overallScore = averageApplicable(components);
     }
 
     // PROMPT #21: Minimum Viable Signal Seeding (Scoring Guardrail)
