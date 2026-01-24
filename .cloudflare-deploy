@@ -1,19 +1,27 @@
 # Cloudflare Pages Deployment Trigger
 
-Last triggered: 2026-01-24T09:44:05.061Z
+Last triggered: 2026-01-24T09:58:27.003Z
 
-This file exists solely to trigger Cloudflare Pages webhook deployments.
-Cloudflare watches the repo and deploys when it sees changes.
+## Emergency Fix Applied:
 
-## Why this is needed:
+✅ Disabled GitHub Pages workflow (was conflicting)
+✅ Added cache purging to Cloudflare workflow
+✅ Added getCueColorClass verification
+✅ Forcing fresh deployment now
 
-- GitHub Actions builds successfully
-- But Cloudflare webhook doesn't always trigger
-- Modifying this file forces Cloudflare to detect changes
-- Cloudflare then pulls latest code and deploys
+## What should happen:
 
-## Current deployment:
+1. Cloudflare workflow runs
+2. Builds with getCueColorClass function
+3. Verifies function is in bundle
+4. Deploys to Cloudflare Pages
+5. Purges ALL Cloudflare cache
+6. New bundle goes live within 60 seconds
 
-- Commit: b49d997
-- Contains: getCueColorClass function
-- Should fix: Blank screen on roleplay page
+## Verification:
+
+After 60 seconds:
+- Go to: https://reflectivai-app-prod.pages.dev/roleplay
+- Hard refresh: Ctrl+Shift+R or Cmd+Shift+R
+- Check DevTools Console for errors
+- Page should load correctly!
