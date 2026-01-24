@@ -320,3 +320,5 @@ Built with amazing open-source tools:
 <!-- DEPLOY: Prompt 3 complete - 2026-01-24T07:31:48.977Z -->
 
 <!-- DEPLOY: ALL PROMPTS (1,2,3) COMPLETE - 2026-01-24T07:39:58.210Z -->
+
+<!-- DEPLOY: Coaching insights wired - 2026-01-24T07:52:54.729Z -->
