@@ -14,6 +14,10 @@ export interface Scenario {
   influenceDriver?: string;
   objectives?: string[];
   challenges?: string[];
+  // NEW: Role-play cue fields (MAJOR AIRO PROMPT #2)
+  context?: string;
+  openingScene?: string;
+  hcpMood?: string; // e.g., "frustrated", "curious", "skeptical"
 }
 
 export interface Message {
