@@ -1,296 +1,379 @@
 /**
- * Observable Cues Detection
+ * 🚨 CRITICAL FIX: Observable Cues Detection
  * 
- * Pure, read-only functions to detect observable communication patterns
- * in roleplay messages. Used for real-time visual feedback only.
- * 
- * GUARDRAILS:
- * - No scoring logic (independent of metrics-spec.ts and scoring.ts)
- * - No state persistence (no localStorage, sessionStorage, or IndexedDB)
- * - No API calls (frontend pattern matching only)
- * - Pattern detection only (read-only analysis)
- * - No impact on MetricResult[] or scoreConversation()
+ * FUNDAMENTAL PRINCIPLE:
+ * - Sales Rep Cues = Evaluate what the REP does (role === "user")
+ * - HCP Cues = Context signals from HCP that rep should respond to (role === "assistant")
+ * - ONLY the sales rep is being evaluated!
+ * - HCP cues are observable signals (frustration, time pressure, etc.) that appear
+ *   below the HCP's message so the rep can see and adapt their response
  */
 
-export type CueType = 
-  | 'question'
-  | 'empathy'
-  | 'value-statement'
-  | 'objection-handling'
-  | 'active-listening'
-  | 'clarification'
-  | 'rapport-building'
-  | 'data-reference'
-  | 'benefit-focus'
-  | 'open-ended';
+export type CueType =
+  // SALES REP CUES (Evaluation - what the rep does)
+  | "question-quality"
+  | "active-listening"
+  | "value-articulation"
+  | "objection-handling"
+  | "discovery"
+  | "closing"
+  | "relationship-building"
+  | "adaptability"
+  | "approach-shift"
+  | "pacing-adjustment"
+  // HCP CUES (Context signals - what the rep should respond to)
+  | "time-pressure"
+  | "frustration"
+  | "confusion"
+  | "low-engagement"
+  | "workload-stress"
+  | "skepticism"
+  | "interest"
+  | "concern";
+
+export type CueVariant = "positive" | "negative" | "informational";
 
 export interface ObservableCue {
   type: CueType;
   label: string;
-  variant: 'positive' | 'neutral' | 'informational';
-  confidence: 'high' | 'medium' | 'low';
+  description: string;
+  confidence: "high" | "medium" | "low";
+  variant: CueVariant;
 }
 
 /**
- * Detect observable cues in a message
- * @param content - Message text
- * @param role - 'user' (rep) or 'assistant' (customer)
+ * Detect observable cues from conversation messages
+ * 
+ * @param content - Message content
+ * @param role - "user" (sales rep) or "assistant" (HCP)
  * @returns Array of detected cues
  */
 export function detectObservableCues(
   content: string,
-  role: 'user' | 'assistant'
+  role: "user" | "assistant"
 ): ObservableCue[] {
-  // Analyze both user (rep) and assistant (HCP) messages
-  
   const cues: ObservableCue[] = [];
-  const lowerContent = content.toLowerCase();
-  
-  // Question patterns
-  if (/\?/.test(content)) {
-    if (/^(what|how|why|when|where|who|which|could you|would you|can you|may i)/i.test(content)) {
-      cues.push({
-        type: 'open-ended',
-        label: 'Open-ended question',
-        variant: 'positive',
-        confidence: 'high'
-      });
-    } else {
-      cues.push({
-        type: 'question',
-        label: 'Question asked',
-        variant: 'informational',
-        confidence: 'high'
-      });
-    }
-  }
-  
-  // Empathy patterns
-  const empathyPatterns = [
-    /\b(understand|appreciate|recognize|hear you|i see|that makes sense|i can imagine)\b/i,
-    /\b(must be (challenging|difficult|frustrating|concerning))\b/i,
-    /\b(sounds like|seems like|it appears)\b/i
-  ];
-  
-  if (empathyPatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'empathy',
-      label: 'Empathy expressed',
-      variant: 'positive',
-      confidence: 'medium'
-    });
-  }
-  
-  // Active listening patterns
-  const listeningPatterns = [
-    /\b(you mentioned|you said|you indicated|you shared|you expressed|as you noted)\b/i,
-    /\b(if i understand correctly|let me make sure|to clarify|so what you're saying)\b/i,
-    /\b(tell me more about|help me understand|walk me through)\b/i
-  ];
-  
-  if (listeningPatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'active-listening',
-      label: 'Active listening',
-      variant: 'positive',
-      confidence: 'high'
-    });
-  }
-  
-  // Clarification patterns
-  const clarificationPatterns = [
-    /\b(to clarify|just to confirm|let me make sure|can you elaborate|could you explain)\b/i,
-    /\b(what do you mean by|can you give me an example)\b/i
-  ];
-  
-  if (clarificationPatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'clarification',
-      label: 'Seeking clarity',
-      variant: 'positive',
-      confidence: 'high'
-    });
-  }
-  
-  // Value/benefit focus patterns
-  const valuePatterns = [
-    /\b(benefit|advantage|value|improve|enhance|optimize|increase|reduce|save)\b/i,
-    /\b(help you|support you|enable you|allow you)\b/i,
-    /\b(outcome|result|impact|effect)\b/i
-  ];
-  
-  if (valuePatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'benefit-focus',
-      label: 'Benefit-focused',
-      variant: 'positive',
-      confidence: 'medium'
-    });
-  }
-  
-  // Data/evidence reference patterns
-  const dataPatterns = [
-    /\b(study|research|data|evidence|trial|results|findings|statistics)\b/i,
-    /\b(\d+%|percent|patients|participants)\b/i,
-    /\b(published|peer-reviewed|clinical|demonstrated|showed|indicated)\b/i
-  ];
-  
-  if (dataPatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'data-reference',
-      label: 'Data referenced',
-      variant: 'informational',
-      confidence: 'high'
-    });
-  }
-  
-  // Objection handling patterns
-  const objectionPatterns = [
-    /\b(concern|worry|hesitation|reservation|doubt)\b/i,
-    /\b(i understand your concern|that's a valid point|i appreciate you raising)\b/i,
-    /\b(let me address|let's explore|what if we)\b/i
-  ];
-  
-  if (objectionPatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'objection-handling',
-      label: 'Addressing concern',
-      variant: 'positive',
-      confidence: 'medium'
-    });
-  }
-  
-  // Rapport building patterns
-  const rapportPatterns = [
-    /\b(thank you|appreciate|grateful|pleasure|great to)\b/i,
-    /\b(i'm here to|happy to|glad to|excited to)\b/i
-  ];
-  
-  if (rapportPatterns.some(pattern => pattern.test(content))) {
-    cues.push({
-      type: 'rapport-building',
-      label: 'Building rapport',
-      variant: 'positive',
-      confidence: 'low'
-    });
-  }
+  const lower = content.toLowerCase();
+  const wordCount = content.split(/\s+/).length;
+
   // ========================================================================
-  // HCP CUES (assistant role)
-  // ========================================================================
-  if (role === "assistant") {
-    const lower = content.toLowerCase();
-    const wordCount = content.split(/\s+/).length;
-    
-    // Time pressure
-    if (lower.includes("have to go") || lower.includes("another meeting") || 
-        lower.includes("short on time") || lower.includes("running late") ||
-        lower.includes("only have a few minutes") || lower.includes("another patient")) {
-      cues.push({
-        type: "time-pressure" as CueType,
-        label: "Time Pressure",
-        description: "HCP indicates time constraints",
-        confidence: "high",
-        variant: "informational"
-      });
-    }
-    
-    // Confusion
-    if (lower.includes("don't understand") || lower.includes("not sure i follow") ||
-        lower.includes("confused") || lower.includes("unclear") ||
-        lower.includes("can you clarify") || lower.includes("don't fully understand")) {
-      cues.push({
-        type: "confusion" as CueType,
-        label: "Confusion",
-        description: "HCP needs clarification",
-        confidence: "high",
-        variant: "informational"
-      });
-    }
-    
-    // Low engagement
-    if (wordCount < 5 && (lower.trim() === "okay" || lower.trim() === "fine" || 
-        lower.trim() === "sure" || lower.trim() === "ok")) {
-      cues.push({
-        type: "disinterest" as CueType,
-        label: "Low Engagement",
-        description: "Very short response",
-        confidence: "medium",
-        variant: "informational"
-      });
-    }
-    
-    // Workload concern
-    if (lower.includes("too many prior auth") || lower.includes("overwhelmed with paperwork") ||
-        lower.includes("administrative burden") || lower.includes("too much paperwork")) {
-      cues.push({
-        type: "workload-concern" as CueType,
-        label: "Workload Concern",
-        description: "HCP expresses workload stress",
-        confidence: "high",
-        variant: "informational"
-      });
-    }
-  }
-  
-  // ========================================================================
-  // ADDITIONAL REP CUES (user role)
+  // SALES REP CUES (role === "user")
+  // These evaluate what the SALES REP does
   // ========================================================================
   if (role === "user") {
-    const lower = content.toLowerCase();
-    
-    // Approach shift
-    if (lower.includes("let's look at it this way") || lower.includes("alternatively") ||
-        lower.includes("another way to think") || lower.includes("different approach")) {
+    // Question Quality - Rep asks open-ended questions
+    if (
+      lower.includes("how") ||
+      lower.includes("what") ||
+      lower.includes("why") ||
+      lower.includes("tell me more") ||
+      lower.includes("can you describe") ||
+      lower.includes("help me understand")
+    ) {
       cues.push({
-        type: "approach-shift" as CueType,
+        type: "question-quality",
+        label: "Question Quality",
+        description: "Rep asked open-ended question",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Active Listening - Rep paraphrases or acknowledges
+    if (
+      lower.includes("i hear") ||
+      lower.includes("what i'm hearing") ||
+      lower.includes("it sounds like") ||
+      lower.includes("if i understand correctly") ||
+      lower.includes("so you're saying") ||
+      lower.includes("let me make sure i understand")
+    ) {
+      cues.push({
+        type: "active-listening",
+        label: "Active Listening",
+        description: "Rep demonstrated active listening",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Value Articulation - Rep connects to outcomes
+    if (
+      lower.includes("this helps you") ||
+      lower.includes("this enables") ||
+      lower.includes("the benefit is") ||
+      lower.includes("this means you can") ||
+      lower.includes("impact on your") ||
+      lower.includes("result in")
+    ) {
+      cues.push({
+        type: "value-articulation",
+        label: "Value Articulation",
+        description: "Rep articulated value/outcomes",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Objection Handling - Rep acknowledges concerns
+    if (
+      lower.includes("i understand that") ||
+      lower.includes("that's a fair point") ||
+      lower.includes("i appreciate that concern") ||
+      lower.includes("that's a valid concern") ||
+      lower.includes("i hear your concern")
+    ) {
+      cues.push({
+        type: "objection-handling",
+        label: "Objection Handling",
+        description: "Rep acknowledged concern/objection",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Discovery - Rep explores needs
+    if (
+      lower.includes("what are your priorities") ||
+      lower.includes("what's most important") ||
+      lower.includes("what challenges") ||
+      lower.includes("what's your biggest concern") ||
+      lower.includes("walk me through")
+    ) {
+      cues.push({
+        type: "discovery",
+        label: "Discovery",
+        description: "Rep explored needs/priorities",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Closing - Rep proposes next steps
+    if (
+      lower.includes("next step") ||
+      lower.includes("shall we") ||
+      lower.includes("would you like to") ||
+      lower.includes("can we schedule") ||
+      lower.includes("let's move forward") ||
+      lower.includes("does that work for you")
+    ) {
+      cues.push({
+        type: "closing",
+        label: "Closing",
+        description: "Rep proposed next steps/commitment",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Relationship Building - Rep builds rapport
+    if (
+      lower.includes("i appreciate your time") ||
+      lower.includes("thank you for sharing") ||
+      lower.includes("i value your perspective") ||
+      lower.includes("i understand your situation")
+    ) {
+      cues.push({
+        type: "relationship-building",
+        label: "Relationship Building",
+        description: "Rep built rapport/trust",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Adaptability - Rep pivots approach
+    if (
+      lower.includes("let me try a different approach") ||
+      lower.includes("let's look at it this way") ||
+      lower.includes("alternatively") ||
+      lower.includes("another way to think about")
+    ) {
+      cues.push({
+        type: "approach-shift",
         label: "Approach Shift",
-        description: "Rep pivots strategy",
+        description: "Rep adapted strategy",
         confidence: "high",
-        variant: "positive"
+        variant: "positive",
       });
     }
-    
-    // Pacing adjustment
-    if (lower.includes("to keep it brief") || lower.includes("long story short") ||
-        lower.includes("send details later") || lower.includes("in summary")) {
+
+    // Pacing Adjustment - Rep adjusts pace
+    if (
+      lower.includes("to keep it brief") ||
+      lower.includes("long story short") ||
+      lower.includes("in summary") ||
+      lower.includes("let me send details later")
+    ) {
       cues.push({
-        type: "pacing-adjustment" as CueType,
+        type: "pacing-adjustment",
         label: "Pacing Adjustment",
-        description: "Rep adjusts conversation pace",
+        description: "Rep adjusted conversation pace",
         confidence: "high",
-        variant: "positive"
+        variant: "positive",
       });
     }
   }
 
+  // ========================================================================
+  // HCP CUES (role === "assistant")
+  // These are CONTEXT SIGNALS that the rep should respond to
+  // These appear BELOW the HCP's message so the rep can see and adapt
+  // ========================================================================
+  if (role === "assistant") {
+    // Time Pressure - HCP indicates time constraints
+    if (
+      lower.includes("have to go") ||
+      lower.includes("another meeting") ||
+      lower.includes("short on time") ||
+      lower.includes("running late") ||
+      lower.includes("only have a few minutes") ||
+      lower.includes("another patient") ||
+      lower.includes("need to wrap up")
+    ) {
+      cues.push({
+        type: "time-pressure",
+        label: "Time Pressure",
+        description: "HCP shows time constraints (glances at clock, mentions schedule)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
 
-  
-  // Deduplicate by type (keep highest confidence)
-  const uniqueCues = new Map<CueType, ObservableCue>();
-  for (const cue of cues) {
-    const existing = uniqueCues.get(cue.type);
-    if (!existing || getConfidenceScore(cue.confidence) > getConfidenceScore(existing.confidence)) {
-      uniqueCues.set(cue.type, cue);
+    // Frustration - HCP shows frustration signals
+    if (
+      lower.includes("frustrated") ||
+      lower.includes("this is difficult") ||
+      lower.includes("not helpful") ||
+      lower.includes("already tried") ||
+      lower.includes("doesn't work") ||
+      (lower.includes("sigh") || lower.includes("*sighs*")) ||
+      wordCount < 8 && (lower.includes("fine") || lower.includes("whatever"))
+    ) {
+      cues.push({
+        type: "frustration",
+        label: "Frustration",
+        description: "HCP shows frustration (sighing, short responses, crossed arms)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // Confusion - HCP needs clarification
+    if (
+      lower.includes("don't understand") ||
+      lower.includes("not sure i follow") ||
+      lower.includes("confused") ||
+      lower.includes("unclear") ||
+      lower.includes("can you clarify") ||
+      lower.includes("what do you mean") ||
+      lower.includes("explain that again")
+    ) {
+      cues.push({
+        type: "confusion",
+        label: "Confusion",
+        description: "HCP needs clarification (delayed responses, asks for explanation)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // Low Engagement - HCP shows disinterest
+    if (
+      (wordCount < 5 &&
+        (lower.trim() === "okay" ||
+          lower.trim() === "fine" ||
+          lower.trim() === "sure" ||
+          lower.trim() === "ok" ||
+          lower.trim() === "yeah")) ||
+      lower.includes("not really interested") ||
+      lower.includes("don't see the value")
+    ) {
+      cues.push({
+        type: "low-engagement",
+        label: "Low Engagement",
+        description: "HCP shows minimal engagement (short responses, multitasking, avoiding eye contact)",
+        confidence: "medium",
+        variant: "informational",
+      });
+    }
+
+    // Workload Stress - HCP expresses workload concerns
+    if (
+      lower.includes("too many prior auth") ||
+      lower.includes("overwhelmed with paperwork") ||
+      lower.includes("administrative burden") ||
+      lower.includes("too much paperwork") ||
+      lower.includes("already swamped") ||
+      lower.includes("don't have time for more")
+    ) {
+      cues.push({
+        type: "workload-stress",
+        label: "Workload Stress",
+        description: "HCP expresses workload concerns (shoulders hunched, mentions being overwhelmed)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // Skepticism - HCP shows doubt
+    if (
+      lower.includes("i doubt") ||
+      lower.includes("not convinced") ||
+      lower.includes("heard that before") ||
+      lower.includes("prove it") ||
+      lower.includes("show me evidence") ||
+      lower.includes("skeptical")
+    ) {
+      cues.push({
+        type: "skepticism",
+        label: "Skepticism",
+        description: "HCP shows skepticism (flat vocal delivery, body turned away)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // Interest - HCP shows positive engagement
+    if (
+      lower.includes("tell me more") ||
+      lower.includes("that's interesting") ||
+      lower.includes("how does that work") ||
+      lower.includes("i'd like to know") ||
+      lower.includes("sounds promising")
+    ) {
+      cues.push({
+        type: "interest",
+        label: "Interest",
+        description: "HCP shows interest (leaning forward, asking follow-up questions)",
+        confidence: "high",
+        variant: "positive",
+      });
+    }
+
+    // Concern - HCP raises specific concern
+    if (
+      lower.includes("concerned about") ||
+      lower.includes("worry about") ||
+      lower.includes("what about") ||
+      lower.includes("but what if")
+    ) {
+      cues.push({
+        type: "concern",
+        label: "Concern",
+        description: "HCP raises specific concern",
+        confidence: "high",
+        variant: "informational",
+      });
     }
   }
-  
-  return Array.from(uniqueCues.values());
-}
 
-function getConfidenceScore(confidence: 'high' | 'medium' | 'low'): number {
-  return { high: 3, medium: 2, low: 1 }[confidence];
-}
-
-/**
- * Get color class for cue variant
- */
-export function getCueColorClass(variant: ObservableCue['variant']): string {
-  switch (variant) {
-    case 'positive':
-      return 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20';
-    case 'neutral':
-      return 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20';
-    case 'informational':
-      return 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20';
-  }
+  // Deduplicate by type
+  const seen = new Set<CueType>();
+  return cues.filter((cue) => {
+    if (seen.has(cue.type)) return false;
+    seen.add(cue.type);
+    return true;
+  });
 }
