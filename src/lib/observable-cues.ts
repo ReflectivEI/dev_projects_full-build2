@@ -1,11 +1,11 @@
 /**
  * Observable Cues Detection System
- * Last updated: 2026-01-24T10:19:55.428Z
- * CACHE BUST: Force new bundle hash for Cloudflare deployment
+ * Enhanced with 10 real-world HCP behavioral cues
+ * Last updated: 2026-01-24T10:30:00.000Z
  */
 
 export type CueType =
-  // SALES REP CUES (Evaluation - what the rep does)
+  // SALES REP CUES (Evaluation - what we score)
   | "question-quality"
   | "active-listening"
   | "value-articulation"
@@ -17,14 +17,21 @@ export type CueType =
   | "approach-shift"
   | "pacing-adjustment"
   // HCP CUES (Context signals - what the rep should respond to)
-  | "time-pressure"
-  | "frustration"
+  | "time-pressure"        // Cue #1: Glances at clock/doorway
+  | "frustration"          // Cue #3: Sighing/exhaling
   | "confusion"
-  | "low-engagement"
+  | "low-engagement"       // Cue #2: Short, clipped responses
   | "workload-stress"
   | "skepticism"
   | "interest"
-  | "concern";
+  | "concern"
+  | "defensive"            // Cue #4: Arms crossed/hunched
+  | "distracted"           // Cue #5: Multitasking
+  | "hesitant"             // Cue #6: Delayed responses
+  | "uncomfortable"        // Cue #7: Avoiding eye contact
+  | "impatient"            // Cue #8: Interrupting
+  | "disinterested"        // Cue #9: Flat/monotone delivery
+  | "withdrawn";           // Cue #10: Body turned away
 
 export type CueVariant = "positive" | "negative" | "informational";
 
@@ -37,190 +44,158 @@ export interface ObservableCue {
 }
 
 /**
- * Get color class for a cue based on its variant
- */
-export function getCueColorClass(variant: CueVariant): string {
-  switch (variant) {
-    case "positive":
-      return "bg-green-100 text-green-800 border-green-200";
-    case "negative":
-      return "bg-red-100 text-red-800 border-red-200";
-    case "informational":
-      return "bg-blue-100 text-blue-800 border-blue-200";
-    default:
-      return "bg-gray-100 text-gray-800 border-gray-200";
-  }
-}
-
-/**
  * Detect observable cues from conversation messages
  * 
- * @param content - Message content
- * @param role - "user" (sales rep) or "assistant" (HCP)
- * @returns Array of detected cues
+ * CRITICAL ARCHITECTURE:
+ * - Sales Rep messages (role === "user") → EVALUATION cues (scored against metrics)
+ * - HCP messages (role === "assistant") → CONTEXT cues (signals for rep to respond to)
  */
 export function detectObservableCues(
-  content: string,
+  message: string,
   role: "user" | "assistant"
 ): ObservableCue[] {
   const cues: ObservableCue[] = [];
-  const lower = content.toLowerCase();
-  const wordCount = content.split(/s+/).length;
+  const lower = message.toLowerCase();
+  const wordCount = message.split(/\s+/).length;
 
   // ========================================================================
   // SALES REP CUES (role === "user")
-  // These evaluate what the SALES REP does
+  // These are EVALUATION signals - what we score the rep on
   // ========================================================================
   if (role === "user") {
-    // Question Quality - Rep asks open-ended questions
+    // Question Quality
     if (
       lower.includes("how") ||
       lower.includes("what") ||
       lower.includes("why") ||
-      lower.includes("tell me more") ||
-      lower.includes("can you describe") ||
+      lower.includes("tell me about") ||
+      lower.includes("could you explain") ||
       lower.includes("help me understand")
     ) {
       cues.push({
         type: "question-quality",
         label: "Question Quality",
-        description: "Rep asked open-ended question",
+        description: "Rep asks open-ended, probing questions",
         confidence: "high",
         variant: "positive",
       });
     }
 
-    // Active Listening - Rep paraphrases or acknowledges
+    // Active Listening
     if (
-      lower.includes("i hear") ||
-      lower.includes("what i'm hearing") ||
+      lower.includes("i hear you") ||
       lower.includes("it sounds like") ||
       lower.includes("if i understand correctly") ||
-      lower.includes("so you're saying") ||
-      lower.includes("let me make sure i understand")
+      lower.includes("you mentioned") ||
+      lower.includes("let me make sure") ||
+      lower.includes("so what you're saying")
     ) {
       cues.push({
         type: "active-listening",
         label: "Active Listening",
-        description: "Rep demonstrated active listening",
+        description: "Rep demonstrates understanding and reflection",
         confidence: "high",
         variant: "positive",
       });
     }
 
-    // Value Articulation - Rep connects to outcomes
+    // Value Articulation
     if (
-      lower.includes("this helps you") ||
-      lower.includes("this enables") ||
-      lower.includes("the benefit is") ||
-      lower.includes("this means you can") ||
-      lower.includes("impact on your") ||
-      lower.includes("result in")
+      lower.includes("benefit") ||
+      lower.includes("help you") ||
+      lower.includes("improve") ||
+      lower.includes("solution") ||
+      lower.includes("address your") ||
+      lower.includes("specifically for")
     ) {
       cues.push({
         type: "value-articulation",
         label: "Value Articulation",
-        description: "Rep articulated value/outcomes",
+        description: "Rep clearly communicates product value",
         confidence: "high",
         variant: "positive",
       });
     }
 
-    // Objection Handling - Rep acknowledges concerns
+    // Objection Handling
     if (
-      lower.includes("i understand that") ||
-      lower.includes("that's a fair point") ||
-      lower.includes("i appreciate that concern") ||
-      lower.includes("that's a valid concern") ||
-      lower.includes("i hear your concern")
+      lower.includes("i understand your concern") ||
+      lower.includes("that's a valid point") ||
+      lower.includes("let me address that") ||
+      lower.includes("many doctors have said") ||
+      lower.includes("what if we")
     ) {
       cues.push({
         type: "objection-handling",
         label: "Objection Handling",
-        description: "Rep acknowledged concern/objection",
+        description: "Rep addresses concerns professionally",
         confidence: "high",
         variant: "positive",
       });
     }
 
-    // Discovery - Rep explores needs
+    // Discovery
     if (
-      lower.includes("what are your priorities") ||
-      lower.includes("what's most important") ||
-      lower.includes("what challenges") ||
-      lower.includes("what's your biggest concern") ||
-      lower.includes("walk me through")
+      lower.includes("current") ||
+      lower.includes("challenge") ||
+      lower.includes("process") ||
+      lower.includes("experience with") ||
+      lower.includes("typically")
     ) {
       cues.push({
         type: "discovery",
         label: "Discovery",
-        description: "Rep explored needs/priorities",
-        confidence: "high",
+        description: "Rep explores HCP's situation and needs",
+        confidence: "medium",
         variant: "positive",
       });
     }
 
-    // Closing - Rep proposes next steps
+    // Closing
     if (
       lower.includes("next step") ||
+      lower.includes("would you like") ||
       lower.includes("shall we") ||
-      lower.includes("would you like to") ||
       lower.includes("can we schedule") ||
-      lower.includes("let's move forward") ||
-      lower.includes("does that work for you")
+      lower.includes("move forward")
     ) {
       cues.push({
         type: "closing",
         label: "Closing",
-        description: "Rep proposed next steps/commitment",
+        description: "Rep suggests concrete next actions",
         confidence: "high",
         variant: "positive",
       });
     }
 
-    // Relationship Building - Rep builds rapport
+    // Relationship Building
     if (
-      lower.includes("i appreciate your time") ||
-      lower.includes("thank you for sharing") ||
-      lower.includes("i value your perspective") ||
-      lower.includes("i understand your situation")
+      lower.includes("appreciate") ||
+      lower.includes("thank you") ||
+      lower.includes("value your") ||
+      lower.includes("respect your time") ||
+      lower.includes("partnership")
     ) {
       cues.push({
         type: "relationship-building",
         label: "Relationship Building",
-        description: "Rep built rapport/trust",
-        confidence: "high",
+        description: "Rep builds rapport and trust",
+        confidence: "medium",
         variant: "positive",
       });
     }
 
-    // Adaptability - Rep pivots approach
+    // Adaptability
     if (
-      lower.includes("let me try a different approach") ||
-      lower.includes("let's look at it this way") ||
-      lower.includes("alternatively") ||
-      lower.includes("another way to think about")
+      lower.includes("let me adjust") ||
+      lower.includes("different approach") ||
+      lower.includes("perhaps instead") ||
+      lower.includes("another way")
     ) {
       cues.push({
-        type: "approach-shift",
-        label: "Approach Shift",
-        description: "Rep adapted strategy",
-        confidence: "high",
-        variant: "positive",
-      });
-    }
-
-    // Pacing Adjustment - Rep adjusts pace
-    if (
-      lower.includes("to keep it brief") ||
-      lower.includes("long story short") ||
-      lower.includes("in summary") ||
-      lower.includes("let me send details later")
-    ) {
-      cues.push({
-        type: "pacing-adjustment",
-        label: "Pacing Adjustment",
-        description: "Rep adjusted conversation pace",
+        type: "adaptability",
+        label: "Adaptability",
+        description: "Rep adjusts strategy based on HCP response",
         confidence: "high",
         variant: "positive",
       });
@@ -231,10 +206,14 @@ export function detectObservableCues(
   // HCP CUES (role === "assistant")
   // These are CONTEXT SIGNALS that the rep should respond to
   // These appear BELOW the HCP's message so the rep can see and adapt
+  // ENHANCED WITH 10 REAL-WORLD BEHAVIORAL CUES
   // ========================================================================
   if (role === "assistant") {
-    // Time Pressure - HCP indicates time constraints
+    // CUE #1: Time Pressure - Glances at clock/doorway
     if (
+      lower.includes("glances at") ||
+      lower.includes("looks at clock") ||
+      lower.includes("checks watch") ||
       lower.includes("have to go") ||
       lower.includes("another meeting") ||
       lower.includes("short on time") ||
@@ -252,15 +231,34 @@ export function detectObservableCues(
       });
     }
 
-    // Frustration - HCP shows frustration signals
+    // CUE #2: Low Engagement - Short, clipped responses
     if (
+      wordCount < 8 &&
+      (lower.includes("okay") ||
+        lower.includes("sure") ||
+        lower.includes("fine") ||
+        lower.includes("yeah") ||
+        lower.includes("uh-huh"))
+    ) {
+      cues.push({
+        type: "low-engagement",
+        label: "Low Engagement",
+        description: "HCP gives minimal responses (short answers, lack of elaboration)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // CUE #3: Frustration - Sighing/exhaling audibly
+    if (
+      lower.includes("*sighs*") ||
+      lower.includes("sighs") ||
+      lower.includes("exhales") ||
       lower.includes("frustrated") ||
       lower.includes("this is difficult") ||
       lower.includes("not helpful") ||
       lower.includes("already tried") ||
-      lower.includes("doesn't work") ||
-      (lower.includes("sigh") || lower.includes("*sighs*")) ||
-      wordCount < 8 && (lower.includes("fine") || lower.includes("whatever"))
+      lower.includes("doesn't work")
     ) {
       cues.push({
         type: "frustration",
@@ -271,6 +269,136 @@ export function detectObservableCues(
       });
     }
 
+    // CUE #4: Defensive - Arms crossed/shoulders hunched
+    if (
+      lower.includes("crosses arms") ||
+      lower.includes("arms crossed") ||
+      lower.includes("leans back") ||
+      lower.includes("shoulders hunched") ||
+      lower.includes("defensive posture") ||
+      lower.includes("i don't think so") ||
+      lower.includes("that won't work") ||
+      lower.includes("we've tried that")
+    ) {
+      cues.push({
+        type: "defensive",
+        label: "Defensive",
+        description: "HCP shows defensive body language (arms crossed, closed posture)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // CUE #5: Distracted - Multitasking behavior
+    if (
+      lower.includes("types") ||
+      lower.includes("typing") ||
+      lower.includes("checks phone") ||
+      lower.includes("looks at screen") ||
+      lower.includes("signs forms") ||
+      (lower.includes("while") && (lower.includes("looking") || lower.includes("writing")))
+    ) {
+      cues.push({
+        type: "distracted",
+        label: "Distracted",
+        description: "HCP is multitasking (typing, checking phone, signing forms)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // CUE #6: Hesitant - Delayed responses/long pauses
+    if (
+      lower.includes("pauses") ||
+      lower.includes("long pause") ||
+      lower.includes("hesitates") ||
+      lower.includes("...") ||
+      lower.includes("um") ||
+      lower.includes("uh") ||
+      lower.includes("well...") ||
+      lower.includes("i'm not sure")
+    ) {
+      cues.push({
+        type: "hesitant",
+        label: "Hesitant",
+        description: "HCP shows hesitation (long pauses, delayed responses)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // CUE #7: Uncomfortable - Avoidance of eye contact
+    if (
+      lower.includes("avoids eye contact") ||
+      lower.includes("looks away") ||
+      lower.includes("looks down") ||
+      lower.includes("shifts uncomfortably") ||
+      lower.includes("fidgets") ||
+      lower.includes("uncomfortable")
+    ) {
+      cues.push({
+        type: "uncomfortable",
+        label: "Uncomfortable",
+        description: "HCP shows discomfort (avoiding eye contact, fidgeting)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // CUE #8: Impatient - Interrupting mid-sentence
+    if (
+      lower.includes("interrupts") ||
+      lower.includes("cuts off") ||
+      lower.includes("wait, wait") ||
+      lower.includes("hold on") ||
+      lower.includes("let me stop you") ||
+      lower.includes("i need to")
+    ) {
+      cues.push({
+        type: "impatient",
+        label: "Impatient",
+        description: "HCP shows impatience (interrupting, redirecting conversation)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // CUE #9: Disinterested - Flat/monotone vocal delivery
+    if (
+      lower.includes("monotone") ||
+      lower.includes("flat voice") ||
+      lower.includes("disinterested tone") ||
+      (wordCount < 10 && !lower.includes("?") && !lower.includes("!"))
+    ) {
+      cues.push({
+        type: "disinterested",
+        label: "Disinterested",
+        description: "HCP shows lack of interest (flat tone, minimal engagement)",
+        confidence: "medium",
+        variant: "informational",
+      });
+    }
+
+    // CUE #10: Withdrawn - Physically turning body away
+    if (
+      lower.includes("turns away") ||
+      lower.includes("body turned") ||
+      lower.includes("half-standing") ||
+      lower.includes("chair angled") ||
+      lower.includes("steps back") ||
+      lower.includes("moves toward door")
+    ) {
+      cues.push({
+        type: "withdrawn",
+        label: "Withdrawn",
+        description: "HCP physically withdraws (turning body away, moving toward exit)",
+        confidence: "high",
+        variant: "informational",
+      });
+    }
+
+    // EXISTING CUES (kept for compatibility)
+    
     // Confusion - HCP needs clarification
     if (
       lower.includes("don't understand") ||
@@ -278,113 +406,104 @@ export function detectObservableCues(
       lower.includes("confused") ||
       lower.includes("unclear") ||
       lower.includes("can you clarify") ||
-      lower.includes("what do you mean") ||
-      lower.includes("explain that again")
+      lower.includes("what do you mean")
     ) {
       cues.push({
         type: "confusion",
         label: "Confusion",
-        description: "HCP needs clarification (delayed responses, asks for explanation)",
+        description: "HCP needs clarification (furrowed brow, questioning look)",
         confidence: "high",
         variant: "informational",
       });
     }
 
-    // Low Engagement - HCP shows disinterest
+    // Workload Stress
     if (
-      (wordCount < 5 &&
-        (lower.trim() === "okay" ||
-          lower.trim() === "fine" ||
-          lower.trim() === "sure" ||
-          lower.trim() === "ok" ||
-          lower.trim() === "yeah")) ||
-      lower.includes("not really interested") ||
-      lower.includes("don't see the value")
-    ) {
-      cues.push({
-        type: "low-engagement",
-        label: "Low Engagement",
-        description: "HCP shows minimal engagement (short responses, multitasking, avoiding eye contact)",
-        confidence: "medium",
-        variant: "informational",
-      });
-    }
-
-    // Workload Stress - HCP expresses workload concerns
-    if (
-      lower.includes("too many prior auth") ||
-      lower.includes("overwhelmed with paperwork") ||
-      lower.includes("administrative burden") ||
-      lower.includes("too much paperwork") ||
-      lower.includes("already swamped") ||
-      lower.includes("don't have time for more")
+      lower.includes("overwhelmed") ||
+      lower.includes("too much") ||
+      lower.includes("so many patients") ||
+      lower.includes("busy day") ||
+      lower.includes("swamped")
     ) {
       cues.push({
         type: "workload-stress",
         label: "Workload Stress",
-        description: "HCP expresses workload concerns (shoulders hunched, mentions being overwhelmed)",
+        description: "HCP indicates high workload (mentions being busy, overwhelmed)",
         confidence: "high",
         variant: "informational",
       });
     }
 
-    // Skepticism - HCP shows doubt
+    // Skepticism
     if (
-      lower.includes("i doubt") ||
       lower.includes("not convinced") ||
-      lower.includes("heard that before") ||
-      lower.includes("prove it") ||
-      lower.includes("show me evidence") ||
-      lower.includes("skeptical")
+      lower.includes("skeptical") ||
+      lower.includes("doubt") ||
+      lower.includes("really?") ||
+      lower.includes("raises eyebrow") ||
+      lower.includes("questionable")
     ) {
       cues.push({
         type: "skepticism",
         label: "Skepticism",
-        description: "HCP shows skepticism (flat vocal delivery, body turned away)",
+        description: "HCP shows doubt (raised eyebrow, questioning tone)",
         confidence: "high",
         variant: "informational",
       });
     }
 
-    // Interest - HCP shows positive engagement
+    // Interest
     if (
+      lower.includes("interesting") ||
       lower.includes("tell me more") ||
-      lower.includes("that's interesting") ||
-      lower.includes("how does that work") ||
+      lower.includes("leans forward") ||
+      lower.includes("that's helpful") ||
       lower.includes("i'd like to know") ||
-      lower.includes("sounds promising")
+      (lower.includes("?") && wordCount > 8)
     ) {
       cues.push({
         type: "interest",
         label: "Interest",
-        description: "HCP shows interest (leaning forward, asking follow-up questions)",
+        description: "HCP shows engagement (leaning forward, asking questions)",
         confidence: "high",
         variant: "positive",
       });
     }
 
-    // Concern - HCP raises specific concern
+    // Concern
     if (
-      lower.includes("concerned about") ||
-      lower.includes("worry about") ||
+      lower.includes("worried") ||
+      lower.includes("concerned") ||
       lower.includes("what about") ||
-      lower.includes("but what if")
+      lower.includes("side effects") ||
+      lower.includes("safety") ||
+      lower.includes("risk")
     ) {
       cues.push({
         type: "concern",
         label: "Concern",
-        description: "HCP raises specific concern",
+        description: "HCP expresses concern (about safety, efficacy, or implementation)",
         confidence: "high",
         variant: "informational",
       });
     }
   }
 
-  // Deduplicate by type
-  const seen = new Set<CueType>();
-  return cues.filter((cue) => {
-    if (seen.has(cue.type)) return false;
-    seen.add(cue.type);
-    return true;
-  });
+  return cues;
+}
+
+/**
+ * Get color class for cue badge display
+ */
+export function getCueColorClass(variant: CueVariant): string {
+  switch (variant) {
+    case "positive":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "negative":
+      return "bg-red-100 text-red-800 border-red-200";
+    case "informational":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
 }
