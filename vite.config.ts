@@ -92,3 +92,5 @@ export default defineConfig(({ mode, command }) => {
 		base: process.env.GITHUB_PAGES === 'true' ? '/dev_projects_full-build2/' : '/',
 		};
 	});
+
+// Force rebuild: 2026-01-24T09:06:30.958Z
