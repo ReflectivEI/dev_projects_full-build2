@@ -326,3 +326,5 @@ Built with amazing open-source tools:
 <!-- CRITICAL FIX: Cue detection corrected - 2026-01-24T08:31:57.077Z -->
 
 <!-- EMERGENCY FIX: Regex corrected - 2026-01-24T08:47:58.560Z -->
+
+<!-- COMPLETE FIX: getCueColorClass added - 2026-01-24T08:57:14.620Z -->
