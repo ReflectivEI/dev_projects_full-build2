@@ -625,7 +625,6 @@ export const scenarios: Scenario[] = [
     openingScene: "Dr. Evelyn Harper looks up from a stack of prior authorization forms, rubbing her temples. A frustrated sigh escapes as she sees another rep waiting. Her body language is tired but professional. The clinic is running behind, and she has three more patients before lunch.",
     hcpMood: "frustrated",
     objective: "Pre-book age-appropriate vaccine mix; schedule early clinics; implement SMS reminders and standing orders in LTC",
-    context: "ID practice serving long-term care and high-risk adult populations. Flu coverage fell in 65+ patients. Late clinic start and weak reminder systems contribute to missed opportunities.",
     challenges: [
       "Late flu clinic scheduling",
       "Weak reminder-recall systems",

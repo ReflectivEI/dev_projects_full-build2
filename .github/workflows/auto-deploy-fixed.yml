@@ -1,0 +1,101 @@
+name: Deploy Frontend to Cloudflare Pages (AUTO)
+
+# SAFETY: This workflow is AUTO to prevent accidental production deployments
+# Always test on staging first!
+
+on:
+  push:
+    branches:
+      - main
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      confirm:
+        description: 'Type DEPLOY to confirm'
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "DEPLOY" ]; then
+            echo "❌ Deployment cancelled - confirmation not provided"
+            exit 1
+          fi
+
+      - name: Verify Cloudflare credentials are available
+        run: |
+          missing=0
+          if [ -z "${{ secrets.CLOUDFLARE_API_TOKEN }}" ]; then
+            echo "::error::Missing CLOUDFLARE_API_TOKEN secret"
+            missing=1
+          fi
+          if [ -z "${{ secrets.CLOUDFLARE_ACCOUNT_ID }}" ]; then
+            echo "::error::Missing CLOUDFLARE_ACCOUNT_ID secret"
+            missing=1
+          fi
+          if [ "$missing" -eq 1 ]; then
+            echo "::error::Please add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID to repository secrets"
+            exit 1
+          fi
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: |
+          echo "🔨 Building..."
+          STATIC_BUILD=true GITHUB_PAGES=false VITE_WORKER_URL=https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev npm run build:vite
+          echo "✅ Build complete"
+
+      - name: Verify
+        run: |
+          echo "📂 Checking output..."
+          ls -la dist/
+          test -f dist/index.html && echo "✅ dist/index.html exists" || (echo "❌ dist/index.html missing" && exit 1)
+          test -f dist/_redirects && echo "✅ dist/_redirects exists" || (echo "❌ dist/_redirects missing" && exit 1)
+          echo "OUTPUT_DIR=dist" >> $GITHUB_ENV
+
+      - name: Deploy to Staging
+        if: github.event.inputs.environment == 'staging'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ env.OUTPUT_DIR }} --project-name=reflectivai-app-staging --branch=staging
+
+      - name: Deploy to Production
+        if: github.event.inputs.environment == 'production'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy ${{ env.OUTPUT_DIR }} --project-name=reflectivai-app-prod --branch=main
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ Deployment to ${{ github.event.inputs.environment }} completed!"
+          if [ "${{ github.event.inputs.environment }}" == "staging" ]; then
+            echo "🔍 Test at: https://reflectivai-app-staging.pages.dev/"
+            echo "⚠️  Remember to test before deploying to production!"
+          else
+            echo "🌍 Live at: https://reflectivai-app-prod.pages.dev/"
+            echo "💡 Remember to hard refresh (Ctrl+Shift+R)"
+          fi

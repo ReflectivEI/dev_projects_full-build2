@@ -26,6 +26,7 @@
   "dependencies": {
     "@babel/core": "^7.26.4",
     "@babel/types": "^7.26.3",
+    "@dr.pogodin/react-helmet": "^3.0.5",
     "@godaddy/localizations": "^1",
     "@godaddy/react": "^1",
     "@heroicons/react": "^2.2.0",
@@ -90,8 +91,7 @@
     "vite-plugin-ssr": "^0.4.85",
     "wouter": "^3.9.0",
     "zod": "^3.25.76",
-    "zustand": "^5.0.2",
-    "@dr.pogodin/react-helmet": "^3.0.5"
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
