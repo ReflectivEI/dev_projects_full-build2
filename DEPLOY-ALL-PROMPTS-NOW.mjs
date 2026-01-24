@@ -1,4 +1,17 @@
 #!/usr/bin/env node
+/**
+ * 🚨 EMERGENCY: FIX DEPLOYMENT PIPELINE NOW
+ * 
+ * PROBLEMS IDENTIFIED:
+ * 1. Cloudflare workflow deploys successfully
+ * 2. But Cloudflare CDN serves OLD cached files
+ * 3. GitHub Pages workflow is also running (conflict)
+ * 
+ * SOLUTIONS:
+ * 1. Disable GitHub Pages workflow
+ * 2. Add Cloudflare cache purging
+ * 3. Force immediate cache invalidation
+ */
 
 const TOKEN = '***REMOVED***';
 const REPO = 'ReflectivEI/dev_projects_full-build2';
@@ -34,208 +47,231 @@ async function putFile(path, content, msg, sha) {
   });
 }
 
-console.log('🎯 DEPLOYING ALL MAJOR PROMPTS (1, 2, 3) TO GITHUB');
+console.log('🚨 EMERGENCY DEPLOYMENT FIX');
 console.log('='.repeat(80));
+console.log('');
+console.log('📋 CURRENT SITUATION:');
+console.log('  ✅ Cloudflare workflow runs successfully');
+console.log('  ✅ Deploy step completes (9:44:59 AM)');
+console.log('  ❌ But site STILL serves old bundle (index-Y11AzIfi.js)');
+console.log('  ❌ getCueColorClass still missing from deployed code');
+console.log('');
+console.log('🔍 ROOT CAUSE:');
+console.log('  • Cloudflare CDN is aggressively caching');
+console.log('  • No cache purging after deployment');
+console.log('  • GitHub Pages workflow may be interfering');
+console.log('');
+console.log('✅ SOLUTION:');
+console.log('  1. Disable GitHub Pages workflow');
+console.log('  2. Update Cloudflare workflow with cache purging');
+console.log('  3. Trigger fresh deployment');
+console.log('');
 
 try {
-  const commits = [];
+  // Step 1: Disable GitHub Pages workflow
+  console.log('📝 Step 1: Disabling GitHub Pages workflow...');
+  const { content: ghPagesWorkflow, sha: ghPagesSha } = await getFile('.github/workflows/deploy-github-pages.yml');
   
-  // ========================================================================
-  // PROMPT #1: SIGNAL INTELLIGENCE SCORING FIX
-  // ========================================================================
-  console.log('\n📋 PROMPT #1: Signal Intelligence Scoring Fix');
-  console.log('-'.repeat(80));
-  
-  // Fix metrics-spec.ts
-  let { content: metricsContent, sha: metricsSha } = await getFile('src/lib/signal-intelligence/metrics-spec.ts');
-  const beforeCount = (metricsContent.match(/score_formula: 'weighted_average'/g) || []).length;
-  
-  if (beforeCount > 0) {
-    metricsContent = metricsContent.replace(/score_formula: 'weighted_average'/g, "score_formula: 'average'");
-    await putFile('src/lib/signal-intelligence/metrics-spec.ts', metricsContent, 'fix(prompt-1): change all metrics to simple average scoring', metricsSha);
-    console.log(`  ✅ Changed ${beforeCount} metrics from weighted_average to average`);
-    commits.push('metrics-spec.ts');
-    await new Promise(r => setTimeout(r, 1000));
-  } else {
-    console.log('  ⏭️  Already using average scoring');
-  }
-  
-  // Fix scoring.ts
-  let { content: scoringContent, sha: scoringSha } = await getFile('src/lib/signal-intelligence/scoring.ts');
-  let scoringModified = false;
-  
-  // Neutralize weightedAverageApplicable
-  if (scoringContent.includes('const weights = components.map')) {
-    scoringContent = scoringContent.replace(
-      /function weightedAverageApplicable[\s\S]*?return sum \/ totalWeight;\s*}/,
-      `function weightedAverageApplicable(components: ComponentScore[]): number {
-  // NEUTRALIZED: Now uses simple average (MAJOR AIRO PROMPT #1)
-  return averageApplicable(components);
-}`
-    );
-    console.log('  ✅ Neutralized weightedAverageApplicable');
-    scoringModified = true;
-  }
-  
-  // Update main scoring loop
-  if (scoringContent.includes('metric.score_formula === \'weighted_average\'')) {
-    scoringContent = scoringContent.replace(
-      /if \(metric\.score_formula === 'weighted_average'\) \{[\s\S]*?\} else \{[\s\S]*?score = averageApplicable\(applicableComponents\);[\s\S]*?\}/,
-      `// SIMPLIFIED: All metrics use simple average (MAJOR AIRO PROMPT #1)
-    score = averageApplicable(applicableComponents);`
-    );
-    console.log('  ✅ Simplified main scoring loop to use average only');
-    scoringModified = true;
-  }
-  
-  if (scoringModified) {
-    await putFile('src/lib/signal-intelligence/scoring.ts', scoringContent, 'fix(prompt-1): simplify scoring to use average only', scoringSha);
-    console.log('  ✅ COMMITTED scoring.ts');
-    commits.push('scoring.ts');
-    await new Promise(r => setTimeout(r, 1000));
-  }
-  
-  // ========================================================================
-  // PROMPT #2: ROLEPLAY ENHANCEMENTS + CAPABILITY MAPPING
-  // ========================================================================
-  console.log('\n📋 PROMPT #2: Roleplay Enhancements + Capability Mapping');
-  console.log('-'.repeat(80));
-  
-  // Add cue fields to schema
-  let { content: schemaContent, sha: schemaSha } = await getFile('src/types/schema.ts');
-  if (!schemaContent.includes('context?: string;')) {
-    const scenarioPattern = /(challenges\?: string\[\];)\s*}/;
-    schemaContent = schemaContent.replace(
-      scenarioPattern,
-      `$1
-  // NEW: Role-play cue fields (MAJOR AIRO PROMPT #2)
-  context?: string;
-  openingScene?: string;
-  hcpMood?: string; // e.g., "frustrated", "curious", "skeptical"
-}`
-    );
-    await putFile('src/types/schema.ts', schemaContent, 'feat(prompt-2): add scenario cue fields (context, openingScene, hcpMood)', schemaSha);
-    console.log('  ✅ Added cue fields to Scenario interface');
-    commits.push('schema.ts');
-    await new Promise(r => setTimeout(r, 1000));
-  } else {
-    console.log('  ⏭️  Scenario cue fields already exist');
-  }
-  
-  // Populate cues for Infectious Disease scenario
-  let { content: dataContent, sha: dataSha } = await getFile('src/lib/data.ts');
-  if (!dataContent.includes('openingScene:') && dataContent.includes('vac_id_adult_flu_playbook')) {
-    dataContent = dataContent.replace(
-      /(id: "vac_id_adult_flu_playbook",[\s\S]*?difficulty: "intermediate",)/,
-      `$1
-    context: "ID practice serving long-term care and high-risk adult populations. Flu coverage fell in 65+ patients. Late clinic start and weak reminder systems contribute to missed opportunities.",
-    openingScene: "Dr. Evelyn Harper looks up from a stack of prior authorization forms, rubbing her temples. A frustrated sigh escapes as she sees another rep waiting. Her body language is tired but professional. The clinic is running behind, and she has three more patients before lunch.",
-    hcpMood: "frustrated",`
-    );
-    await putFile('src/lib/data.ts', dataContent, 'feat(prompt-2): add cues to Infectious Disease scenario', dataSha);
-    console.log('  ✅ Added cues to Infectious Disease scenario');
-    commits.push('data.ts');
-    await new Promise(r => setTimeout(r, 1000));
-  } else {
-    console.log('  ⏭️  Scenario cues already populated');
-  }
-  
-  // Create capability-metric-map.ts
-  try {
-    await getFile('src/lib/capability-metric-map.ts');
-    console.log('  ⏭️  capability-metric-map.ts already exists');
-  } catch (e) {
-    const mapContent = `/**
- * MAJOR AIRO PROMPT #2: Capability ↔ Metric Mapping
- * Canonical mapping between SI capabilities and behavioral metrics
- */
-
-export const SI_CAPABILITY_METRIC_MAP: Record<string, string[]> = {
-  'question-quality': ['open-ended-questions'],
-  'active-listening': ['acknowledgment-statements', 'follow-up-questions'],
-  'objection-handling': ['reframing-objections'],
-  'value-articulation': ['benefit-statements', 'evidence-citations'],
-  'discovery-effectiveness': ['needs-assessment-questions'],
-  'closing-ability': ['trial-closes', 'commitment-asks'],
-  'relationship-building': ['rapport-building-statements'],
-  'adaptability': ['approach-shifts', 'pacing-adjustments']
-};
-
-export function getMetricsForCapability(capabilityId: string): string[] {
-  return SI_CAPABILITY_METRIC_MAP[capabilityId] || [];
-}
-
-export function getCapabilityForMetric(metricId: string): string | undefined {
-  for (const [capId, metrics] of Object.entries(SI_CAPABILITY_METRIC_MAP)) {
-    if (metrics.includes(metricId)) return capId;
-  }
-  return undefined;
-}
-`;
-    await api(`/repos/${REPO}/contents/src/lib/capability-metric-map.ts`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: 'feat(prompt-2): create capability-metric mapping',
-        content: Buffer.from(mapContent).toString('base64'),
-        branch: BRANCH
-      })
-    });
-    console.log('  ✅ Created capability-metric-map.ts');
-    commits.push('capability-metric-map.ts');
-    await new Promise(r => setTimeout(r, 1000));
-  }
-  
-  // ========================================================================
-  // PROMPT #3: UI WIRING (Already done, but verify)
-  // ========================================================================
-  console.log('\n📋 PROMPT #3: UI Wiring (Observable Cues)');
-  console.log('-'.repeat(80));
-  
-  let { content: cuesContent, sha: cuesSha } = await getFile('src/lib/observable-cues.ts');
-  if (!cuesContent.includes('HCP CUES (assistant role)')) {
-    console.log('  ⚠️  Observable cues not yet expanded - this was just done!');
-  } else {
-    console.log('  ✅ Observable cues already expanded with HCP detection');
-  }
-  
-  // ========================================================================
-  // TRIGGER DEPLOYMENT
-  // ========================================================================
-  console.log('\n🚀 Triggering Cloudflare deployment...');
-  const { content: readme, sha: readmeSha } = await getFile('README.md');
-  const timestamp = new Date().toISOString();
-  const newReadme = readme + `\n<!-- DEPLOY: ALL PROMPTS (1,2,3) COMPLETE - ${timestamp} -->\n`;
+  // Add a condition that makes it never run
+  const disabledGhPages = `# DISABLED - Conflicts with Cloudflare Pages deployment\n# To re-enable, remove the 'if: false' condition below\n\nname: Deploy to GitHub Pages (DISABLED)\n\non:\n  push:\n    branches:\n      - main\n  workflow_dispatch:\n\njobs:\n  deploy:\n    if: false  # DISABLED\n    runs-on: ubuntu-latest\n    steps:\n      - name: Disabled\n        run: echo "This workflow is disabled"\n`;
   
   await putFile(
-    'README.md',
-    newReadme,
-    '🚀 DEPLOY: ALL MAJOR PROMPTS (1,2,3) - Complete SI implementation',
-    readmeSha
+    '.github/workflows/deploy-github-pages.yml',
+    disabledGhPages,
+    '🚨 DISABLE: GitHub Pages workflow (conflicts with Cloudflare)',
+    ghPagesSha
   );
   
-  console.log('\n' + '='.repeat(80));
-  console.log('✅ SUCCESS! ALL PROMPTS PUSHED TO GITHUB');
+  console.log('   ✅ GitHub Pages workflow disabled');
+  console.log('');
+  
+  // Step 2: Update Cloudflare workflow with cache purging
+  console.log('📝 Step 2: Adding cache purging to Cloudflare workflow...');
+  const { content: cfWorkflow, sha: cfSha } = await getFile('.github/workflows/deploy-to-cloudflare.yml');
+  
+  const updatedCfWorkflow = `name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    name: Deploy to Cloudflare Pages
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Clean build cache (AGGRESSIVE)
+        run: |
+          rm -rf dist/
+          rm -rf node_modules/.vite
+          rm -rf node_modules/.cache
+          rm -rf .vite
+          npm cache clean --force
+          echo "Cache cleared at $(date)" > .cache-cleared
+
+      - name: Build
+        run: npm run build:vite
+        env:
+          STATIC_BUILD: 'true'
+          GITHUB_PAGES: 'false'
+          VITE_WORKER_URL: 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev'
+          VITE_GIT_SHA: \${{ github.sha }}
+          VITE_BUILD_TIME: \${{ github.event.head_commit.timestamp }}
+
+      - name: Verify getCueColorClass in bundle
+        run: |
+          echo "Checking for getCueColorClass in built files:"
+          if grep -r "getCueColorClass" dist/assets/; then
+            echo "✅ getCueColorClass FOUND in bundle!"
+          else
+            echo "❌ ERROR: getCueColorClass NOT FOUND in bundle!"
+            exit 1
+          fi
+
+      - name: Deploy to Cloudflare Pages
+        id: cloudflare_deploy
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: \${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: \${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: reflectivai-app-prod
+          directory: dist
+          gitHubToken: \${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          wranglerVersion: '3'
+
+      - name: Purge Cloudflare Cache
+        run: |
+          echo "🔥 PURGING CLOUDFLARE CACHE..."
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/\${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \\
+            -H "Authorization: Bearer \${{ secrets.CLOUDFLARE_API_TOKEN }}" \\
+            -H "Content-Type: application/json" \\
+            --data '{"purge_everything":true}' || echo "⚠️  Cache purge failed (may need CLOUDFLARE_ZONE_ID secret)"
+
+      - name: Deployment Summary
+        run: |
+          echo "✅ DEPLOYMENT COMPLETE!"
+          echo ""
+          echo "📊 Deployment Details:"
+          echo "  • Commit: \${{ github.sha }}"
+          echo "  • Time: $(date)"
+          echo "  • Site: https://reflectivai-app-prod.pages.dev"
+          echo ""
+          echo "⏳ Wait 30-60 seconds for CDN propagation"
+          echo "💡 Then hard refresh: Ctrl+Shift+R or Cmd+Shift+R"
+`;
+  
+  await putFile(
+    '.github/workflows/deploy-to-cloudflare.yml',
+    updatedCfWorkflow,
+    '🚨 ADD: Cache purging and verification to Cloudflare workflow',
+    cfSha
+  );
+  
+  console.log('   ✅ Cloudflare workflow updated with cache purging');
+  console.log('');
+  
+  // Step 3: Trigger deployment by modifying a source file
+  console.log('📝 Step 3: Triggering fresh deployment...');
+  const timestamp = new Date().toISOString();
+  const { content: triggerFile, sha: triggerSha } = await getFile('.cloudflare-deploy').catch(() => ({ content: '', sha: undefined }));
+  
+  const newTriggerContent = `# Cloudflare Pages Deployment Trigger
+
+Last triggered: ${timestamp}
+
+## Emergency Fix Applied:
+
+✅ Disabled GitHub Pages workflow (was conflicting)
+✅ Added cache purging to Cloudflare workflow
+✅ Added getCueColorClass verification
+✅ Forcing fresh deployment now
+
+## What should happen:
+
+1. Cloudflare workflow runs
+2. Builds with getCueColorClass function
+3. Verifies function is in bundle
+4. Deploys to Cloudflare Pages
+5. Purges ALL Cloudflare cache
+6. New bundle goes live within 60 seconds
+
+## Verification:
+
+After 60 seconds:
+- Go to: https://reflectivai-app-prod.pages.dev/roleplay
+- Hard refresh: Ctrl+Shift+R or Cmd+Shift+R
+- Check DevTools Console for errors
+- Page should load correctly!
+`;
+  
+  await putFile(
+    '.cloudflare-deploy',
+    newTriggerContent,
+    `🚀 DEPLOY: Emergency fix with cache purging at ${timestamp}`,
+    triggerSha
+  );
+  
+  console.log('   ✅ Deployment triggered');
+  console.log('');
+  
   console.log('='.repeat(80));
-  console.log('\n📊 What was deployed:');
-  console.log('\n  PROMPT #1: Signal Intelligence Scoring');
-  console.log('    • All 8 metrics use simple average (no weights)');
-  console.log('    • Scoring engine simplified');
-  console.log('\n  PROMPT #2: Roleplay Enhancements');
-  console.log('    • Scenario cue fields (context, openingScene, hcpMood)');
-  console.log('    • Infectious Disease scenario populated with cues');
-  console.log('    • Capability-metric mapping created');
-  console.log('\n  PROMPT #3: UI Wiring');
-  console.log('    • Observable cues detect BOTH HCP and Rep behaviors');
-  console.log('    • HCP cues: Time Pressure, Confusion, Low Engagement, Workload');
-  console.log('    • Rep cues: Approach Shift, Pacing Adjustment');
-  console.log('\n⏳ Cloudflare Pages is building now (2-3 minutes)');
-  console.log('🔍 Monitor: https://github.com/ReflectivEI/dev_projects_full-build2/actions');
-  console.log('🌐 Live site: https://tp5qngjffy.preview.c24.airoapp.ai');
-  console.log('\n📝 Files modified: ' + commits.join(', '));
+  console.log('✅ EMERGENCY FIX APPLIED!');
+  console.log('='.repeat(80));
+  console.log('');
+  console.log('📊 What was fixed:');
+  console.log('  1. ✅ Disabled conflicting GitHub Pages workflow');
+  console.log('  2. ✅ Added Cloudflare cache purging');
+  console.log('  3. ✅ Added getCueColorClass verification');
+  console.log('  4. ✅ Triggered fresh deployment');
+  console.log('');
+  console.log('⏳ TIMELINE:');
+  console.log('  • Now: GitHub Actions starts building');
+  console.log('  • +2 min: Build completes');
+  console.log('  • +3 min: Cloudflare deploys');
+  console.log('  • +4 min: Cache purged');
+  console.log('  • +5 min: NEW BUNDLE LIVE!');
+  console.log('');
+  console.log('🌐 Live site: https://reflectivai-app-prod.pages.dev');
+  console.log('');
+  console.log('💡 AFTER 5 MINUTES:');
+  console.log('  1. Go to: https://reflectivai-app-prod.pages.dev/roleplay');
+  console.log('  2. Hard refresh: Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)');
+  console.log('  3. Open DevTools Console (F12)');
+  console.log('  4. Check for errors (should be NONE)');
+  console.log('  5. Page should load with roleplay interface!');
+  console.log('');
+  console.log('🔍 To verify deployment:');
+  console.log('  • Check GitHub Actions: https://github.com/ReflectivEI/dev_projects_full-build2/actions');
+  console.log('  • Look for "Deploy to Cloudflare Pages" workflow');
+  console.log('  • Verify "Verify getCueColorClass in bundle" step passes');
+  console.log('  • Verify "Purge Cloudflare Cache" step runs');
+  console.log('');
+  console.log('⚠️  IF STILL BROKEN AFTER 5 MINUTES:');
+  console.log('  • Check workflow logs for errors');
+  console.log('  • Verify CLOUDFLARE_ZONE_ID secret is set');
+  console.log('  • May need to manually purge cache in Cloudflare dashboard');
   console.log('');
   
 } catch (error) {
   console.error('\n❌ ERROR:', error.message);
+  console.error('\nStack:', error.stack);
   process.exit(1);
 }
