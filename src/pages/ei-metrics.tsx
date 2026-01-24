@@ -26,6 +26,7 @@ import {
   type EQMetric 
 } from "@/lib/data";
 import { getAllImprovementTipsForMetric } from "@/lib/metric-improvement-guidance";
+import { COACHING_INSIGHTS } from "@/lib/signal-intelligence/capability-metric-map";
 import type { BehavioralMetricId } from "@/lib/signal-intelligence/metrics-spec";
 
 interface MetricWithScore extends EQMetric {
@@ -83,7 +84,8 @@ function MetricDetailDialog({
 }) {
   if (!metric) return null;
 
-  const improvementTips = getAllImprovementTipsForMetric(metric.id as BehavioralMetricId);
+  // Use COACHING_INSIGHTS from capability-metric-map (MAJOR AIRO PROMPT #2)
+  const improvementTips = COACHING_INSIGHTS[metric.id] || getAllImprovementTipsForMetric(metric.id as BehavioralMetricId);
   const Icon = metricIcons[metric.id] || MessageSquare;
 
   return (
