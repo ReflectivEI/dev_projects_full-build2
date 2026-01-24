@@ -54,7 +54,7 @@ export function detectObservableCues(
 ): ObservableCue[] {
   const cues: ObservableCue[] = [];
   const lower = content.toLowerCase();
-  const wordCount = content.split(/\s+/).length;
+  const wordCount = content.split(/s+/).length;
 
   // ========================================================================
   // SALES REP CUES (role === "user")
