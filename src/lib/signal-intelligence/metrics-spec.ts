@@ -39,7 +39,7 @@ export const METRICS_SPEC: MetricSpec[] = [
     id: 'question_quality',
     metric: 'Question Quality',
     optional: false,
-    score_formula: 'weighted_average',
+    score_formula: 'average',
     components: [
       {
         name: 'open_closed_ratio',
@@ -132,7 +132,7 @@ export const METRICS_SPEC: MetricSpec[] = [
     id: 'making_it_matter',
     metric: 'Making It Matter',
     optional: false,
-    score_formula: 'weighted_average',
+    score_formula: 'average',
     components: [
       {
         name: 'outcome_based_language',
@@ -173,7 +173,7 @@ export const METRICS_SPEC: MetricSpec[] = [
     id: 'customer_engagement_signals',
     metric: 'Customer Engagement Signals',
     optional: false,
-    score_formula: 'weighted_average',
+    score_formula: 'average',
     components: [
       {
         name: 'customer_talk_time',
@@ -266,7 +266,7 @@ export const METRICS_SPEC: MetricSpec[] = [
     id: 'conversation_control_structure',
     metric: 'Conversation Control & Structure',
     optional: false,
-    score_formula: 'weighted_average',
+    score_formula: 'average',
     components: [
       {
         name: 'purpose_setting',
@@ -318,7 +318,7 @@ export const METRICS_SPEC: MetricSpec[] = [
     id: 'commitment_gaining',
     metric: 'Commitment Gaining',
     optional: false,
-    score_formula: 'weighted_average',
+    score_formula: 'average',
     components: [
       {
         name: 'next_step_specificity',
