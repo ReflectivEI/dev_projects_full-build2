@@ -324,3 +324,5 @@ Built with amazing open-source tools:
 <!-- DEPLOY: Coaching insights wired - 2026-01-24T07:52:54.729Z -->
 
 <!-- CRITICAL FIX: Cue detection corrected - 2026-01-24T08:31:57.077Z -->
+
+<!-- EMERGENCY FIX: Regex corrected - 2026-01-24T08:47:58.560Z -->
