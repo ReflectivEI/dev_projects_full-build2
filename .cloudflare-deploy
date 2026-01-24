@@ -1,0 +1,19 @@
+# Cloudflare Pages Deployment Trigger
+
+Last triggered: 2026-01-24T09:44:05.061Z
+
+This file exists solely to trigger Cloudflare Pages webhook deployments.
+Cloudflare watches the repo and deploys when it sees changes.
+
+## Why this is needed:
+
+- GitHub Actions builds successfully
+- But Cloudflare webhook doesn't always trigger
+- Modifying this file forces Cloudflare to detect changes
+- Cloudflare then pulls latest code and deploys
+
+## Current deployment:
+
+- Commit: b49d997
+- Contains: getCueColorClass function
+- Should fix: Blank screen on roleplay page
