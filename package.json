@@ -26,9 +26,9 @@
   "dependencies": {
     "@babel/core": "^7.26.4",
     "@babel/types": "^7.26.3",
-    "@heroicons/react": "^2.2.0",
     "@godaddy/localizations": "^1",
     "@godaddy/react": "^1",
+    "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -65,6 +65,7 @@
     "dotenv-local": "^1.0.2",
     "drizzle-orm": "^0.44.7",
     "embla-carousel-react": "^8.6.0",
+    "framer-motion": "^12.29.0",
     "html-to-image": "^1.11.11",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.454.0",
