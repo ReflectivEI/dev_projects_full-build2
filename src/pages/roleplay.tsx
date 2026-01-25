@@ -28,10 +28,10 @@ import {
 } from "@/lib/data";
 import { SignalIntelligencePanel, type SignalIntelligenceCapability } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
-import type { Scenario } from "@/types/schema";
+import type { Scenario } from "@shared/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
-import { detectObservableCues, type ObservableCue, detectRepMetrics, type RepMetricCue } from "@/lib/observable-cues";
-import { CueBadgeGroup, RepMetricBadgeGroup } from "@/components/CueBadge";
+import { detectObservableCues, type ObservableCue } from "@/lib/observable-cues";
+import { CueBadgeGroup } from "@/components/CueBadge";
 import { Eye, EyeOff } from "lucide-react";
 
 /* -----------------------------
@@ -448,11 +448,11 @@ export default function RolePlayPage() {
         console.log('[SCORE_STORAGE] Verification - parsed scores:', parsed.scores);
       }
 
-      // PROMPT #24: Collect all detected cues from HCP (assistant) messages only
+      // PROMPT #24: Collect all detected cues from fresh messages
       const allCues: ObservableCue[] = [];
       finalMessages.forEach(msg => {
-        if (msg.role === 'assistant') {  // HCP messages only, not Sales Rep
-          const cues = detectObservableCues(msg.content);
+        if (msg.role === 'user') {
+          const cues = detectObservableCues(msg.content, msg.role);
           allCues.push(...cues);
         }
       });
@@ -606,18 +606,6 @@ export default function RolePlayPage() {
                       <p className="text-xs font-semibold text-muted-foreground mb-1">Stakeholder</p>
                       <p className="text-sm">{scenario.stakeholder}</p>
                     </div>
-                    {scenario.hcpMood && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">HCP Mood</p>
-                        <p className="text-sm italic text-muted-foreground">{scenario.hcpMood}</p>
-                      </div>
-                    )}
-                    {scenario.openingScene && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-1">Opening Scene</p>
-                        <p className="text-sm line-clamp-3 italic">{scenario.openingScene}</p>
-                      </div>
-                    )}
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-1">Objective</p>
                       <p className="text-sm line-clamp-2">{scenario.objective}</p>
@@ -660,14 +648,8 @@ export default function RolePlayPage() {
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
-                {messages.map((m, idx) => {
-                  // Detect HCP cues for assistant messages
-                  const cues = showCues && m.role === 'assistant' ? detectObservableCues(m.content) : [];
-                  
-                  // Detect Rep metrics for user messages
-                  const previousHcpMessage = idx > 0 && messages[idx - 1].role === 'assistant' ? messages[idx - 1].content : undefined;
-                  const repMetrics = showCues && m.role === 'user' ? detectRepMetrics(m.content, previousHcpMessage) : [];
-                  
+                {messages.map((m) => {
+                  const cues = showCues ? detectObservableCues(m.content, m.role) : [];
                   return (
                     <div
                       key={m.id}
@@ -693,10 +675,7 @@ export default function RolePlayPage() {
                           <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                         </div>
                         {cues.length > 0 && (
-                          <CueBadgeGroup cues={cues} />
-                        )}
-                        {repMetrics.length > 0 && (
-                          <RepMetricBadgeGroup metrics={repMetrics} />
+                          <CueBadgeGroup cues={cues} maxVisible={3} size="sm" />
                         )}
                       </div>
                     </div>
