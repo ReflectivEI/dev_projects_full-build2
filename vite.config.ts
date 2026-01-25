@@ -12,13 +12,29 @@ function copyRedirectsPlugin(): Plugin {
 	return {
 		name: 'copy-redirects',
 		closeBundle() {
+			console.log('[copy-redirects] Running...');
 			const source = path.resolve(__dirname, 'public/_redirects');
 			const dest = path.resolve(__dirname, 'dist/_redirects');
+			console.log('[copy-redirects] Source:', source);
+			console.log('[copy-redirects] Dest:', dest);
+			console.log('[copy-redirects] Source exists?', fs.existsSync(source));
+			
 			if (fs.existsSync(source)) {
 				fs.copyFileSync(source, dest);
-				console.log('✅ Copied _redirects to dist/');
+				console.log('✅ [copy-redirects] Copied _redirects to dist/');
+				console.log('[copy-redirects] Dest exists?', fs.existsSync(dest));
+				if (fs.existsSync(dest)) {
+					const content = fs.readFileSync(dest, 'utf-8');
+					console.log('[copy-redirects] Content:', content);
+				}
 			} else {
-				console.warn('⚠️  _redirects not found in public/');
+				console.warn('⚠️  [copy-redirects] _redirects not found in public/');
+				console.log('[copy-redirects] Listing public/ directory:');
+				const publicDir = path.resolve(__dirname, 'public');
+				if (fs.existsSync(publicDir)) {
+					const files = fs.readdirSync(publicDir);
+					console.log('[copy-redirects] Files:', files.join(', '));
+				}
 			}
 		},
 	};
@@ -43,6 +59,7 @@ if (allowedHosts.length === 0) {
 }
 
 export default defineConfig(({ mode }) => ({
+	publicDir: 'public',
 	plugins: [
 		react({
 			babel: {
