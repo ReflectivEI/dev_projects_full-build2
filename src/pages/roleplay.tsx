@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Users, Play, Send, RotateCcw } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/api-client";
+import { apiRequest } from "@/lib/queryClient";
 import {
   scenarios,
   diseaseStates,
