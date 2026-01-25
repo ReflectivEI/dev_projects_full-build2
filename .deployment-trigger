@@ -1,12 +1,7 @@
-CANONICAL BEHAVIORAL METRICS - FINAL DEPLOYMENT
+# Deployment Trigger
 
-Timestamp: 2026-01-23 09:45 UTC
+Last deployed: 2026-01-25T04:24:25.570Z
 
-Changes:
-1. ✅ Canonical 8 behavioral metric definitions (data.ts)
-2. ✅ Null-only scoring enforcement (roleplay-feedback-dialog.tsx)
-3. ✅ Behavioral Metrics page content updated (ei-metrics.tsx)
-4. ✅ Corrected conceptual model (Behavioral Metrics = foundation, Signal Intelligence = derived)
-
-All changes synced to client/ directory.
-Ready for deployment to main branch.
+## Purpose
+This file is updated to trigger Cloudflare Pages deployment.
+Ensures _redirects file is properly copied to dist/.
