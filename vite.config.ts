@@ -1,10 +1,28 @@
 import { defineConfig, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import fs from "fs";
 import sourceMapperPlugin from "./source-mapper/src/index";
 import { devToolsPlugin } from "./dev-tools/src/vite-plugin";
 import { fullStoryPlugin } from "./fullstory-plugin";
 import apiRoutes from "vite-plugin-api-routes";
+
+// Plugin to ensure _redirects is copied to dist
+function copyRedirectsPlugin(): Plugin {
+	return {
+		name: 'copy-redirects',
+		closeBundle() {
+			const source = path.resolve(__dirname, 'public/_redirects');
+			const dest = path.resolve(__dirname, 'dist/_redirects');
+			if (fs.existsSync(source)) {
+				fs.copyFileSync(source, dest);
+				console.log('✅ Copied _redirects to dist/');
+			} else {
+				console.warn('⚠️  _redirects not found in public/');
+			}
+		},
+	};
+}
 
 const allowedHosts: string[] = [];
 if (process.env.FRONTEND_DOMAIN) {
@@ -40,6 +58,7 @@ export default defineConfig(({ mode }) => ({
 		...(mode === "development"
 			? [devToolsPlugin() as Plugin, fullStoryPlugin()]
 			: []),
+		copyRedirectsPlugin(),
 	],
 
 	resolve: {
