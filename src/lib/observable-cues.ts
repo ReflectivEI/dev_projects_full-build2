@@ -11,6 +11,9 @@ export interface BehavioralCue {
   category: 'engagement' | 'resistance' | 'interest' | 'stress';
 }
 
+// Type alias for compatibility
+export type ObservableCue = BehavioralCue;
+
 export const HCP_CUES: Record<string, BehavioralCue> = {
   TIME_PRESSURE: {
     id: 'time-pressure',
@@ -103,13 +106,16 @@ export function detectObservableCues(message: string): BehavioralCue[] {
     detected.push(HCP_CUES.TIME_PRESSURE);
   }
 
-  // Low Engagement patterns
-  if (
-    message.split(' ').length < 10 ||
+  // Low Engagement patterns - only trigger on very short responses with specific keywords
+  const wordCount = message.trim().split(/\s+/).length;
+  const hasLowEngagementKeywords = 
     lowerMessage.includes('okay') ||
     lowerMessage.includes('fine') ||
-    lowerMessage.includes('sure')
-  ) {
+    lowerMessage.includes('sure') ||
+    lowerMessage.includes('whatever');
+  
+  // Only flag if BOTH conditions are met: very short AND has disengaged keywords
+  if (wordCount < 5 && hasLowEngagementKeywords) {
     detected.push(HCP_CUES.LOW_ENGAGEMENT);
   }
 

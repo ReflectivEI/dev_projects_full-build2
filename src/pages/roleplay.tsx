@@ -448,11 +448,11 @@ export default function RolePlayPage() {
         console.log('[SCORE_STORAGE] Verification - parsed scores:', parsed.scores);
       }
 
-      // PROMPT #24: Collect all detected cues from fresh messages
+      // PROMPT #24: Collect all detected cues from HCP (assistant) messages only
       const allCues: ObservableCue[] = [];
       finalMessages.forEach(msg => {
-        if (msg.role === 'user') {
-          const cues = detectObservableCues(msg.content, msg.role);
+        if (msg.role === 'assistant') {  // HCP messages only, not Sales Rep
+          const cues = detectObservableCues(msg.content);
           allCues.push(...cues);
         }
       });
@@ -649,7 +649,8 @@ export default function RolePlayPage() {
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
                 {messages.map((m) => {
-                  const cues = showCues ? detectObservableCues(m.content, m.role) : [];
+                  // Only detect cues for HCP (assistant) messages, not Sales Rep (user) messages
+                  const cues = showCues && m.role === 'assistant' ? detectObservableCues(m.content) : [];
                   return (
                     <div
                       key={m.id}
@@ -675,7 +676,7 @@ export default function RolePlayPage() {
                           <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                         </div>
                         {cues.length > 0 && (
-                          <CueBadgeGroup cues={cues} maxVisible={3} size="sm" />
+                          <CueBadgeGroup cues={cues} />
                         )}
                       </div>
                     </div>
