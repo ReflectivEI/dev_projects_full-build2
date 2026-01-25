@@ -9,11 +9,14 @@ export async function onRequest(context) {
   }
   
   // For all other routes, serve index.html (SPA routing)
-  const response = await env.ASSETS.fetch(new URL('/index.html', request.url));
+  const indexUrl = new URL('/index.html', request.url);
+  const response = await env.ASSETS.fetch(indexUrl);
+  
   return new Response(response.body, {
-    ...response,
+    status: response.status,
+    statusText: response.statusText,
     headers: {
-      ...response.headers,
+      ...Object.fromEntries(response.headers),
       'Content-Type': 'text/html;charset=UTF-8',
     },
   });
