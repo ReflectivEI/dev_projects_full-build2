@@ -242,18 +242,28 @@ export default function RolePlayPage() {
     return scenarios.filter((s) => cats.includes(s.category));
   })();
 
-  const { data: roleplayData } = useQuery<SessionPayload>({
+  const { data: roleplayData, error: roleplayError, isLoading: roleplayLoading } = useQuery<SessionPayload>({
     queryKey: ["/api/roleplay/session"],
     queryFn: async () => {
-      const res = await apiRequest("GET", "/api/roleplay/session");
-      const json = await res.json();
-      return {
-        session: json?.session ?? null,
-        messages: mapWorkerMessages(json?.session?.messages),
-        signals: extractSignals(json),
-      };
+      try {
+        const res = await apiRequest("GET", "/api/roleplay/session");
+        if (!res.ok) {
+          console.warn('[Roleplay] Session API returned', res.status);
+          return { session: null, messages: [], signals: [] };
+        }
+        const json = await res.json();
+        return {
+          session: json?.session ?? null,
+          messages: mapWorkerMessages(json?.session?.messages),
+          signals: extractSignals(json),
+        };
+      } catch (error) {
+        console.error('[Roleplay] Failed to fetch session:', error);
+        return { session: null, messages: [], signals: [] };
+      }
     },
     staleTime: 5000,
+    retry: false,
   });
 
   const messages = roleplayData?.messages ?? [];
@@ -504,6 +514,23 @@ export default function RolePlayPage() {
      Render
   ------------------------------ */
 
+  // Show loading state
+  if (roleplayLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading roleplay simulator...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state with fallback
+  if (roleplayError) {
+    console.error('[Roleplay] Query error:', roleplayError);
+  }
+
   return (
     <div className="h-screen flex flex-col">
       <div className="p-6 border-b flex items-center justify-between flex-shrink-0">
@@ -586,7 +613,7 @@ export default function RolePlayPage() {
 
             {/* Scenario Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredScenarios.map((scenario) => (
+              {Array.isArray(filteredScenarios) && filteredScenarios.map((scenario) => (
                 <Card key={scenario.id} className="flex flex-col">
                   <CardHeader>
                     <div className="flex items-start justify-between gap-2 mb-2">
