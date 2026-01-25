@@ -290,6 +290,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Dr. Maya Patel - Internal Medicine MD, Urban Clinic",
     objective: "Create urgency around PrEP gaps; commit to proactive Descovy prescribing where appropriate and standardize quarterly follow-ups",
     context: "This time-pressed IM physician has inconsistent quarterly labs and follow-ups. STI testing volume suggests missed PrEP opportunities. Clinic believes few true PrEP candidates exist despite evidence to the contrary.",
+    openingScene: "Dr. Patel glances at her watch as you enter. She's between patients, typing notes rapidly. 'I have about 10 minutes,' she says without looking up. 'What's this about?'",
+    hcpMood: "time-pressured, skeptical",
     challenges: [
       "Belief that few patients are true PrEP candidates",
       "Renal safety and monitoring workload concerns",
@@ -323,6 +325,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Sarah Thompson, NP - HIV Specialty Clinic",
     objective: "Broaden appropriate Descovy use via predictable PA batching and support roles; revisit generic TDF users with unrestricted coverage",
     context: "High-performing NP with excellent Descovy adoption. However, prior-auth burden and limited staffing cap patient throughput. Workflow friction limits breadth of appropriate prescribing.",
+    openingScene: "Sarah looks up from a stack of prior-auth forms with a tired smile. 'I love Descovy for my patients, but honestly, the paperwork is killing us. We're drowning in PAs.'",
+    hcpMood: "frustrated, overwhelmed",
     challenges: [
       "Prior-auth processing burden",
       "Limited staffing resources",
@@ -356,6 +360,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Michael Chen, PA-C - Academic HIV Center",
     objective: "Reinforce durability and convenience benefits; define clear switch criteria and implement quarterly optimization review",
     context: "Hospital-affiliated ID clinic where prior switch velocity fell to 1-2 patients in 13 weeks. Strong perception that most patients are already optimized on current regimens.",
+    openingScene: "Michael leans back in his chair, arms crossed but with an open expression. 'I'm always interested in better outcomes for my patients. What data do you have on long-term durability?'",
+    hcpMood: "curious, data-driven",
     challenges: [
       "Reluctance to switch stable, suppressed patients",
       "Perception of complete optimization",

@@ -606,6 +606,18 @@ export default function RolePlayPage() {
                       <p className="text-xs font-semibold text-muted-foreground mb-1">Stakeholder</p>
                       <p className="text-sm">{scenario.stakeholder}</p>
                     </div>
+                    {scenario.hcpMood && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">HCP Mood</p>
+                        <p className="text-sm italic text-muted-foreground">{scenario.hcpMood}</p>
+                      </div>
+                    )}
+                    {scenario.openingScene && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Opening Scene</p>
+                        <p className="text-sm line-clamp-3 italic">{scenario.openingScene}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground mb-1">Objective</p>
                       <p className="text-sm line-clamp-2">{scenario.objective}</p>

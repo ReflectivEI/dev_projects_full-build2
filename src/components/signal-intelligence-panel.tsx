@@ -22,6 +22,19 @@ import { getCuesForMetric } from "@/lib/observable-cue-to-metric-map";
 import type { ObservableCue } from "@/lib/observable-cues";
 import { BEHAVIORAL_METRIC_IDS } from "@/lib/signal-intelligence/metrics-spec";
 import { CueBadge } from "@/components/CueBadge";
+import { behavioralMetrics } from "@/lib/data";
+
+// Capability to Metric Mapping
+const METRIC_TO_CAPABILITY: Record<string, string> = {
+  'question_quality': 'Signal Awareness',
+  'listening_responsiveness': 'Signal Awareness',
+  'making_it_matter': 'Value Communication',
+  'customer_engagement_signals': 'Engagement Detection',
+  'objection_navigation': 'Objection Handling',
+  'conversation_control_structure': 'Conversation Management',
+  'commitment_gaining': 'Action Orientation',
+  'adaptability': 'Adaptive Response',
+};
 
 export type SignalIntelligenceCapability = {
   id?: string;
@@ -199,10 +212,22 @@ export function SignalIntelligencePanel({
               );
               const hasEvidence = relevantCues.length > 0;
 
+              const capabilityLabel = METRIC_TO_CAPABILITY[metricId];
+              
               return (
-                <div key={metricId} className="flex items-center justify-between text-xs group">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground">{m?.metric || metricName}</span>
+                <div 
+                  key={metricId} 
+                  id={`metric-${metricId}`}
+                  className="flex items-center justify-between text-xs group scroll-mt-4"
+                >
+                  <div className="flex flex-col gap-0.5 flex-1">
+                    {capabilityLabel && (
+                      <span className="text-[10px] uppercase tracking-wide text-muted-foreground/60 font-medium">
+                        {capabilityLabel}
+                      </span>
+                    )}
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">{m?.metric || metricName}</span>
                     {hasEvidence && (
                       <Sheet>
                         <SheetTrigger asChild>
@@ -217,31 +242,57 @@ export function SignalIntelligencePanel({
                               Observable cues detected during the role play that relate to this metric.
                             </SheetDescription>
                           </SheetHeader>
-                          <div className="mt-6 space-y-4">
-                            {relevantCues.map((cue, idx) => {
-                              const mapping = relevantMappings.find(m => m.cueType === cue.type);
-                              return (
-                                <div key={idx} className="space-y-2 p-3 border rounded-lg">
-                                  <CueBadge cue={cue} size="sm" />
-                                  {mapping && (
-                                    <div className="space-y-1">
-                                      {mapping.component && (
-                                        <p className="text-xs font-medium text-muted-foreground">
-                                          Component: {mapping.component}
+                          <div className="mt-6 space-y-6">
+                            {/* Observable Cues */}
+                            <div className="space-y-4">
+                              <h4 className="text-sm font-semibold">Observable Cues</h4>
+                              {relevantCues.map((cue, idx) => {
+                                const mapping = relevantMappings.find(m => m.cueType === cue.type);
+                                return (
+                                  <div key={idx} className="space-y-2 p-3 border rounded-lg">
+                                    <CueBadge cue={cue} size="sm" />
+                                    {mapping && (
+                                      <div className="space-y-1">
+                                        {mapping.component && (
+                                          <p className="text-xs font-medium text-muted-foreground">
+                                            Component: {mapping.component}
+                                          </p>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">
+                                          {mapping.explanation}
                                         </p>
-                                      )}
-                                      <p className="text-xs text-muted-foreground">
-                                        {mapping.explanation}
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            {/* Coaching Insights */}
+                            {(() => {
+                              const metricData = behavioralMetrics.find(bm => bm.id === metricId);
+                              if (metricData?.coachingInsight && metricData.coachingInsight.length > 0) {
+                                return (
+                                  <div className="space-y-2 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <h4 className="text-sm font-semibold text-blue-900">Coaching Insights</h4>
+                                    <ul className="space-y-1.5">
+                                      {metricData.coachingInsight.map((insight, idx) => (
+                                        <li key={idx} className="text-xs text-blue-800 flex items-start gap-2">
+                                          <span className="text-blue-600 mt-0.5">•</span>
+                                          <span>{insight}</span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
                           </div>
                         </SheetContent>
                       </Sheet>
                     )}
+                    </div>
                   </div>
                   <span className="font-medium">
                     {isNotApplicable ? 'N/A' : (typeof score === 'number' ? score.toFixed(1) : '—')}
