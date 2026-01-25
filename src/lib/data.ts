@@ -1,4 +1,19 @@
-import type { CoachingModule, EQFramework, Scenario, HeuristicTemplate, KnowledgeArticle } from "@shared/schema";
+import type { CoachingModule, EQFramework, Scenario } from "@/types/schema";
+
+// Temporary type definitions for missing types
+interface HeuristicTemplate {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+}
+
+interface KnowledgeArticle {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+}
 
 // =============================================================================
 // LAYER 2 — Behavioral Communication Models (Supporting Insight Layer)
