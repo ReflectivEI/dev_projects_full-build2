@@ -1,140 +1,58 @@
-/**
- * CueBadge Component
- * 
- * Visual indicator for observable communication cues in roleplay messages.
- * Read-only display component with no scoring or persistence logic.
- */
-
-import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { 
-  MessageSquare, 
-  Heart, 
-  Target, 
-  Shield, 
-  Ear, 
-  HelpCircle, 
-  Users, 
-  BarChart3, 
-  Sparkles,
-  CheckCircle2
-} from "lucide-react";
-import type { ObservableCue, CueType } from "@/lib/observable-cues";
-import { getCueColorClass } from "@/lib/observable-cues";
-import { cn } from "@/lib/utils";
-import { getMetricsForCue } from "@/lib/observable-cue-to-metric-map";
+import { Badge } from '@/components/ui/badge';
+import { BehavioralCue } from '@/lib/observable-cues';
+import { Clock, AlertCircle, TrendingDown, Shield, Eye, HelpCircle, Zap, Volume2, UserX } from 'lucide-react';
 
 interface CueBadgeProps {
-  cue: ObservableCue;
-  size?: 'sm' | 'md';
-  showIcon?: boolean;
+  cue: BehavioralCue;
 }
 
-const cueIcons: Record<CueType, React.ComponentType<{ className?: string }>> = {
-  'question': MessageSquare,
-  'empathy': Heart,
-  'value-statement': Target,
-  'objection-handling': Shield,
-  'active-listening': Ear,
-  'clarification': HelpCircle,
-  'rapport-building': Users,
-  'data-reference': BarChart3,
-  'benefit-focus': Sparkles,
-  'open-ended': CheckCircle2,
+const CUE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'time-pressure': Clock,
+  'low-engagement': TrendingDown,
+  'frustration': AlertCircle,
+  'defensive': Shield,
+  'distracted': Eye,
+  'hesitant': HelpCircle,
+  'uncomfortable': HelpCircle,
+  'impatient': Zap,
+  'disinterested': Volume2,
+  'withdrawn': UserX,
 };
 
-const cueDescriptions: Record<CueType, string> = {
-  'question': 'Asking questions to gather information and engage the customer',
-  'empathy': 'Demonstrating understanding and emotional awareness',
-  'value-statement': 'Articulating clear value propositions',
-  'objection-handling': 'Addressing concerns and overcoming objections',
-  'active-listening': 'Reflecting back what the customer has shared',
-  'clarification': 'Seeking to understand more deeply',
-  'rapport-building': 'Building trust and connection',
-  'data-reference': 'Supporting statements with evidence and data',
-  'benefit-focus': 'Emphasizing outcomes and benefits',
-  'open-ended': 'Using open-ended questions to encourage dialogue',
+const CUE_COLORS: Record<string, string> = {
+  low: 'bg-blue-100 text-blue-800 border-blue-300',
+  medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  high: 'bg-red-100 text-red-800 border-red-300',
 };
 
-export function CueBadge({ cue, size = 'sm', showIcon = true }: CueBadgeProps) {
-  const Icon = cueIcons[cue.type];
-  const colorClass = getCueColorClass(cue.variant);
-  const description = cueDescriptions[cue.type];
-  
+export function CueBadge({ cue }: CueBadgeProps) {
+  const Icon = CUE_ICONS[cue.id] || AlertCircle;
+  const colorClass = CUE_COLORS[cue.severity];
+
   return (
-    <TooltipProvider delayDuration={200}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge 
-            variant="outline" 
-            className={cn(
-              "gap-1 cursor-help transition-all hover:scale-105",
-              colorClass,
-              size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-sm px-3 py-1'
-            )}
-          >
-            {showIcon && <Icon className={size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'} />}
-            <span>{cue.label}</span>
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs">
-          <p className="font-medium mb-1">{cue.label}</p>
-          <p className="text-xs text-muted-foreground">{description}</p>
-          {(() => {
-            const mappings = getMetricsForCue(cue.type);
-            if (mappings.length > 0) {
-              const metricNames = [...new Set(mappings.map(m => {
-                // Convert metric ID to readable name
-                return m.metricId
-                  .split('_')
-                  .map(w => w.charAt(0).toUpperCase() + w.slice(1))
-                  .join(' ');
-              }))].slice(0, 3);
-              return (
-                <p className="text-xs text-primary mt-2 font-medium">
-                  Impacts: {metricNames.join(', ')}
-                </p>
-              );
-            }
-            return null;
-          })()}
-          <p className="text-xs text-muted-foreground mt-1">
-            Confidence: <span className="capitalize">{cue.confidence}</span>
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Badge
+      variant="outline"
+      className={`${colorClass} flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium`}
+      title={cue.description}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {cue.label}
+    </Badge>
   );
 }
 
 interface CueBadgeGroupProps {
-  cues: ObservableCue[];
-  maxVisible?: number;
-  size?: 'sm' | 'md';
+  cues: BehavioralCue[];
 }
 
-export function CueBadgeGroup({ cues, maxVisible = 3, size = 'sm' }: CueBadgeGroupProps) {
+export function CueBadgeGroup({ cues }: CueBadgeGroupProps) {
   if (cues.length === 0) return null;
-  
-  const visibleCues = cues.slice(0, maxVisible);
-  const remainingCount = cues.length - maxVisible;
-  
+
   return (
-    <div className="flex flex-wrap gap-1.5 mt-2">
-      {visibleCues.map((cue, index) => (
-        <CueBadge key={`${cue.type}-${index}`} cue={cue} size={size} />
+    <div className="flex flex-wrap gap-2 mt-2">
+      {cues.map((cue) => (
+        <CueBadge key={cue.id} cue={cue} />
       ))}
-      {remainingCount > 0 && (
-        <Badge 
-          variant="outline" 
-          className={cn(
-            "text-muted-foreground bg-muted/50",
-            size === 'sm' ? 'text-xs px-2 py-0.5' : 'text-sm px-3 py-1'
-          )}
-        >
-          +{remainingCount} more
-        </Badge>
-      )}
     </div>
   );
 }
