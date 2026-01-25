@@ -1,73 +1,105 @@
-/**
- * CueBadge Component
- * Displays observable behavioral cues detected during roleplay
- */
-
-import { Badge } from "@/components/ui/badge";
-import { getCueColorClass, type ObservableCue } from "@/lib/observable-cues";
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Badge } from '@/components/ui/badge';
+import { BehavioralCue, RepMetricCue } from '@/lib/observable-cues';
+import { Clock, AlertCircle, TrendingDown, Shield, Eye, HelpCircle, Zap, Volume2, UserX, MessageSquare, Ear, Target, Users, Navigation, ListChecks, CheckCircle, Repeat } from 'lucide-react';
 
 interface CueBadgeProps {
-  cue: ObservableCue;
-  size?: "sm" | "md" | "lg";
+  cue: BehavioralCue;
 }
 
-export function CueBadge({ cue, size = "md" }: CueBadgeProps) {
-  const sizeClasses = {
-    sm: "text-xs px-2 py-0.5",
-    md: "text-sm px-2.5 py-1",
-    lg: "text-base px-3 py-1.5",
-  };
+const CUE_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'time-pressure': Clock,
+  'low-engagement': TrendingDown,
+  'frustration': AlertCircle,
+  'defensive': Shield,
+  'distracted': Eye,
+  'hesitant': HelpCircle,
+  'uncomfortable': HelpCircle,
+  'impatient': Zap,
+  'disinterested': Volume2,
+  'withdrawn': UserX,
+};
+
+const CUE_COLORS: Record<string, string> = {
+  low: 'bg-blue-100 text-blue-800 border-blue-300',
+  medium: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  high: 'bg-red-100 text-red-800 border-red-300',
+};
+
+export function CueBadge({ cue }: CueBadgeProps) {
+  const Icon = CUE_ICONS[cue.id] || AlertCircle;
+  const colorClass = CUE_COLORS[cue.severity];
 
   return (
     <Badge
       variant="outline"
-      className={`${getCueColorClass(cue.variant)} ${sizeClasses[size]} font-medium`}
+      className={`${colorClass} flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium`}
       title={cue.description}
     >
+      <Icon className="h-3.5 w-3.5" />
       {cue.label}
     </Badge>
   );
 }
 
 interface CueBadgeGroupProps {
-  cues: ObservableCue[];
-  maxVisible?: number;
-  size?: "sm" | "md" | "lg";
+  cues: BehavioralCue[];
 }
 
-export function CueBadgeGroup({ cues, maxVisible = 3, size = "md" }: CueBadgeGroupProps) {
-  const [showAll, setShowAll] = useState(false);
-
+export function CueBadgeGroup({ cues }: CueBadgeGroupProps) {
   if (cues.length === 0) return null;
 
-  const visibleCues = showAll ? cues : cues.slice(0, maxVisible);
-  const hasMore = cues.length > maxVisible;
+  return (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {cues.map((cue) => (
+        <CueBadge key={cue.id} cue={cue} />
+      ))}
+    </div>
+  );
+}
+
+// Rep Metric Badge Component
+interface RepMetricBadgeProps {
+  metric: RepMetricCue;
+}
+
+const REP_METRIC_ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  'question-quality': MessageSquare,
+  'listening-responsiveness': Ear,
+  'making-it-matter': Target,
+  'customer-engagement': Users,
+  'objection-navigation': Navigation,
+  'conversation-control': ListChecks,
+  'commitment-gaining': CheckCircle,
+  'adaptability': Repeat,
+};
+
+export function RepMetricBadge({ metric }: RepMetricBadgeProps) {
+  const Icon = REP_METRIC_ICONS[metric.id] || MessageSquare;
 
   return (
-    <div className="mt-2 flex flex-wrap gap-1.5 items-center">
-      {visibleCues.map((cue, idx) => (
-        <CueBadge key={`${cue.type}-${idx}`} cue={cue} size={size} />
+    <Badge
+      variant="outline"
+      className="bg-green-50 text-green-800 border-green-300 flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium"
+      title={metric.description}
+    >
+      <Icon className="h-3.5 w-3.5" />
+      {metric.label}
+    </Badge>
+  );
+}
+
+interface RepMetricBadgeGroupProps {
+  metrics: RepMetricCue[];
+}
+
+export function RepMetricBadgeGroup({ metrics }: RepMetricBadgeGroupProps) {
+  if (metrics.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {metrics.map((metric) => (
+        <RepMetricBadge key={metric.id} metric={metric} />
       ))}
-      {hasMore && (
-        <button
-          onClick={() => setShowAll(!showAll)}
-          className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-0.5"
-        >
-          {showAll ? (
-            <>
-              <ChevronUp className="h-3 w-3" />
-              Show less
-            </>
-          ) : (
-            <>
-              <ChevronDown className="h-3 w-3" />
-              +{cues.length - maxVisible} more
-            </>
-          )}
-        </button>
-      )}
     </div>
   );
 }
