@@ -24,73 +24,52 @@ if (allowedHosts.length === 0) {
 	allowedHosts.push("*");
 }
 
-export default defineConfig(({ mode, command }) => {
-	// For production builds, skip API routes plugin (GitHub Pages doesn't need it)
-	const isStaticBuild = command === 'build' && process.env.STATIC_BUILD === 'true';
-	
-	const plugins = [
+export default defineConfig(({ mode }) => ({
+	plugins: [
 		react({
 			babel: {
 				plugins: [sourceMapperPlugin],
 			},
 		}),
-	];
-	
-	// Only add API routes plugin if not building for static hosting
-	if (!isStaticBuild) {
-		plugins.push(
-			apiRoutes({
-				mode: "isolated",
-				configure: "src/server/configure.js",
-				dirs: [{ dir: "./src/server/api", route: "" }],
-				forceRestart: mode === "development",
-			})
-		);
-	}
-	
-	// Add dev tools only in development
-	if (mode === "development") {
-		plugins.push(devToolsPlugin() as Plugin, fullStoryPlugin());
-	}
-	
-		return {
-			plugins,
+		apiRoutes({
+			mode: "isolated",
+			configure: "src/server/configure.js",
+			dirs: [{ dir: "./src/server/api", route: "" }],
+			forceRestart: mode === "development",
+		}),
+		...(mode === "development"
+			? [devToolsPlugin() as Plugin, fullStoryPlugin()]
+			: []),
+	],
 
-			resolve: {
-				alias: {
-					nothing: "/src/fallbacks/missingModule.ts",
-					"@/api": path.resolve(__dirname, "./src/server/api"),
-					"@": path.resolve(__dirname, "./src"),
-				},
-			},
-
-			server: {
-				host: "0.0.0.0",
-				port: parseInt(process.env.PORT || "5173"),
-				strictPort: !!process.env.PORT,
-				allowedHosts,
-				cors: {
-					origin: allowedHosts,
-					credentials: true,
-					methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-					allowedHeaders: ["Content-Type", "Authorization", "Accept", "User-Agent"],
-				},
-				hmr: {
-					overlay: false,
-				},
-			},
-
-		build: {
-			rollupOptions: {
-				// No external dependencies - bundle everything
-			},
+	resolve: {
+		alias: {
+			nothing: "/src/fallbacks/missingModule.ts",
+			"@/api": path.resolve(__dirname, "./src/server/api"),
+			"@": path.resolve(__dirname, "./src"),
+			"@shared": path.resolve(__dirname, "./src/types"),
 		},
+	},
 
-		// Set base path based on deployment target
-		// GitHub Pages needs /dev_projects_full-build2/
-		// Cloudflare Pages needs /
-		base: process.env.GITHUB_PAGES === 'true' ? '/dev_projects_full-build2/' : '/',
-		};
-	});
+	server: {
+		host: "0.0.0.0",
+		port: parseInt(process.env.PORT || "5173"),
+		strictPort: !!process.env.PORT,
+		allowedHosts,
+		cors: {
+			origin: allowedHosts,
+			credentials: true,
+			methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+			allowedHeaders: ["Content-Type", "Authorization", "Accept", "User-Agent"],
+		},
+		hmr: {
+			overlay: false,
+		},
+	},
 
-// Force rebuild: 2026-01-24T09:06:30.958Z
+	build: {
+		rollupOptions: {
+			// No external dependencies - bundle everything
+		},
+	},
+}));
