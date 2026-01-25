@@ -30,8 +30,8 @@ import { SignalIntelligencePanel, type SignalIntelligenceCapability } from "@/co
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
-import { detectObservableCues, type ObservableCue } from "@/lib/observable-cues";
-import { CueBadgeGroup } from "@/components/CueBadge";
+import { detectObservableCues, type ObservableCue, detectRepMetrics, type RepMetricCue } from "@/lib/observable-cues";
+import { CueBadgeGroup, RepMetricBadgeGroup } from "@/components/CueBadge";
 import { Eye, EyeOff } from "lucide-react";
 
 /* -----------------------------
@@ -648,9 +648,14 @@ export default function RolePlayPage() {
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
-                {messages.map((m) => {
-                  // Only detect cues for HCP (assistant) messages, not Sales Rep (user) messages
+                {messages.map((m, idx) => {
+                  // Detect HCP cues for assistant messages
                   const cues = showCues && m.role === 'assistant' ? detectObservableCues(m.content) : [];
+                  
+                  // Detect Rep metrics for user messages
+                  const previousHcpMessage = idx > 0 && messages[idx - 1].role === 'assistant' ? messages[idx - 1].content : undefined;
+                  const repMetrics = showCues && m.role === 'user' ? detectRepMetrics(m.content, previousHcpMessage) : [];
+                  
                   return (
                     <div
                       key={m.id}
@@ -677,6 +682,9 @@ export default function RolePlayPage() {
                         </div>
                         {cues.length > 0 && (
                           <CueBadgeGroup cues={cues} />
+                        )}
+                        {repMetrics.length > 0 && (
+                          <RepMetricBadgeGroup metrics={repMetrics} />
                         )}
                       </div>
                     </div>

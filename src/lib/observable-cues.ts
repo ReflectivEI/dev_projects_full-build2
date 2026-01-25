@@ -201,3 +201,194 @@ export function detectObservableCues(message: string): BehavioralCue[] {
 
   return detected;
 }
+
+/**
+ * Sales Rep Behavioral Metric Detection
+ * Detects which of the 8 behavioral metrics a Sales Rep message demonstrates
+ */
+
+export interface RepMetricCue {
+  id: string;
+  label: string;
+  description: string;
+  category: 'question' | 'listening' | 'value' | 'engagement' | 'objection' | 'control' | 'commitment' | 'adaptability';
+}
+
+export const REP_METRIC_CUES: Record<string, RepMetricCue> = {
+  QUESTION_QUALITY: {
+    id: 'question-quality',
+    label: 'Question Quality',
+    description: 'Open-ended, relevant questions that uncover needs',
+    category: 'question',
+  },
+  LISTENING_RESPONSIVENESS: {
+    id: 'listening-responsiveness',
+    label: 'Listening & Responsiveness',
+    description: 'Paraphrasing, acknowledging, and adjusting based on HCP input',
+    category: 'listening',
+  },
+  MAKING_IT_MATTER: {
+    id: 'making-it-matter',
+    label: 'Making It Matter',
+    description: 'Connecting to patient outcomes and HCP priorities',
+    category: 'value',
+  },
+  CUSTOMER_ENGAGEMENT: {
+    id: 'customer-engagement',
+    label: 'Customer Engagement',
+    description: 'Encouraging dialogue and forward-looking conversation',
+    category: 'engagement',
+  },
+  OBJECTION_NAVIGATION: {
+    id: 'objection-navigation',
+    label: 'Objection Navigation',
+    description: 'Recognizing, reframing, and resolving concerns',
+    category: 'objection',
+  },
+  CONVERSATION_CONTROL: {
+    id: 'conversation-control',
+    label: 'Conversation Control',
+    description: 'Setting purpose, managing topics, respecting time',
+    category: 'control',
+  },
+  COMMITMENT_GAINING: {
+    id: 'commitment-gaining',
+    label: 'Commitment Gaining',
+    description: 'Proposing clear next steps with mutual agreement',
+    category: 'commitment',
+  },
+  ADAPTABILITY: {
+    id: 'adaptability',
+    label: 'Adaptability',
+    description: 'Adjusting approach based on HCP cues and context',
+    category: 'adaptability',
+  },
+};
+
+/**
+ * Detect which behavioral metrics a Sales Rep message demonstrates
+ * Returns 1-2 metrics typically (avoid over-detection)
+ */
+export function detectRepMetrics(message: string, previousHcpMessage?: string): RepMetricCue[] {
+  const detected: RepMetricCue[] = [];
+  const lowerMessage = message.toLowerCase();
+  const wordCount = message.trim().split(/\s+/).length;
+
+  // Question Quality - open-ended questions
+  const hasOpenQuestion = 
+    lowerMessage.includes('how') ||
+    lowerMessage.includes('what') ||
+    lowerMessage.includes('why') ||
+    lowerMessage.includes('tell me') ||
+    lowerMessage.includes('describe') ||
+    lowerMessage.includes('explain');
+  
+  const hasQuestionMark = message.includes('?');
+  
+  if (hasOpenQuestion && hasQuestionMark && wordCount > 5) {
+    detected.push(REP_METRIC_CUES.QUESTION_QUALITY);
+  }
+
+  // Listening & Responsiveness - paraphrasing, acknowledging
+  const hasListeningSignals = 
+    lowerMessage.includes('i hear') ||
+    lowerMessage.includes('i understand') ||
+    lowerMessage.includes('you mentioned') ||
+    lowerMessage.includes('you said') ||
+    lowerMessage.includes('sounds like') ||
+    lowerMessage.includes('it seems') ||
+    lowerMessage.includes('so what you') ||
+    lowerMessage.includes('let me make sure');
+  
+  if (hasListeningSignals && wordCount > 8) {
+    detected.push(REP_METRIC_CUES.LISTENING_RESPONSIVENESS);
+  }
+
+  // Making It Matter - patient outcomes, clinical impact
+  const hasValueLanguage = 
+    lowerMessage.includes('patient') ||
+    lowerMessage.includes('outcome') ||
+    lowerMessage.includes('result') ||
+    lowerMessage.includes('benefit') ||
+    lowerMessage.includes('improve') ||
+    lowerMessage.includes('help') ||
+    lowerMessage.includes('impact') ||
+    lowerMessage.includes('practice');
+  
+  if (hasValueLanguage && wordCount > 10) {
+    detected.push(REP_METRIC_CUES.MAKING_IT_MATTER);
+  }
+
+  // Objection Navigation - addressing concerns
+  const hasObjectionHandling = 
+    lowerMessage.includes('concern') ||
+    lowerMessage.includes('understand your') ||
+    lowerMessage.includes('valid point') ||
+    lowerMessage.includes('appreciate') ||
+    lowerMessage.includes('however') ||
+    lowerMessage.includes('on the other hand') ||
+    lowerMessage.includes('perspective');
+  
+  if (hasObjectionHandling && previousHcpMessage) {
+    const prevLower = previousHcpMessage.toLowerCase();
+    const hcpHadConcern = 
+      prevLower.includes('but') ||
+      prevLower.includes('concern') ||
+      prevLower.includes('worry') ||
+      prevLower.includes('not sure');
+    
+    if (hcpHadConcern) {
+      detected.push(REP_METRIC_CUES.OBJECTION_NAVIGATION);
+    }
+  }
+
+  // Conversation Control - time management, topic transitions
+  const hasControlSignals = 
+    lowerMessage.includes('let me') ||
+    lowerMessage.includes('i\'d like to') ||
+    lowerMessage.includes('to keep') ||
+    lowerMessage.includes('briefly') ||
+    lowerMessage.includes('moving to') ||
+    lowerMessage.includes('next') ||
+    lowerMessage.includes('before we');
+  
+  if (hasControlSignals && wordCount > 6) {
+    detected.push(REP_METRIC_CUES.CONVERSATION_CONTROL);
+  }
+
+  // Commitment Gaining - next steps, follow-up
+  const hasCommitmentLanguage = 
+    lowerMessage.includes('next step') ||
+    lowerMessage.includes('follow up') ||
+    lowerMessage.includes('schedule') ||
+    lowerMessage.includes('send you') ||
+    lowerMessage.includes('would you') ||
+    lowerMessage.includes('can we') ||
+    lowerMessage.includes('shall we');
+  
+  if (hasCommitmentLanguage && wordCount > 5) {
+    detected.push(REP_METRIC_CUES.COMMITMENT_GAINING);
+  }
+
+  // Adaptability - responding to HCP cues
+  if (previousHcpMessage) {
+    const prevLower = previousHcpMessage.toLowerCase();
+    const hcpShowedTimePressure = 
+      prevLower.includes('busy') ||
+      prevLower.includes('time') ||
+      prevLower.includes('quick');
+    
+    const repAdapted = 
+      lowerMessage.includes('briefly') ||
+      lowerMessage.includes('quick') ||
+      lowerMessage.includes('short') ||
+      lowerMessage.includes('respect your time');
+    
+    if (hcpShowedTimePressure && repAdapted) {
+      detected.push(REP_METRIC_CUES.ADAPTABILITY);
+    }
+  }
+
+  // Limit to top 2 metrics to avoid noise
+  return detected.slice(0, 2);
+}
