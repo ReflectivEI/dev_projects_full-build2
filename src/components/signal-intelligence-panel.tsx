@@ -243,6 +243,7 @@ export function SignalIntelligencePanel({
                             </SheetDescription>
                           </SheetHeader>
                           <div className="mt-6 space-y-6">
+                            <>
                             {/* Observable Cues */}
                             <div className="space-y-4">
                               <h4 className="text-sm font-semibold">Observable Cues</h4>
@@ -288,6 +289,7 @@ export function SignalIntelligencePanel({
                               }
                               return null;
                             })()}
+                            </>
                           </div>
                         </SheetContent>
                       </Sheet>
