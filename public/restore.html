@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Emergency Restoration</title>
+  <style>
+    body { font-family: monospace; padding: 20px; background: #000; color: #0f0; }
+    button { padding: 20px 40px; font-size: 20px; background: #f00; color: #fff; border: none; cursor: pointer; }
+    button:hover { background: #a00; }
+    #log { white-space: pre-wrap; margin-top: 20px; border: 1px solid #0f0; padding: 10px; }
+  </style>
+</head>
+<body>
+  <h1>🚑 EMERGENCY FILE RESTORATION</h1>
+  <p>This will restore missing pages from GitHub production repository.</p>
+  <button onclick="restore()">RESTORE FILES NOW</button>
+  <div id="log"></div>
+
+  <script>
+    async function restore() {
+      const log = document.getElementById('log');
+      log.textContent = '🔄 Starting restoration...\n';
+      
+      try {
+        const res = await fetch('/api/restore-from-github', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          log.textContent = data.log + '\n\n🎉 SUCCESS!\n';
+          log.textContent += `Restored ${data.restored} files:\n`;
+          data.files.forEach(f => log.textContent += `  - ${f}\n`);
+        } else {
+          log.textContent = '❌ ERROR:\n' + data.error;
+        }
+      } catch (error) {
+        log.textContent = '❌ FATAL ERROR:\n' + error.message;
+      }
+    }
+  </script>
+</body>
+</html>
