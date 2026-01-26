@@ -1,0 +1,331 @@
+import { Link } from "wouter";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  MessageSquare,
+  BookOpen,
+  Users,
+  Brain,
+  Clock,
+  Target,
+  ChevronRight,
+  Search,
+  FileText,
+  Shield,
+  CheckCircle,
+  Sparkles,
+  Lightbulb,
+  RotateCcw,
+  Download,
+} from "lucide-react";
+// Logo removed - using text/icon instead
+import { coachingModules, signalCapabilities } from "@/lib/data";
+import { useQuery } from "@tanstack/react-query";
+import { exportProgressReportPDF, generateFilename } from "@/lib/export-utils";
+import { toast } from "sonner";
+
+const moduleIcons: Record<string, any> = {
+  Search,
+  Users,
+  FileText,
+  Shield,
+  CheckCircle,
+  Brain,
+};
+
+type DashboardInsights = {
+  dailyTip: string;
+  focusArea: string;
+  suggestedExercise: { title: string; description: string };
+  motivationalQuote: string;
+};
+
+export default function Dashboard() {
+  const { data: insights, isLoading: insightsLoading, refetch: refetchInsights } = useQuery<DashboardInsights>({
+    queryKey: ["/api/dashboard/insights"],
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const handleExportReport = () => {
+    try {
+      // Get user profile
+      const profileData = localStorage.getItem('user_profile');
+      const profile = profileData ? JSON.parse(profileData) : {
+        name: 'Sales Representative',
+        email: 'rep@pharma.com',
+        specialty: 'Oncology'
+      };
+
+      // Sample metrics data (in production, fetch from actual data)
+      const metrics = [
+        { name: 'Empathy', score: 85, change: 5 },
+        { name: 'Objection Handling', score: 78, change: -2 },
+        { name: 'Clinical Knowledge', score: 92, change: 8 },
+        { name: 'Active Listening', score: 88, change: 3 },
+      ];
+
+      // Sample sessions data
+      const sessions = [
+        { date: '2026-01-20', type: 'AI Coach', duration: '25 min', score: 85 },
+        { date: '2026-01-19', type: 'Role Play', duration: '30 min', score: 82 },
+        { date: '2026-01-18', type: 'Exercise', duration: '15 min', score: 90 },
+      ];
+
+      exportProgressReportPDF(profile, metrics, sessions, generateFilename('progress-report'));
+      toast.success('Report exported successfully!');
+    } catch (error) {
+      console.error('Export failed:', error);
+      toast.error('Failed to export report');
+    }
+  };
+
+  return (
+    <div className="h-full overflow-auto">
+      <div className="p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Welcome to ReflectivAI</h1>
+            <p className="text-muted-foreground">
+              Master signal intelligence and sales excellence in Life Sciences
+            </p>
+          </div>
+          <Button onClick={handleExportReport} variant="outline" className="w-fit">
+            <Download className="h-4 w-4 mr-2" />
+            Export Report
+          </Button>
+        </div>
+
+        <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between gap-2">
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                AI Daily Insights
+              </CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => refetchInsights()}
+                data-testid="button-refresh-insights"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+            </div>
+            <CardDescription>Personalized recommendations powered by AI</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {insightsLoading ? (
+              <div className="space-y-4">
+                <Skeleton className="h-16 w-full" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Skeleton className="h-24 w-full" />
+                  <Skeleton className="h-24 w-full" />
+                </div>
+              </div>
+            ) : insights ? (
+              <div className="space-y-4">
+                <div className="p-4 bg-background rounded-lg border">
+                  <div className="flex items-start gap-3">
+                    <Lightbulb className="h-5 w-5 text-chart-2 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <h4 className="font-medium mb-1">Today's Tip</h4>
+                      <p className="text-sm text-muted-foreground">{insights.dailyTip}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 bg-background rounded-lg border">
+                    <div className="flex items-start gap-3">
+                      <Target className="h-5 w-5 text-chart-3 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">Focus Area</h4>
+                          <Badge variant="secondary" className="text-xs">{insights.focusArea}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          <strong>{insights.suggestedExercise.title}:</strong> {insights.suggestedExercise.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-background rounded-lg border">
+                    <div className="flex items-start gap-3">
+                      <MessageSquare className="h-5 w-5 text-chart-4 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h4 className="font-medium mb-1">Motivation</h4>
+                        <p className="text-sm text-muted-foreground italic">"{insights.motivationalQuote}"</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Unable to load insights. Click refresh to try again.</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2">
+            <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-4">
+              <div>
+                <CardTitle>Quick Actions</CardTitle>
+                <CardDescription>Start your coaching journey</CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Link href="/chat">
+                <Card className="hover-elevate cursor-pointer h-full">
+                  <CardContent className="p-4 flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-xl flex-shrink-0">
+                      R
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold" data-testid="link-quick-ai-coach">AI Coach</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Get personalized coaching and feedback
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/roleplay">
+                <Card className="hover-elevate cursor-pointer h-full">
+                  <CardContent className="p-4 flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-md bg-chart-2 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold" data-testid="link-quick-roleplay">Role Play Simulator</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Practice with pharma scenarios
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/exercises">
+                <Card className="hover-elevate cursor-pointer h-full">
+                  <CardContent className="p-4 flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-md bg-chart-3 flex items-center justify-center flex-shrink-0">
+                      <Target className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold" data-testid="link-quick-exercises">Exercises</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Build skills through hands-on practice
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </CardContent>
+                </Card>
+              </Link>
+              <Link href="/modules">
+                <Card className="hover-elevate cursor-pointer h-full">
+                  <CardContent className="p-4 flex items-start gap-4">
+                    <div className="h-12 w-12 rounded-md bg-chart-4 flex items-center justify-center flex-shrink-0">
+                      <BookOpen className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold" data-testid="link-quick-modules">Coaching Modules</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Structured learning curriculum
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </CardContent>
+                </Card>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2">
+                <Brain className="h-5 w-5 text-primary" />
+                Signal Intelligence Capabilities
+              </CardTitle>
+              <CardDescription>8 core capabilities for sales excellence</CardDescription>
+              <p className="text-xs text-muted-foreground mt-2">
+                Insights are based on observable interaction patterns. AI supports interpretation; humans decide responses.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {signalCapabilities.map((capability) => (
+                <Link href="/ei-metrics" key={capability.id}>
+                  <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-capability-${capability.id}`}>
+                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: capability.color }} />
+                    <span className="text-sm font-medium flex-1">{capability.name}</span>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-4">
+            <div>
+              <CardTitle>Coaching Modules</CardTitle>
+              <CardDescription>Build your sales mastery skills</CardDescription>
+            </div>
+            <Link href="/modules">
+              <Button variant="outline" size="sm" data-testid="button-view-all-modules">
+                View All
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </Link>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {coachingModules.slice(0, 6).map((module) => {
+                const IconComponent = moduleIcons[module.icon] || BookOpen;
+                return (
+                  <Link href="/modules" key={module.id}>
+                    <Card className="hover-elevate cursor-pointer h-full">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+                            <IconComponent className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm" data-testid={`text-module-${module.id}`}>{module.title}</h3>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                              {module.description}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Progress</span>
+                            <span className="font-medium">{module.progress}%</span>
+                          </div>
+                          <Progress value={module.progress} className="h-1.5" />
+                        </div>
+                        <div className="flex flex-wrap gap-1 mt-3">
+                          {module.frameworks.slice(0, 2).map((fw) => (
+                            <Badge key={fw} variant="secondary" className="text-xs">
+                              {fw.replace('-', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
