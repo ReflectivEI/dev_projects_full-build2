@@ -1,0 +1,33 @@
+name: AIRO Guardrails
+
+on:
+  pull_request:
+  push:
+    branches: ["main"]
+
+jobs:
+  lock-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Determine changed files
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin ${{ github.base_ref }} --depth=1
+            git diff --name-only origin/${{ github.base_ref }}...HEAD > changed.txt
+          else
+            git diff --name-only HEAD~1...HEAD > changed.txt
+          fi
+          cat changed.txt
+
+      - name: Enforce production lock
+        env:
+          ALLOW_LOCKED_CHANGES: ${{ contains(github.event.head_commit.message, '[ALLOW_LOCKED]') && 'true' || 'false' }}
+        run: |
+          cat changed.txt | node scripts/guard-locked-files.mjs
