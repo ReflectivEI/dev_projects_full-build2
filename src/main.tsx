@@ -33,6 +33,25 @@ const queryClient = new QueryClient({
   },
 });
 
+// Handle SPA redirect from 404.html (platform-aware)
+const redirect = sessionStorage.getItem('redirect');
+if (redirect) {
+  sessionStorage.removeItem('redirect');
+  
+  // Detect platform: GitHub Pages vs Cloudflare Pages
+  const isGitHubPages = window.location.hostname.includes('github.io');
+  const basePath = isGitHubPages ? '/dev_projects_full-build2' : '';
+  
+  // Extract path: strip GitHub Pages base if present, otherwise use as-is
+  let path = redirect;
+  if (isGitHubPages && path.startsWith('/dev_projects_full-build2')) {
+    path = path.replace('/dev_projects_full-build2', '') || '/';
+  }
+  
+  // Restore original path
+  history.replaceState(null, '', basePath + path);
+}
+
 // Support both client-side navigation and SSR hydration
 const rootElement = document.getElementById('app');
 if (!rootElement) throw new Error('Root element not found');
