@@ -1,0 +1,7 @@
+{
+  "name": "ReflectivAI Production Prompt Lock",
+  "version": "2026-01-27",
+  "locked": true,
+  "editableByAIRO": false,
+  "notes": "Production prompts are locked. Changes require explicit override and review."
+}

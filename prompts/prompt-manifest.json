@@ -1,0 +1,14 @@
+{
+  "manifestVersion": 1,
+  "activeProductionVersion": "2026-01-27",
+  "versions": {
+    "2026-01-27": {
+      "locked": true,
+      "paths": [
+        "prompts/production.lock.json",
+        "prompts/prompt-manifest.json"
+      ],
+      "modes": ["coach", "roleplay", "quiz"]
+    }
+  }
+}
