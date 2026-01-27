@@ -1,0 +1,16 @@
+# EMERGENCY CLOUDFLARE DEPLOYMENT TRIGGER
+
+Deployment requested at: 2026-01-27T20:51:00Z
+
+This file forces Cloudflare Pages webhook to detect changes and redeploy.
+
+## What was fixed:
+- Added missing jspdf and jspdf-autotable dependencies
+- All code is restored and working in preview
+- This commit will trigger Cloudflare to rebuild with correct dependencies
+
+## Expected result:
+- Cloudflare Pages detects this commit
+- Builds with all dependencies installed
+- Deploys to https://reflectivai-app-prod.pages.dev/
+- Site will be live in 2-3 minutes
