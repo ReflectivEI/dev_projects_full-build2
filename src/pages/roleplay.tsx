@@ -688,6 +688,47 @@ export default function RolePlayPage() {
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
+                {/* Scene Setting Card */}
+                {selectedScenario && (
+                  <Card className="bg-gradient-to-br from-primary/10 to-secondary/10 border-primary/30">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <CardTitle className="text-xl mb-2">{selectedScenario.title}</CardTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Users className="h-4 w-4" />
+                            <span className="font-medium">{selectedScenario.stakeholder}</span>
+                          </div>
+                        </div>
+                        {selectedScenario.difficulty && (
+                          <span className="text-xs px-3 py-1 rounded-full bg-primary/20 text-primary capitalize shrink-0">
+                            {selectedScenario.difficulty}
+                          </span>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Opening Scene */}
+                      <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+                        <p className="text-sm font-semibold text-primary mb-2">🎬 Opening Scene</p>
+                        <p className="text-sm italic leading-relaxed">"{selectedScenario.openingScene}"</p>
+                      </div>
+                      
+                      {/* Context */}
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Context</p>
+                        <p className="text-sm leading-relaxed">{selectedScenario.context}</p>
+                      </div>
+                      
+                      {/* Objective */}
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Your Objective</p>
+                        <p className="text-sm leading-relaxed">{selectedScenario.objective}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {messages.map((m, idx) => {
                   // Detect raw cues from message
                   const rawCues = showCues && m.role === 'assistant' ? detectObservableCues(m.content) : [];
