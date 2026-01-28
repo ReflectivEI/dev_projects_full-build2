@@ -38,6 +38,12 @@ import {
   type ObservableCue,
   type RepMetricCue 
 } from "@/lib/observable-cues";
+import { 
+  selectDynamicCues, 
+  createInitialContext, 
+  updateContext,
+  type ConversationContext 
+} from "@/lib/dynamic-cue-manager";
 import { generateHCPBehavioralDescription, formatBehavioralDescriptionForUI } from "@/lib/hcp-behavioral-state";
 import { evaluateRepResponse } from "@/lib/rep-response-evaluator";
 import { InlineRepMetricEvaluation } from "@/components/rep-metric-evaluation";
@@ -230,6 +236,7 @@ export default function RolePlayPage() {
   const [feedbackData, setFeedbackData] = useState<ComprehensiveFeedback | null>(null);
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
   const [showCues, setShowCues] = useState(true);
+  const [conversationContext, setConversationContext] = useState<ConversationContext>(createInitialContext());
   const [allDetectedCues, setAllDetectedCues] = useState<ObservableCue[]>([]);
 
   const queryClient = useQueryClient();
@@ -503,6 +510,7 @@ export default function RolePlayPage() {
     setAllDetectedCues([]);
     setShowFeedbackDialog(false);
     setInput("");
+    setConversationContext(createInitialContext()); // Reset conversation context
     endCalledForSessionRef.current.clear();
     
     // Force refetch to get empty session
@@ -659,12 +667,8 @@ export default function RolePlayPage() {
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
                 {messages.map((m, idx) => {
-                  const cues = showCues ? detectObservableCues(m.content) : [];
-                  
-                  // Generate rich HCP behavioral description
-                  const hcpBehavioralDesc = showCues && m.role === 'assistant' && cues.length > 0
-                    ? generateHCPBehavioralDescription(cues, m.content)
-                    : null;
+                  // Detect raw cues from message
+                  const rawCues = showCues && m.role === 'assistant' ? detectObservableCues(m.content) : [];
                   
                   // For user messages, evaluate rep response
                   const prevHcpMessage = idx > 0 && messages[idx - 1].role === 'assistant' 
@@ -680,6 +684,27 @@ export default function RolePlayPage() {
                   const repEvaluation = showCues && m.role === 'user'
                     ? evaluateRepResponse(m.content, prevHcpMessage, transcript)
                     : [];
+                  
+                  // Detect rep metrics for context
+                  const repMetrics = m.role === 'user' ? detectRepMetrics(m.content, prevHcpMessage) : [];
+                  
+                  // Use dynamic cue selection for HCP messages
+                  const cues = showCues && m.role === 'assistant'
+                    ? selectDynamicCues(rawCues, conversationContext, repMetrics)
+                    : [];
+                  
+                  // Update conversation context after each HCP message
+                  if (m.role === 'assistant' && showCues && cues.length > 0) {
+                    // Update context for next turn (done in useEffect to avoid state updates during render)
+                    setTimeout(() => {
+                      setConversationContext(prev => updateContext(prev, cues, repMetrics));
+                    }, 0);
+                  }
+                  
+                  // Generate rich HCP behavioral description
+                  const hcpBehavioralDesc = showCues && m.role === 'assistant' && cues.length > 0
+                    ? generateHCPBehavioralDescription(cues, m.content)
+                    : null;
 
                   return (
                     <div
