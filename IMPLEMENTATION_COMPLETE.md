@@ -16,12 +16,13 @@ Successfully implemented **TASK 1** and **TASK 4** from MAJOR AIRO PROMPT #3:
 
 ### Quick Test (2 minutes)
 
-1. **Open your browser**: http://localhost:20000/ReflectivEI-reflectivai-enhanced/roleplay
-2. **Filter**: Select "Vaccines" from Disease State dropdown
-3. **Find**: "Adult Flu Program Optimization" scenario card
-4. **Verify**: Opening scene and HCP mood badge appear on card
-5. **Start**: Click the card, then "Start Role-Play"
-6. **Verify**: Cue panel appears above message thread with context and opening scene
+1. **Open your browser**: http://localhost:20000/
+2. **Click sidebar**: "Role Play Simulator" (Users icon 👥)
+3. **Filter**: Select "Vaccines" from Disease State dropdown
+4. **Find**: "Adult Flu Program Optimization" scenario card
+5. **Verify**: Opening scene and HCP mood badge appear on card
+6. **Start**: Click the card, then "Start Role-Play"
+7. **Verify**: Cue panel appears above message thread with context and opening scene
 
 ### Expected Visual
 

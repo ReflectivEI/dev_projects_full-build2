@@ -18,9 +18,9 @@
 ### Test 1: Scenario Selection Screen
 
 1. **Navigate to Role-Play Page**
-   - Open browser to: `http://localhost:20000/ReflectivEI-reflectivai-enhanced/`
-   - Click "Role Play Simulator" from dashboard
-   - OR navigate directly to: `http://localhost:20000/ReflectivEI-reflectivai-enhanced/roleplay`
+   - Open browser to: `http://localhost:20000/`
+   - Click **"Role Play Simulator"** in the left sidebar (Users icon 👥)
+   - OR navigate directly to: `http://localhost:20000/roleplay`
 
 2. **Filter to Vaccines**
    - In the "Disease State" dropdown, select "Vaccines"
