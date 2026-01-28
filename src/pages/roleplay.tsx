@@ -228,8 +228,6 @@ export default function RolePlayPage() {
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
   const [showCues, setShowCues] = useState(true);
   const [allDetectedCues, setAllDetectedCues] = useState<ObservableCue[]>([]);
-  const [messageMetrics, setMessageMetrics] = useState<Map<string, RepMetricCue[]>>(new Map());
-  const [messageCueDescriptions, setMessageCueDescriptions] = useState<Map<string, string>>(new Map());
 
   const queryClient = useQueryClient();
   const endCalledForSessionRef = useRef<Set<string>>(new Set());
