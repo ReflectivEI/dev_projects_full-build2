@@ -695,7 +695,7 @@ export default function RolePlayPage() {
                       >
                         {m.role === "user" ? "You" : <Users className="h-4 w-4" />}
                       </div>
-                      <div className="max-w-[80%]">
+                      <div className="max-w-[80%] space-y-2">
                         <div
                           className={`p-3 rounded-lg ${
                             m.role === "user"
@@ -706,27 +706,36 @@ export default function RolePlayPage() {
                           <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                         </div>
                         
-                        {/* HCP Behavioral Cues Description */}
-                        {cueDescription && (
-                          <div className="mt-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-                            <p className="text-xs font-semibold text-amber-900 dark:text-amber-100 mb-1">
-                              Observable Behavior:
-                            </p>
-                            <p className="text-xs text-amber-800 dark:text-amber-200 italic">
-                              {cueDescription}
-                            </p>
+                        {/* HCP Behavioral Cues - ENHANCED */}
+                        {hcpBehavioralDesc && (
+                          <div className="space-y-2">
+                            <div className="p-3 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+                              <p className="text-xs font-semibold text-amber-900 dark:text-amber-100 mb-2">
+                                🎭 Observable HCP Behaviors:
+                              </p>
+                              <div className="space-y-1.5 text-xs text-amber-800 dark:text-amber-200">
+                                {hcpBehavioralDesc.bodyLanguage.length > 0 && (
+                                  <p><span className="font-medium">Body Language:</span> {hcpBehavioralDesc.bodyLanguage.slice(0, 2).join('; ')}</p>
+                                )}
+                                {hcpBehavioralDesc.vocalTone.length > 0 && (
+                                  <p><span className="font-medium">Vocal Tone:</span> {hcpBehavioralDesc.vocalTone.slice(0, 2).join('; ')}</p>
+                                )}
+                                {hcpBehavioralDesc.physicalCues.length > 0 && (
+                                  <p><span className="font-medium">Physical Cues:</span> {hcpBehavioralDesc.physicalCues.slice(0, 2).join('; ')}</p>
+                                )}
+                              </div>
+                              <p className="mt-2 text-xs italic text-amber-700 dark:text-amber-300 border-t border-amber-200 dark:border-amber-700 pt-2">
+                                {hcpBehavioralDesc.overallDescription}
+                              </p>
+                            </div>
+                            {cues.length > 0 && (
+                              <CueBadgeGroup cues={cues} />
+                            )}
                           </div>
                         )}
 
-                        {/* Cue Badges */}
-                        {cues.length > 0 && (
-                          <div className="mt-2">
-                            <CueBadgeGroup cues={cues} />
-                          </div>
-                        )}
-
-                        {/* Rep Metrics Badges */}
-                        {repMetrics.length > 0 && (
+                        {/* Rep Metric Evaluation - ENHANCED */}
+                        {repEvaluation.length > 0 && (
                           <div className="mt-2 flex flex-wrap gap-1">
                             {repMetrics.map((metric) => (
                               <span
