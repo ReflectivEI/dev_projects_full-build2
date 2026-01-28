@@ -774,12 +774,13 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
 
     const applicableComponents = components.filter(c => c.applicable);
     
-    // PROMPT #20: Metric Applicability Promotion
-    // Canonical rule: not_applicable = !(components.applicable || signals.exist)
-    // If any component is applicable OR signals were attributed, metric is applicable
-    const hasApplicableComponents = applicableComponents.length > 0;
-    const hasSignalsAttributed = hasMetricSignals(transcript, spec.id);
-    const notApplicable = spec.optional && !hasApplicableComponents && !hasSignalsAttributed;
+    // RULE 3: A metric is NOT APPLICABLE only when:
+    // - spec.optional === true
+    // - AND all components are applicable: false
+    // - AND no observable metric-level signals exist
+    // Note: Component-level weak-signal fallback already handles signal attribution,
+    // so we only need to check if any components are applicable
+    const notApplicable = spec.optional && applicableComponents.length === 0;
 
     let overallScore: number | null = null;
     if (!notApplicable) {
@@ -787,13 +788,8 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
       overallScore = averageApplicable(components);
     }
 
-    // PROMPT #21: Minimum Viable Signal Seeding (Scoring Guardrail)
-    // If signals exist but score is 0 or null, seed minimum viable score
-    const MIN_SIGNAL_SCORE = 1.0;
-    const hasSignals = hasApplicableComponents || hasMetricSignals(transcript, spec.id);
-    if (hasSignals && (overallScore === null || overallScore === 0)) {
-      overallScore = MIN_SIGNAL_SCORE;
-    }
+    // Canonical rule: overall_score remains null if no components are applicable
+    // No metric-level score seeding allowed
 
     results.push({
       id: spec.id,
