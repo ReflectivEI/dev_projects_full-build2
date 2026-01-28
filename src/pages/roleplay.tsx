@@ -755,7 +755,7 @@ export default function RolePlayPage() {
               <CardContent>
                 <Select
                   value={selectedScenario?.id || ""}
-                  onValueChange={(value) => setSelectedScenario(filteredScenarios.find(s => s.id === value) || null)}
+                  onValueChange={(value) => setSelectedScenario((filteredScenarios.find(s => s.id === value) as (Scenario & Partial<EnhancedScenario>)) || null)}
                 >
                   <SelectTrigger data-testid="select-scenario">
                     <SelectValue placeholder={filteredScenarios.length > 0 ? "Choose a scenario..." : "No matching scenarios"} />
@@ -994,7 +994,7 @@ export default function RolePlayPage() {
                     <Card
                       key={scenario.id}
                       className="hover-elevate cursor-pointer"
-                      onClick={() => setSelectedScenario(scenario)}
+                      onClick={() => setSelectedScenario(scenario as (Scenario & Partial<EnhancedScenario>))}
                       data-testid={`card-scenario-${scenario.id}`}
                     >
                       <CardContent className="p-4">
