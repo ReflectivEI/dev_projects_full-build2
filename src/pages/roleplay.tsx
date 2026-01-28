@@ -736,27 +736,11 @@ export default function RolePlayPage() {
 
                         {/* Rep Metric Evaluation - ENHANCED */}
                         {repEvaluation.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1">
-                            {repMetrics.map((metric) => (
-                              <span
-                                key={metric.id}
-                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800"
-                              >
-                                ✓ {metric.label}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Rep Performance Feedback */}
-                        {repFeedback && (
-                          <div className="mt-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
-                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                              Quick Feedback:
+                          <div className="p-3 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2">
+                              📊 Your Response Evaluation:
                             </p>
-                            <div className="text-xs text-blue-800 dark:text-blue-200 whitespace-pre-line">
-                              {repFeedback}
-                            </div>
+                            <InlineRepMetricEvaluation metrics={repEvaluation} />
                           </div>
                         )}
                       </div>
