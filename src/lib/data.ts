@@ -648,6 +648,41 @@ export const scenarios: Scenario[] = [
     ],
     difficulty: "beginner"
   },
+  {
+    id: "vac_id_adult_flu_playbook",
+    title: "Adult Flu Program Optimization",
+    description: "ID group with LTC/high-risk adults; late clinic launches; weak reminder-recall",
+    category: "vaccines",
+    stakeholder: "Dr. Evelyn Harper - Infectious Diseases Specialist",
+    objective: "Pre-season outreach to high-risk adults; early clinic launch; automated reminder system",
+    context: "Infectious disease practice managing high-risk adults and LTC facilities. Flu clinics launch late in season. Reminder-recall system is manual and inconsistent.",
+    openingScene: "Sarah Thompson looks up from a stack of prior authorization forms, clearly frustrated. 'I appreciate you stopping by, but I only have a few minutes before my next patient.'",
+    hcpMood: "frustrated",
+    challenges: [
+      "Late flu clinic launch timing",
+      "Manual reminder-recall system",
+      "Inconsistent LTC facility coordination",
+      "Limited high-risk patient identification"
+    ],
+    keyMessages: [
+      "Pre-season outreach to high-risk populations",
+      "Early clinic launch strategy",
+      "Automated reminder system implementation",
+      "LTC facility partnership protocols"
+    ],
+    impact: [
+      "Increase vaccination rates in high-risk adults by 30%",
+      "Reduce flu-related hospitalizations",
+      "Improve LTC facility coverage",
+      "Streamline reminder-recall workflow"
+    ],
+    suggestedPhrasing: [
+      "Pre-season outreach to your high-risk patients could significantly improve vaccination rates. Would you like to see a timeline?",
+      "Launching clinics earlier in the season gives you more time to reach your target population. What's preventing an earlier start?",
+      "An automated reminder system could free up staff time and improve consistency. Can I show you how other practices have implemented this?"
+    ],
+    difficulty: "intermediate"
+  },
   // COVID-19 Scenarios
   {
     id: "covid_pulm_md_antiviral_ddi_path",
