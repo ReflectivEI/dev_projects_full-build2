@@ -401,7 +401,8 @@ function scoreMakingItMatter(transcript: Transcript, goalTokens: Set<string>): C
     return tokens.some(t => goalTokens.has(t));
   });
   const linkRate = linkedStatements.length / repStatements.length;
-  const linkScore = linkRate >= 0.50 ? 5 : linkRate >= 0.35 ? 4 : linkRate >= 0.20 ? 3 : linkRate >= 0.10 ? 2 : 1;
+  // FIX: If no goal tokens exist (customer didn't articulate goals), score neutral (3) instead of penalizing (1)
+  const linkScore = goalTokens.size === 0 ? 3 : (linkRate >= 0.50 ? 5 : linkRate >= 0.35 ? 4 : linkRate >= 0.20 ? 3 : linkRate >= 0.10 ? 2 : 1);
 
   // 3. No Feature Dumping
   const featureDumps = repStatements.filter(s => {
@@ -472,7 +473,8 @@ function scoreCustomerEngagement(transcript: Transcript): ComponentResult[] {
   const avgFirstLength = firstThird.reduce((sum, t) => sum + t.text.length, 0) / firstThird.length;
   const avgLastLength = lastThird.reduce((sum, t) => sum + t.text.length, 0) / lastThird.length;
   const shrinking = avgLastLength < avgFirstLength * 0.5;
-  const energyScore = (disengagedTurns.length > 2 || shrinking) ? 2 : disengagedTurns.length > 0 ? 3 : 4;
+  // FIX: Allow score=5 for stable/positive energy (was capped at 4)
+  const energyScore = (disengagedTurns.length > 2 || shrinking) ? 2 : disengagedTurns.length > 0 ? 3 : 5;
 
   return [
     { name: 'customer_talk_time', score: talkTimeScore, applicable: true, weight: 0.25, rationale: `${Math.round(customerShare * 100)}% customer share` },
@@ -492,14 +494,12 @@ function scoreObjectionNavigation(transcript: Transcript): ComponentResult[] {
   });
 
   if (objectionTurns.length === 0) {
-    const components = [
+    // FIX: Objection Navigation is optional - NO weak-signal fallback (strict applicability)
+    return [
       { name: 'acknowledge_before_response', score: null, applicable: false, weight: 0.33, rationale: 'No objections' },
       { name: 'explore_underlying_concern', score: null, applicable: false, weight: 0.34, rationale: 'No objections' },
       { name: 'calm_demeanor', score: null, applicable: false, weight: 0.33, rationale: 'No objections' }
     ];
-    // Apply weak-signal fallback
-    const signalPatterns = ['not interested', 'no budget', 'too expensive', 'can\'t', 'won\'t', 'don\'t', 'concern', 'hesitant', 'problem', 'issue', 'i hear you', 'i understand', 'that makes sense'];
-    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // 1. Acknowledge Before Response
@@ -634,6 +634,18 @@ function scoreCommitmentGaining(transcript: Transcript): ComponentResult[] {
   // 1. Next Step Specificity
   const nextStepPhrases = ['schedule', 'follow up', 'send', 'connect', 'align', 'next step', 'set up', 'confirm'];
   const nextStepTurns = repTurns.filter(t => containsAny(t.text, nextStepPhrases));
+  
+  // FIX: Apply weak-signal fallback if no next steps detected
+  if (nextStepTurns.length === 0) {
+    const components = [
+      { name: 'next_step_specificity', score: null, applicable: false, weight: 0.33, rationale: 'No next steps proposed' },
+      { name: 'mutual_agreement', score: null, applicable: false, weight: 0.33, rationale: 'No next steps proposed' },
+      { name: 'ownership_clarity', score: null, applicable: false, weight: 0.34, rationale: 'No next steps proposed' }
+    ];
+    const signalPatterns = ['schedule', 'follow up', 'send', 'next step', 'meeting', 'would you be open', 'can we', 'shall we', 'action item', 'move forward'];
+    return applyWeakSignalFallback(components, transcript, signalPatterns);
+  }
+  
   const specificNextSteps = nextStepTurns.filter(t => {
     const hasDate = /\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday|tomorrow|next week|\d{1,2}\/\d{1,2})\b/i.test(t.text);
     const hasAction = /\b(send|email|call|meet|review|discuss)\b/i.test(t.text);
@@ -685,15 +697,13 @@ function scoreAdaptability(transcript: Transcript): ComponentResult[] {
   const hasEmotionalCue = customerTurns.some(t => containsAny(t.text, emotionalCues));
 
   if (!hasTimeCue && !hasConfusionCue && !hasDisinterestCue && !hasEmotionalCue) {
-    const components = [
+    // FIX: Adaptability is mandatory but cue-dependent - NO weak-signal fallback (strict applicability)
+    return [
       { name: 'approach_shift', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' },
       { name: 'tone_adjustment', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' },
       { name: 'depth_adjustment', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' },
       { name: 'pacing_adjustment', score: null, applicable: false, weight: 0.25, rationale: 'No adaptation cues' }
     ];
-    // Apply weak-signal fallback
-    const signalPatterns = ['have to go', 'another meeting', 'short on time', 'confused', 'don\'t understand', 'not interested', 'frustrated', 'upset', 'concerned', 'worried'];
-    return applyWeakSignalFallback(components, transcript, signalPatterns);
   }
 
   // Simple heuristic: if rep responds to cues, score higher
@@ -759,18 +769,9 @@ export function scoreConversation(transcript: Transcript, meta?: Record<string, 
         break;
     }
 
-    // Apply metric-scoped signal attribution
-    // If no components are applicable but metric-specific signals exist,
-    // mark first component as applicable with score=1
-    if (!components.some(c => c.applicable) && hasMetricSignals(transcript, spec.id)) {
-      components = [...components];
-      components[0] = {
-        ...components[0],
-        score: 1,
-        applicable: true,
-        rationale: `Observable ${spec.metric.toLowerCase()} signals detected, but threshold not met for higher score`
-      };
-    }
+    // FIX: REMOVE metric-level signal override - redundant with component-level fallback
+    // Component-level weak-signal fallback already handles signal attribution in individual metric functions
+    // This metric-level check was causing double-application of fallback logic
 
     const applicableComponents = components.filter(c => c.applicable);
     
