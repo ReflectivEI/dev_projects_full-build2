@@ -1,0 +1,39 @@
+name: 🚀 Deploy to Production NOW
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Cloudflare Pages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 🔧 Install
+        run: npm ci
+
+      - name: 🏗️ Build
+        run: npm run build:vite
+        env:
+          VITE_WORKER_URL: 'https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev'
+
+      - name: 🚀 Deploy
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=reflectivai-app-prod --branch=main
+
+      - name: ✅ Done
+        run: |
+          echo "🎉 Deployed to: https://reflectivai-app-prod.pages.dev"
+          echo "🧪 Test at: https://reflectivai-app-prod.pages.dev/roleplay"
