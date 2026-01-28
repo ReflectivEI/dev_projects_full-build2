@@ -6,6 +6,10 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+  deployments: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -29,11 +33,6 @@ jobs:
         env:
           NODE_ENV: production
 
-      - name: Ensure dist/client directory exists
-        run: |
-          mkdir -p dist/client
-          echo "Build directory: dist/client"
-
       - name: Verify build output
         run: |
           echo "Checking build output..."
@@ -43,7 +42,6 @@ jobs:
             exit 1
           fi
           echo "index.html exists: ✓ YES"
-          echo "Assets directory:"
           ls -la dist/client/assets/ || echo "No assets directory"
 
       - name: Deploy to Cloudflare Pages
