@@ -92,62 +92,112 @@ export function selectDynamicCues(
 /**
  * Generate contextual cues when none are detected
  * Based on conversation turn and HCP mood
+ * CRITICAL FIX: Ensures cues are ALWAYS generated, never returns empty array
  */
 function generateContextualCues(
   turnNumber: number,
   mood: 'improving' | 'stable' | 'declining',
   availableCues: BehavioralCue[]
 ): BehavioralCue[] {
-  const cues: BehavioralCue[] = [];
-  
-  // Early turns (1-2): Start with neutral/mild cues
-  if (turnNumber <= 2) {
-    const neutralCues = availableCues.filter(c => 
-      c.severity === 'low' || c.severity === 'medium'
-    );
-    cues.push(...selectRandomCues(neutralCues, 1));
+  // CRITICAL: If no available cues, return random selection from all cues
+  if (availableCues.length === 0) {
+    const allCues = Object.values(HCP_CUES);
+    return selectRandomCues(allCues, 2);
   }
   
-  // Mid turns (3-5): Introduce variety based on mood
-  else if (turnNumber <= 5) {
-    if (mood === 'improving') {
-      // Show engagement cues
-      const engagementCues = availableCues.filter(c => c.category === 'engagement');
-      cues.push(...selectRandomCues(engagementCues, 1));
-    } else if (mood === 'declining') {
-      // Show resistance cues
-      const resistanceCues = availableCues.filter(c => c.category === 'resistance');
-      cues.push(...selectRandomCues(resistanceCues, 1));
+  const cues: BehavioralCue[] = [];
+  
+  // Early turns (1-3): Start with common opening cues
+  if (turnNumber <= 3) {
+    // Prioritize stress and resistance cues (common at start)
+    const openingCues = availableCues.filter(c => 
+      c.category === 'stress' || c.category === 'resistance'
+    );
+    if (openingCues.length > 0) {
+      cues.push(...selectRandomCues(openingCues, 1));
     } else {
-      // Show stress cues
-      const stressCues = availableCues.filter(c => c.category === 'stress');
-      cues.push(...selectRandomCues(stressCues, 1));
+      cues.push(...selectRandomCues(availableCues, 1));
     }
   }
   
-  // Late turns (6+): Escalate or de-escalate based on mood
+  // Mid turns (4-6): Introduce variety based on mood
+  else if (turnNumber <= 6) {
+    if (mood === 'improving') {
+      // Show low-severity engagement cues (HCP warming up)
+      const engagementCues = availableCues.filter(c => 
+        c.category === 'engagement' && c.severity === 'low'
+      );
+      if (engagementCues.length > 0) {
+        cues.push(...selectRandomCues(engagementCues, 1));
+      } else {
+        // Fallback to any engagement cues
+        const anyEngagement = availableCues.filter(c => c.category === 'engagement');
+        if (anyEngagement.length > 0) {
+          cues.push(...selectRandomCues(anyEngagement, 1));
+        } else {
+          cues.push(...selectRandomCues(availableCues, 1));
+        }
+      }
+    } else if (mood === 'declining') {
+      // Show resistance cues (HCP pulling back)
+      const resistanceCues = availableCues.filter(c => c.category === 'resistance');
+      if (resistanceCues.length > 0) {
+        cues.push(...selectRandomCues(resistanceCues, 1));
+      } else {
+        cues.push(...selectRandomCues(availableCues, 1));
+      }
+    } else {
+      // Show stress cues (neutral mood)
+      const stressCues = availableCues.filter(c => c.category === 'stress');
+      if (stressCues.length > 0) {
+        cues.push(...selectRandomCues(stressCues, 1));
+      } else {
+        cues.push(...selectRandomCues(availableCues, 1));
+      }
+    }
+  }
+  
+  // Late turns (7+): Escalate or de-escalate based on mood
   else {
     if (mood === 'improving') {
-      // Show positive engagement or reduced stress
+      // Show low-severity engagement (HCP more receptive)
       const positiveCues = availableCues.filter(c => 
-        c.category === 'interest' || (c.category === 'engagement' && c.severity === 'low')
+        c.category === 'engagement' && c.severity === 'low'
       );
-      cues.push(...selectRandomCues(positiveCues, 1));
+      if (positiveCues.length > 0) {
+        cues.push(...selectRandomCues(positiveCues, 1));
+      } else {
+        cues.push(...selectRandomCues(availableCues, 1));
+      }
     } else if (mood === 'declining') {
-      // Show high severity resistance or stress
+      // Show high severity resistance or stress (HCP frustrated)
       const negativeCues = availableCues.filter(c => 
         c.severity === 'high' && (c.category === 'resistance' || c.category === 'stress')
       );
-      cues.push(...selectRandomCues(negativeCues, 1));
+      if (negativeCues.length > 0) {
+        cues.push(...selectRandomCues(negativeCues, 1));
+      } else {
+        cues.push(...selectRandomCues(availableCues, 1));
+      }
     } else {
       // Show mixed signals
       cues.push(...selectRandomCues(availableCues, 1));
     }
   }
   
-  // Always add a secondary cue for variety
+  // CRITICAL: Always add a secondary cue for variety
   const remainingCues = availableCues.filter(c => !cues.includes(c));
-  cues.push(...selectRandomCues(remainingCues, 1));
+  if (remainingCues.length > 0) {
+    cues.push(...selectRandomCues(remainingCues, 1));
+  } else if (cues.length < 2) {
+    // If we only have 1 cue and no remaining, add any available cue
+    cues.push(...selectRandomCues(availableCues, 1));
+  }
+  
+  // CRITICAL: Ensure we always return at least 2 cues
+  if (cues.length === 0) {
+    return selectRandomCues(availableCues, 2);
+  }
   
   return cues.slice(0, 2);
 }
