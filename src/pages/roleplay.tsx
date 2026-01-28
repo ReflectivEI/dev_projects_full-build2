@@ -30,7 +30,14 @@ import { SignalIntelligencePanel, type SignalIntelligenceCapability } from "@/co
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
 import type { Scenario } from "@shared/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
-import { detectObservableCues, type ObservableCue } from "@/lib/observable-cues";
+import { 
+  detectObservableCues, 
+  detectRepMetrics,
+  generateCueDescription,
+  generateRepFeedback,
+  type ObservableCue,
+  type RepMetricCue 
+} from "@/lib/observable-cues";
 import { CueBadgeGroup } from "@/components/CueBadge";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -221,6 +228,8 @@ export default function RolePlayPage() {
   const [roleplayEndError, setRoleplayEndError] = useState<string | null>(null);
   const [showCues, setShowCues] = useState(true);
   const [allDetectedCues, setAllDetectedCues] = useState<ObservableCue[]>([]);
+  const [messageMetrics, setMessageMetrics] = useState<Map<string, RepMetricCue[]>>(new Map());
+  const [messageCueDescriptions, setMessageCueDescriptions] = useState<Map<string, string>>(new Map());
 
   const queryClient = useQueryClient();
   const endCalledForSessionRef = useRef<Set<string>>(new Set());
@@ -648,8 +657,24 @@ export default function RolePlayPage() {
           <div className="flex-1 flex flex-col">
             <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4 pb-4">
-                {messages.map((m) => {
-                  const cues = showCues ? detectObservableCues(m.content, m.role) : [];
+                {messages.map((m, idx) => {
+                  const cues = showCues ? detectObservableCues(m.content) : [];
+                  const cueDescription = showCues && m.role === 'assistant' && cues.length > 0 
+                    ? generateCueDescription(cues) 
+                    : '';
+                  
+                  // For user messages, detect rep metrics and generate feedback
+                  const prevHcpMessage = idx > 0 && messages[idx - 1].role === 'assistant' 
+                    ? messages[idx - 1].content 
+                    : undefined;
+                  const prevHcpCues = prevHcpMessage ? detectObservableCues(prevHcpMessage) : [];
+                  const repMetrics = showCues && m.role === 'user' 
+                    ? detectRepMetrics(m.content, prevHcpMessage) 
+                    : [];
+                  const repFeedback = showCues && m.role === 'user' && repMetrics.length > 0
+                    ? generateRepFeedback(repMetrics, prevHcpCues)
+                    : '';
+
                   return (
                     <div
                       key={m.id}
@@ -674,8 +699,50 @@ export default function RolePlayPage() {
                         >
                           <p className="text-sm whitespace-pre-wrap">{m.content}</p>
                         </div>
+                        
+                        {/* HCP Behavioral Cues Description */}
+                        {cueDescription && (
+                          <div className="mt-2 p-2 rounded-md bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+                            <p className="text-xs font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                              Observable Behavior:
+                            </p>
+                            <p className="text-xs text-amber-800 dark:text-amber-200 italic">
+                              {cueDescription}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Cue Badges */}
                         {cues.length > 0 && (
-                          <CueBadgeGroup cues={cues} maxVisible={3} size="sm" />
+                          <div className="mt-2">
+                            <CueBadgeGroup cues={cues} />
+                          </div>
+                        )}
+
+                        {/* Rep Metrics Badges */}
+                        {repMetrics.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {repMetrics.map((metric) => (
+                              <span
+                                key={metric.id}
+                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800"
+                              >
+                                ✓ {metric.label}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Rep Performance Feedback */}
+                        {repFeedback && (
+                          <div className="mt-2 p-2 rounded-md bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800">
+                            <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-1">
+                              Quick Feedback:
+                            </p>
+                            <div className="text-xs text-blue-800 dark:text-blue-200 whitespace-pre-line">
+                              {repFeedback}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
