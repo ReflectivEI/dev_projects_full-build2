@@ -5,7 +5,7 @@ import path from 'path';
 export default async function handler(req: Request, res: Response) {
   try {
     // Path to the tar.gz file in project root
-    const filePath = path.join(process.cwd(), 'reflectivai-CRITICAL-FIX-WITH-LOGS.tar.gz');
+    const filePath = path.join(process.cwd(), 'reflectivai-FIXED-REDIRECTS.tar.gz');
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -20,7 +20,7 @@ export default async function handler(req: Request, res: Response) {
     
     // Set headers for file download
     res.setHeader('Content-Type', 'application/gzip');
-    res.setHeader('Content-Disposition', 'attachment; filename="reflectivai-CRITICAL-FIX-WITH-LOGS.tar.gz"');
+    res.setHeader('Content-Disposition', 'attachment; filename="reflectivai-FIXED-REDIRECTS.tar.gz"');
     res.setHeader('Content-Length', stats.size);
     res.setHeader('Cache-Control', 'no-cache');
     
