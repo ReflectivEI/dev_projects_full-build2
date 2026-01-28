@@ -89,7 +89,8 @@
     "vite-plugin-ssr": "^0.4.85",
     "wouter": "^3.9.0",
     "zod": "^3.25.76",
-    "zustand": "^5.0.2"
+    "zustand": "^5.0.2",
+    "@dr.pogodin/react-helmet": "^3.0.5"
   },
   "devDependencies": {
     "@eslint/js": "^9.16.0",
