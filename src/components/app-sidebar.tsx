@@ -63,7 +63,7 @@ const mainNavItems = [
     icon: MessageSquare,
   },
   {
-    title: "Role Play Simulator",
+    title: "Role Play Sampler",
     url: "/roleplay",
     icon: Users,
   },

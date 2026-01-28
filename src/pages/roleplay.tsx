@@ -547,6 +547,28 @@ export default function RolePlayPage() {
       {!isActive ? (
         <div className="flex-1 p-6 overflow-auto">
           <div className="max-w-7xl mx-auto space-y-6">
+            {/* Practice Signal Intelligence Section */}
+            <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+              <CardHeader>
+                <CardTitle className="text-2xl">Practice Signal Intelligence™ in a Range of Realistic Scenarios</CardTitle>
+                <CardDescription className="text-base mt-3 space-y-3">
+                  <p>
+                    Each role-play emphasizes different judgment challenges, helping participants strengthen Signal Intelligence™ across diverse conversation types. Participants practice noticing signals, interpreting meaning, and responding thoughtfully as conversations evolve.
+                  </p>
+                  <p>
+                    Scenarios are intentionally designed to bring specific behaviors into focus—reflecting the realities of high-stakes professional dialogue.
+                  </p>
+                  <p className="font-semibold text-foreground">Depending on the scenario, practice may emphasize behaviors such as:</p>
+                  <ul className="list-disc list-inside space-y-1 ml-4">
+                    <li>Asking purposeful questions</li>
+                    <li>Noticing shifts in engagement</li>
+                    <li>Navigating resistance</li>
+                    <li>Adjusting approach as new information emerges</li>
+                  </ul>
+                </CardDescription>
+              </CardHeader>
+            </Card>
+
             {/* Filter Controls - Matching AI Coach Page */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Select value={selectedDiseaseState} onValueChange={setSelectedDiseaseState}>
