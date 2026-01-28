@@ -990,20 +990,7 @@ export default function RolePlayPage() {
 
                 {/* Scenario grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {filteredScenarios.map((scenario) => {
-                    // Debug: Log scenario data for Adult Flu Program
-                    if (scenario.id === 'vac_id_adult_flu_playbook') {
-                      console.log('Adult Flu Scenario Data:', {
-                        id: scenario.id,
-                        title: scenario.title,
-                        openingScene: scenario.openingScene,
-                        hcpMood: scenario.hcpMood,
-                        context: scenario.context,
-                        hasOpeningScene: !!scenario.openingScene,
-                        hasHcpMood: !!scenario.hcpMood,
-                      });
-                    }
-                    return (
+                  {filteredScenarios.map((scenario) => (
                     <Card
                       key={scenario.id}
                       className="hover-elevate cursor-pointer"
@@ -1040,8 +1027,7 @@ export default function RolePlayPage() {
                         )}
                       </CardContent>
                     </Card>
-                  );
-                  })}
+                  ))}
                 </div>
 
                 {/* Empty state when no matching scenarios */}

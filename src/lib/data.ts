@@ -280,10 +280,7 @@ export const coachingModules: CoachingModule[] = [
   }
 ];
 
-// Force reload - scenario cues added
 export const scenarios: Scenario[] = [
-  // DEBUG: Check if vac_id_adult_flu_playbook exists
-  // Total scenarios will be logged below
   // HIV/PrEP Scenarios
   {
     id: "hiv_im_prep_lowshare",
@@ -920,21 +917,6 @@ export const scenarios: Scenario[] = [
     difficulty: "intermediate"
   }
 ];
-
-// DEBUG: Verify scenario data loaded
-console.log('🔍 SCENARIOS LOADED:', scenarios.length);
-const adultFluScenario = scenarios.find(s => s.id === 'vac_id_adult_flu_playbook');
-console.log('🔍 Adult Flu Scenario Found:', adultFluScenario ? 'YES' : 'NO');
-if (adultFluScenario) {
-  console.log('🔍 Adult Flu Scenario Data:', {
-    id: adultFluScenario.id,
-    title: adultFluScenario.title,
-    hasOpeningScene: !!adultFluScenario.openingScene,
-    hasHcpMood: !!adultFluScenario.hcpMood,
-    openingScene: adultFluScenario.openingScene,
-    hcpMood: adultFluScenario.hcpMood
-  });
-}
 
 export const heuristicTemplates: HeuristicTemplate[] = [
   {

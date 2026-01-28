@@ -21,6 +21,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { coachingModules, eqFrameworks } from "@/lib/data";
+import { SIGNAL_CAPABILITY_TO_METRIC } from "@/lib/signal-intelligence/capability-metric-map";
 import { useQuery } from "@tanstack/react-query";
 
 const moduleIcons: Record<string, any> = {
@@ -212,15 +213,19 @@ export default function Dashboard() {
               <CardDescription>Core behavioral competency skills</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {eqFrameworks.map((framework) => (
-                <Link href="/frameworks" key={framework.id}>
-                  <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-framework-${framework.id}`}>
-                    <div className={`h-2 w-2 rounded-full bg-${framework.color}`} />
-                    <span className="text-sm font-medium flex-1">{framework.name}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </Link>
-              ))}
+              {eqFrameworks.map((framework) => {
+                const metricId = SIGNAL_CAPABILITY_TO_METRIC[framework.id as keyof typeof SIGNAL_CAPABILITY_TO_METRIC];
+                const href = metricId ? `/signal-intelligence#metric-${metricId}` : "/frameworks";
+                return (
+                  <Link href={href} key={framework.id}>
+                    <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-framework-${framework.id}`}>
+                      <div className={`h-2 w-2 rounded-full bg-${framework.color}`} />
+                      <span className="text-sm font-medium flex-1">{framework.name}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </Link>
+                );
+              })}
             </CardContent>
           </Card>
         </div>
