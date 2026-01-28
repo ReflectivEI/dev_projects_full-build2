@@ -1,16 +1,5 @@
 name = "reflectivai-app-prod"
 compatibility_date = "2024-01-01"
 
-# Cloudflare Pages configuration
+# Cloudflare Pages output directory
 pages_build_output_dir = "dist/client"
-
-[build]
-command = "npm run build"
-
-[build.upload]
-format = "service-worker"
-main = "./public/_worker.js"
-
-# Environment variables
-[vars]
-NODE_VERSION = "18"
