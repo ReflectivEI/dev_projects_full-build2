@@ -3,7 +3,7 @@
  * Real-time evaluation of rep responses against 8 behavioral metrics
  */
 
-import { detectRepMetrics, REP_METRIC_CUES, type RepMetricCue } from './observable-cues';
+import { detectRepMetrics, type RepMetricCue } from './observable-cues';
 import { scoreConversation, type Transcript, type MetricResult } from './signal-intelligence/scoring';
 import type { RepMetricScore } from '@/components/rep-metric-evaluation';
 
@@ -98,7 +98,7 @@ export function evaluateRepResponse(
  * Extract score for a specific metric from scoring results
  */
 function getMetricScore(scoringResults: MetricResult[], metricId: string): number | null {
-  const metric = scoringResults.find((m) => m.metric_id === metricId);
+  const metric = scoringResults.find((m) => m.metric === metricId);
   return metric?.overall_score ?? null;
 }
 
@@ -110,7 +110,7 @@ function getMetricRationale(
   metricId: string,
   detected: boolean
 ): string {
-  const metric = scoringResults.find((m) => m.metric_id === metricId);
+  const metric = scoringResults.find((m) => m.metric === metricId);
 
   if (!metric || metric.overall_score === null) {
     return detected
