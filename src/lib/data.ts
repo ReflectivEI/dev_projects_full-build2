@@ -614,42 +614,7 @@ export const scenarios: Scenario[] = [
     ],
     difficulty: "intermediate"
   },
-  // Vaccines Scenarios
-  {
-    id: "vac_id_adult_flu_playbook",
-    title: "Adult Flu Program Optimization",
-    description: "ID group with LTC/high-risk adults; late clinic launches; weak reminder-recall",
-    category: "vaccines",
-    stakeholder: "Dr. Evelyn Harper - Infectious Diseases Specialist",
-    objective: "Pre-book age-appropriate vaccine mix; schedule early clinics; implement SMS reminders and standing orders in LTC",
-    context: "High-performing NP with excellent product adoption, but prior-auth burden and limited staffing cap patient throughput. Workflow friction limits breadth of appropriate prescribing.",
-    challenges: [
-      "Late flu clinic scheduling",
-      "Weak reminder-recall systems",
-      "Denials for 65+ formulations",
-      "LTC coordination gaps"
-    ],
-    keyMessages: [
-      "Pre-book age-appropriate vaccine mix early",
-      "Calendarize clinic days before season",
-      "EHR prompts for 65+ high-dose selection",
-      "Standing orders in LTC facilities"
-    ],
-    impact: [
-      "Increase 65+ flu coverage by 15%",
-      "Reduce hospitalizations in high-risk patients",
-      "Optimize clinic efficiency",
-      "Improve LTC protection rates"
-    ],
-    suggestedPhrasing: [
-      "Pre-booking the age-appropriate vaccine mix early ensures you have the right formulations when patients arrive. Can we plan this together?",
-      "SMS reminders have shown 20% improvement in show rates. Would you like to see how to integrate this with your EHR?",
-      "Standing orders in LTC facilities streamline the process significantly. I can help you implement this if you're interested."
-    ],
-    openingScene: "Sarah Thompson looks up from a stack of prior authorization forms, rubbing her temples. A frustrated sigh escapes as she sees another rep waiting. Her body language is tired but professional.",
-    hcpMood: "frustrated",
-    difficulty: "intermediate"
-  },
+  // Vaccines Scenarios - Adult Flu (moved above for debug)
   {
     id: "vac_np_primary_care_capture",
     title: "Primary Care Vaccine Capture Improvement",
