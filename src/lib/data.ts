@@ -280,6 +280,7 @@ export const coachingModules: CoachingModule[] = [
   }
 ];
 
+// Force reload - scenario cues added
 export const scenarios: Scenario[] = [
   // HIV/PrEP Scenarios
   {
