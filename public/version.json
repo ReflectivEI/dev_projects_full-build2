@@ -1,0 +1,13 @@
+{
+  "version": "1.0.1",
+  "commit": "MAJOR_PROMPT_3_COMPLETE",
+  "deployed": "2026-01-28T23:58:00Z",
+  "features": [
+    "Signal Intelligence Capabilities",
+    "Observable Cues (Rep + HCP)",
+    "Dashboard Deep Links",
+    "Roleplay Scenario Cues",
+    "Opening Scene Display",
+    "HCP Mood Badges"
+  ]
+}
