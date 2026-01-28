@@ -5,7 +5,7 @@ import path from 'path';
 export default async function handler(req: Request, res: Response) {
   try {
     // Path to the tar.gz file in project root
-    const filePath = path.join(process.cwd(), 'reflectivai-FIXED-REDIRECTS.tar.gz');
+    const filePath = path.join(process.cwd(), 'cloudflare-direct-upload.tar.gz');
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
