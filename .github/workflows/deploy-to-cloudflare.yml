@@ -10,7 +10,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy to Cloudflare Pages
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,12 +29,20 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Ensure dist/client directory exists
+        run: |
+          mkdir -p dist/client
+          echo "Build directory: dist/client"
+
       - name: Verify build output
         run: |
           echo "Checking build output..."
           ls -la dist/client/
-          echo "index.html exists:"
-          test -f dist/client/index.html && echo "✓ YES" || echo "✗ NO"
+          if [ ! -f dist/client/index.html ]; then
+            echo "Error: index.html not found!"
+            exit 1
+          fi
+          echo "index.html exists: ✓ YES"
           echo "Assets directory:"
           ls -la dist/client/assets/ || echo "No assets directory"
 
