@@ -65,6 +65,9 @@ export const scenarioSchema = z.object({
   impact: z.array(z.string()).optional(),
   suggestedPhrasing: z.array(z.string()).optional(),
   difficulty: z.enum(["beginner", "intermediate", "advanced"]),
+  // Scenario cues for realistic HCP interactions
+  openingScene: z.string().optional(),
+  hcpMood: z.string().optional(),
 });
 
 export type Scenario = z.infer<typeof scenarioSchema>;

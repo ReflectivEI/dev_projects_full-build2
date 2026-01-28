@@ -1008,6 +1008,23 @@ export default function RolePlayPage() {
                         <p className="text-sm text-muted-foreground line-clamp-2">
                           {scenario.description}
                         </p>
+                        
+                        {/* Scenario Cues */}
+                        {(scenario.context || scenario.openingScene || scenario.hcpMood) && (
+                          <div className="mt-3 pt-3 border-t space-y-2">
+                            {scenario.openingScene && (
+                              <div>
+                                <p className="text-xs font-semibold text-muted-foreground mb-1">Opening Scene</p>
+                                <p className="text-xs italic line-clamp-2">{scenario.openingScene}</p>
+                              </div>
+                            )}
+                            {scenario.hcpMood && (
+                              <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-medium">
+                                HCP Mood: {scenario.hcpMood}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
@@ -1045,6 +1062,35 @@ export default function RolePlayPage() {
                   </Badge>
                 </div>
               </div>
+            )}
+
+            {/* Scenario Cues Panel */}
+            {selectedScenario && (selectedScenario.context || selectedScenario.openingScene || selectedScenario.hcpMood) && (
+              <Card className="mb-4">
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold text-muted-foreground mb-1">Context</p>
+                      {selectedScenario.context && (
+                        <p className="text-xs">{selectedScenario.context}</p>
+                      )}
+                    </div>
+                    {selectedScenario.hcpMood && (
+                      <span className="inline-flex items-center rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-medium ml-2">
+                        HCP Mood: {selectedScenario.hcpMood}
+                      </span>
+                    )}
+                  </div>
+                </CardHeader>
+                {selectedScenario.openingScene && (
+                  <CardContent className="pt-0">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">Opening Scene</p>
+                    <p className="text-xs italic whitespace-pre-line">
+                      {selectedScenario.openingScene}
+                    </p>
+                  </CardContent>
+                )}
+              </Card>
             )}
 
             <ScrollArea className="flex-1 pr-4">

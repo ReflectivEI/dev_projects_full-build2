@@ -622,7 +622,7 @@ export const scenarios: Scenario[] = [
     category: "vaccines",
     stakeholder: "Dr. Evelyn Harper - Infectious Diseases Specialist",
     objective: "Pre-book age-appropriate vaccine mix; schedule early clinics; implement SMS reminders and standing orders in LTC",
-    context: "ID practice serving long-term care and high-risk adult populations. Flu coverage fell in 65+ patients. Late clinic start and weak reminder systems contribute to missed opportunities.",
+    context: "High-performing NP with excellent product adoption, but prior-auth burden and limited staffing cap patient throughput. Workflow friction limits breadth of appropriate prescribing.",
     challenges: [
       "Late flu clinic scheduling",
       "Weak reminder-recall systems",
@@ -646,6 +646,8 @@ export const scenarios: Scenario[] = [
       "SMS reminders have shown 20% improvement in show rates. Would you like to see how to integrate this with your EHR?",
       "Standing orders in LTC facilities streamline the process significantly. I can help you implement this if you're interested."
     ],
+    openingScene: "Sarah Thompson looks up from a stack of prior authorization forms, rubbing her temples. A frustrated sigh escapes as she sees another rep waiting. Her body language is tired but professional.",
+    hcpMood: "frustrated",
     difficulty: "intermediate"
   },
   {
