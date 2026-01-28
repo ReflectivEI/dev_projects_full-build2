@@ -24,8 +24,6 @@
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
-    "jspdf": "^2.5.2",
-    "jspdf-autotable": "^3.8.4",
     "@babel/core": "^7.26.4",
     "@babel/types": "^7.26.3",
     "@dr.pogodin/react-helmet": "^3.0.5",
@@ -71,8 +69,8 @@
     "framer-motion": "^12.26.2",
     "html-to-image": "^1.11.11",
     "input-otp": "^1.4.2",
-    "jspdf": "^4.0.0",
-    "jspdf-autotable": "^5.0.7",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "lucide-react": "^0.454.0",
     "mysql2": "^3.15.3",
     "next-themes": "^0.4.6",
