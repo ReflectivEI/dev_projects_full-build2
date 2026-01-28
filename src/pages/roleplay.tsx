@@ -38,6 +38,9 @@ import {
   type ObservableCue,
   type RepMetricCue 
 } from "@/lib/observable-cues";
+import { generateHCPBehavioralDescription, formatBehavioralDescriptionForUI } from "@/lib/hcp-behavioral-state";
+import { evaluateRepResponse } from "@/lib/rep-response-evaluator";
+import { InlineRepMetricEvaluation } from "@/components/rep-metric-evaluation";
 import { CueBadgeGroup } from "@/components/CueBadge";
 import { Eye, EyeOff } from "lucide-react";
 
