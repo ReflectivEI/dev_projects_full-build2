@@ -312,6 +312,11 @@ export const scenarios: Scenario[] = [
     context: "This time-pressed IM physician has inconsistent screening for HIV risk factors. STI testing volume suggests missed PrEP opportunities. Clinic believes few true PrEP candidates exist despite evidence to the contrary.",
     openingScene: "Dr. Patel glances at her watch as you enter. She's between patients, typing notes rapidly. 'I have about 10 minutes,' she says without looking up. 'What's this about?'",
     hcpMood: "time-pressured, skeptical",
+    behavioralCues: [
+      "Repeated glances at the clock or doorway",
+      "Multitasking behavior (typing, signing forms, checking phone)",
+      "Short, clipped responses with minimal elaboration"
+    ],
     challenges: [
       "Belief that few patients are true PrEP candidates",
       "Renal safety and monitoring workload concerns",
@@ -348,6 +353,11 @@ export const scenarios: Scenario[] = [
     context: "Hospital-affiliated ID clinic where optimization efforts have slowed. Strong perception that most patients are already on optimal regimens.",
     openingScene: "Michael leans back in his chair, arms crossed but with an open expression. 'I'm always interested in better outcomes for my patients. What data do you have on long-term outcomes?'",
     hcpMood: "curious, data-driven",
+    behavioralCues: [
+      "Arms crossed tightly or shoulders hunched forward",
+      "Delayed responses or long pauses before replying",
+      "Leaning forward when data is presented"
+    ],
     challenges: [
       "Reluctance to change stable, suppressed patients",
       "Perception of complete optimization",
@@ -382,6 +392,13 @@ export const scenarios: Scenario[] = [
     stakeholder: "Dr. Robert Chen - Hematology/Oncology, Community Practice",
     objective: "Define biomarker-driven patient selection with clear clinical benefit",
     context: "Center focuses on cost-per-response and resource utilization. Need to demonstrate clear value proposition for biomarker testing.",
+    openingScene: "Dr. Chen reviews a patient chart, looking skeptical. He sets it down and turns to you with a measured expression. 'We're very careful about adding new testing protocols. Walk me through the clinical rationale.'",
+    hcpMood: "analytical, cost-conscious",
+    behavioralCues: [
+      "Flat or monotone vocal delivery despite neutral words",
+      "Avoidance of eye contact while listening",
+      "Physically turning body away (chair angled, half-standing posture)"
+    ],
     challenges: [
       "Resource constraints for testing",
       "P&T cost scrutiny",
@@ -416,6 +433,13 @@ export const scenarios: Scenario[] = [
     stakeholder: "Dr. Amanda Lewis - Cardiologist, Academic Heart Failure Center",
     objective: "Implement systematic GDMT optimization and reduce treatment gaps",
     context: "Top-tier HF program with suboptimal four-pillar GDMT adoption. Handoff gaps and copay barriers compromise outcomes.",
+    openingScene: "Dr. Lewis enters the conference room with a stack of discharge summaries, looking frustrated. She sighs audibly before sitting down. 'I know we have gaps. The question is whether we can actually fix them with our current resources.'",
+    hcpMood: "frustrated, overwhelmed",
+    behavioralCues: [
+      "Sighing or exhaling audibly before answering",
+      "Interrupting mid-sentence to redirect or move on",
+      "Shoulders hunched forward, tense posture"
+    ],
     challenges: [
       "Copay barriers for newer therapies",
       "Handoff gaps to PCP after discharge",
@@ -458,6 +482,11 @@ export const scenarios: Scenario[] = [
     context: "High-performing NP concerned about renal monitoring burden. A novel agent with improved renal safety profile may address workflow concerns while maintaining efficacy.",
     openingScene: "Sarah looks up from a stack of lab reports with a tired smile. 'I'm always interested in options that are easier on the kidneys, but I need to see the data first.'",
     hcpMood: "interested but cautious",
+    behavioralCues: [
+      "Leaning forward slightly when discussing patient concerns",
+      "Nodding thoughtfully while reviewing data",
+      "Asking clarifying questions with genuine curiosity"
+    ],
     challenges: [
       "Need for robust renal safety data",
       "Monitoring protocol requirements",
@@ -494,6 +523,12 @@ export const scenarios: Scenario[] = [
     context: "Community practice with conservative adoption patterns. Novel ADC offers potential benefit but requires clear integration plan and AE management protocols.",
     openingScene: "Lisa reviews an infusion schedule, looking concerned. 'We're already stretched thin with our current protocols. How does this fit into our workflow?'",
     hcpMood: "cautious, resource-conscious",
+    behavioralCues: [
+      "Rubbing temples or showing signs of stress",
+      "Glancing at schedule or staffing board repeatedly",
+      "Crossing arms defensively when workflow is mentioned",
+      "Speaking quickly with urgency in tone"
+    ],
     challenges: [
       "Staffing limitations for AE management",
       "Pathway integration complexity",
@@ -530,6 +565,11 @@ export const scenarios: Scenario[] = [
     context: "Rural practice with high HFrEF burden. ARNI underutilized due to conversion complexity concerns and limited specialist support.",
     openingScene: "Karen looks up from patient charts, interested but hesitant. 'I've heard about ARNI benefits, but I'm not sure about the conversion process in our setting.'",
     hcpMood: "interested, seeking guidance",
+    behavioralCues: [
+      "Taking notes actively during explanation",
+      "Asking 'what if' questions about edge cases",
+      "Expressing concern through furrowed brow"
+    ],
     challenges: [
       "Conversion protocol uncertainty",
       "Limited specialist support in rural setting",
@@ -566,6 +606,11 @@ export const scenarios: Scenario[] = [
     context: "ID practice serving long-term care and high-risk adult populations. Coverage rates below target. Late program start and weak reminder systems contribute to missed opportunities.",
     openingScene: "Dr. Harper looks up from paperwork, rubbing her temples. 'We know vaccination is important, but we're struggling with the logistics. What can you suggest?'",
     hcpMood: "frustrated but open",
+    behavioralCues: [
+      "Visible signs of fatigue (rubbing eyes, slumped posture)",
+      "Expressing exasperation through tone and body language",
+      "Perking up when practical solutions are mentioned"
+    ],
     challenges: [
       "Late program initiation timing",
       "Weak reminder-recall systems",

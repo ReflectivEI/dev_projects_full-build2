@@ -18,6 +18,7 @@ export interface Scenario {
   context?: string;
   openingScene?: string;
   hcpMood?: string; // e.g., "frustrated", "curious", "skeptical"
+  behavioralCues?: string[]; // Observable non-verbal signals during conversation
 }
 
 export interface Message {

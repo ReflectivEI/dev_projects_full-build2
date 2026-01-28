@@ -725,6 +725,21 @@ export default function RolePlayPage() {
                         <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Your Objective</p>
                         <p className="text-sm leading-relaxed">{selectedScenario.objective}</p>
                       </div>
+                      
+                      {/* Behavioral Cues */}
+                      {selectedScenario.behavioralCues && selectedScenario.behavioralCues.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Observable Behavioral Cues</p>
+                          <ul className="space-y-2">
+                            {selectedScenario.behavioralCues.map((cue, idx) => (
+                              <li key={idx} className="flex items-start gap-2 text-sm">
+                                <span className="text-primary mt-0.5 shrink-0">•</span>
+                                <span className="leading-relaxed">{cue}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
