@@ -392,3 +392,134 @@ export function detectRepMetrics(message: string, previousHcpMessage?: string): 
   // Limit to top 2 metrics to avoid noise
   return detected.slice(0, 2);
 }
+
+/**
+ * Generate rich behavioral description from detected HCP cues
+ * Creates narrative text describing observable behaviors
+ */
+export function generateCueDescription(cues: BehavioralCue[]): string {
+  if (cues.length === 0) return '';
+
+  const descriptions: string[] = [];
+
+  // Group cues by category for better narrative flow
+  const byCategory: Record<string, BehavioralCue[]> = {
+    stress: [],
+    resistance: [],
+    engagement: [],
+    interest: [],
+  };
+
+  cues.forEach(cue => {
+    byCategory[cue.category].push(cue);
+  });
+
+  // Build narrative based on detected cues
+  if (byCategory.stress.length > 0) {
+    const stressCues = byCategory.stress.map(c => c.id);
+    if (stressCues.includes('time-pressure')) {
+      descriptions.push('The HCP glances at the clock repeatedly and shifts in their chair');
+    }
+    if (stressCues.includes('impatient')) {
+      descriptions.push('they interrupt mid-sentence, clearly wanting to move forward');
+    }
+  }
+
+  if (byCategory.resistance.length > 0) {
+    const resistCues = byCategory.resistance.map(c => c.id);
+    if (resistCues.includes('frustration')) {
+      descriptions.push('A visible sigh escapes before they respond');
+    }
+    if (resistCues.includes('defensive')) {
+      descriptions.push('their arms cross tightly across their chest');
+    }
+    if (resistCues.includes('uncomfortable')) {
+      descriptions.push('they avoid direct eye contact');
+    }
+    if (resistCues.includes('hesitant')) {
+      descriptions.push('there\'s a long pause before they answer');
+    }
+  }
+
+  if (byCategory.engagement.length > 0) {
+    const engageCues = byCategory.engagement.map(c => c.id);
+    if (engageCues.includes('low-engagement')) {
+      descriptions.push('Their responses are clipped and minimal');
+    }
+    if (engageCues.includes('distracted')) {
+      descriptions.push('they continue typing on their computer while talking');
+    }
+    if (engageCues.includes('disinterested')) {
+      descriptions.push('their tone is flat and monotone despite neutral words');
+    }
+    if (engageCues.includes('withdrawn')) {
+      descriptions.push('they angle their body slightly away from you');
+    }
+  }
+
+  // Join descriptions into a natural sentence
+  if (descriptions.length === 0) return '';
+  if (descriptions.length === 1) return descriptions[0] + '.';
+  if (descriptions.length === 2) return descriptions.join(', and ') + '.';
+  
+  const last = descriptions.pop();
+  return descriptions.join(', ') + ', and ' + last + '.';
+}
+
+/**
+ * Generate quick performance feedback for sales rep based on detected metrics
+ */
+export function generateRepFeedback(metrics: RepMetricCue[], hcpCues: BehavioralCue[]): string {
+  if (metrics.length === 0) return '';
+
+  const feedback: string[] = [];
+
+  // Positive feedback based on metrics demonstrated
+  metrics.forEach(metric => {
+    switch (metric.id) {
+      case 'question-quality':
+        feedback.push('✓ Asked an open-ended question to uncover needs');
+        break;
+      case 'listening-responsiveness':
+        feedback.push('✓ Demonstrated active listening and acknowledgment');
+        break;
+      case 'making-it-matter':
+        feedback.push('✓ Connected to patient outcomes and clinical value');
+        break;
+      case 'customer-engagement':
+        feedback.push('✓ Encouraged dialogue and forward momentum');
+        break;
+      case 'objection-navigation':
+        feedback.push('✓ Addressed concerns with empathy and reframing');
+        break;
+      case 'conversation-control':
+        feedback.push('✓ Managed conversation flow and respected time');
+        break;
+      case 'commitment-gaining':
+        feedback.push('✓ Proposed clear next steps');
+        break;
+      case 'adaptability':
+        feedback.push('✓ Adapted approach based on HCP cues');
+        break;
+    }
+  });
+
+  // Coaching tips based on HCP cues that weren't addressed
+  const hasTimePressure = hcpCues.some(c => c.id === 'time-pressure');
+  const hasResistance = hcpCues.some(c => c.category === 'resistance');
+  const hasLowEngagement = hcpCues.some(c => c.category === 'engagement' && c.severity !== 'low');
+
+  if (hasTimePressure && !metrics.some(m => m.id === 'adaptability')) {
+    feedback.push('→ Consider acknowledging time constraints explicitly');
+  }
+
+  if (hasResistance && !metrics.some(m => m.id === 'objection-navigation')) {
+    feedback.push('→ Address the HCP\'s concerns or hesitation directly');
+  }
+
+  if (hasLowEngagement && !metrics.some(m => m.id === 'customer-engagement')) {
+    feedback.push('→ Try an engaging question to re-energize the conversation');
+  }
+
+  return feedback.join('\n');
+}
