@@ -657,21 +657,26 @@ export default function RolePlayPage() {
               <div className="space-y-4 pb-4">
                 {messages.map((m, idx) => {
                   const cues = showCues ? detectObservableCues(m.content) : [];
-                  const cueDescription = showCues && m.role === 'assistant' && cues.length > 0 
-                    ? generateCueDescription(cues) 
-                    : '';
                   
-                  // For user messages, detect rep metrics and generate feedback
+                  // Generate rich HCP behavioral description
+                  const hcpBehavioralDesc = showCues && m.role === 'assistant' && cues.length > 0
+                    ? generateHCPBehavioralDescription(cues, m.content)
+                    : null;
+                  
+                  // For user messages, evaluate rep response
                   const prevHcpMessage = idx > 0 && messages[idx - 1].role === 'assistant' 
                     ? messages[idx - 1].content 
                     : undefined;
-                  const prevHcpCues = prevHcpMessage ? detectObservableCues(prevHcpMessage) : [];
-                  const repMetrics = showCues && m.role === 'user' 
-                    ? detectRepMetrics(m.content, prevHcpMessage) 
+                  
+                  // Build transcript for scoring
+                  const transcript = messages.slice(0, idx + 1).map((msg) => ({
+                    speaker: msg.role === 'user' ? 'rep' as const : 'customer' as const,
+                    text: msg.content,
+                  }));
+                  
+                  const repEvaluation = showCues && m.role === 'user'
+                    ? evaluateRepResponse(m.content, prevHcpMessage, transcript)
                     : [];
-                  const repFeedback = showCues && m.role === 'user' && repMetrics.length > 0
-                    ? generateRepFeedback(repMetrics, prevHcpCues)
-                    : '';
 
                   return (
                     <div
