@@ -19,6 +19,11 @@ export interface Scenario {
   openingScene?: string;
   hcpMood?: string; // e.g., "frustrated", "curious", "skeptical"
   behavioralCues?: string[]; // Observable non-verbal signals during conversation
+  stakeholder?: string; // HCP name and role
+  objective?: string; // Single objective statement
+  keyMessages?: string[];
+  impact?: string[];
+  suggestedPhrasing?: string[];
 }
 
 export interface Message {
