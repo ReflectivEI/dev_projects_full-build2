@@ -267,21 +267,25 @@ export const REP_METRIC_CUES: Record<string, RepMetricCue> = {
 
 /**
  * Detect which behavioral metrics a Sales Rep message demonstrates
- * Returns 1-2 metrics typically (avoid over-detection)
+ * Returns 1-3 metrics typically (enhanced detection)
  */
 export function detectRepMetrics(message: string, previousHcpMessage?: string): RepMetricCue[] {
   const detected: RepMetricCue[] = [];
   const lowerMessage = message.toLowerCase();
   const wordCount = message.trim().split(/\s+/).length;
 
-  // Question Quality - open-ended questions
+  // Question Quality - open-ended questions (ENHANCED)
   const hasOpenQuestion = 
     lowerMessage.includes('how') ||
     lowerMessage.includes('what') ||
     lowerMessage.includes('why') ||
     lowerMessage.includes('tell me') ||
     lowerMessage.includes('describe') ||
-    lowerMessage.includes('explain');
+    lowerMessage.includes('explain') ||
+    lowerMessage.includes('walk me through') ||
+    lowerMessage.includes('help me understand') ||
+    lowerMessage.includes('could you share') ||
+    lowerMessage.includes('what are your thoughts');
   
   const hasQuestionMark = message.includes('?');
   
@@ -289,7 +293,7 @@ export function detectRepMetrics(message: string, previousHcpMessage?: string): 
     detected.push(REP_METRIC_CUES.QUESTION_QUALITY);
   }
 
-  // Listening & Responsiveness - paraphrasing, acknowledging
+  // Listening & Responsiveness - paraphrasing, acknowledging (ENHANCED)
   const hasListeningSignals = 
     lowerMessage.includes('i hear') ||
     lowerMessage.includes('i understand') ||
@@ -298,13 +302,18 @@ export function detectRepMetrics(message: string, previousHcpMessage?: string): 
     lowerMessage.includes('sounds like') ||
     lowerMessage.includes('it seems') ||
     lowerMessage.includes('so what you') ||
-    lowerMessage.includes('let me make sure');
+    lowerMessage.includes('let me make sure') ||
+    lowerMessage.includes('if i\'m hearing you correctly') ||
+    lowerMessage.includes('to summarize what you') ||
+    lowerMessage.includes('i appreciate you sharing') ||
+    lowerMessage.includes('that makes sense') ||
+    lowerMessage.includes('i can see why');
   
   if (hasListeningSignals && wordCount > 8) {
     detected.push(REP_METRIC_CUES.LISTENING_RESPONSIVENESS);
   }
 
-  // Making It Matter - patient outcomes, clinical impact
+  // Making It Matter - patient outcomes, clinical impact (ENHANCED)
   const hasValueLanguage = 
     lowerMessage.includes('patient') ||
     lowerMessage.includes('outcome') ||
@@ -313,7 +322,13 @@ export function detectRepMetrics(message: string, previousHcpMessage?: string): 
     lowerMessage.includes('improve') ||
     lowerMessage.includes('help') ||
     lowerMessage.includes('impact') ||
-    lowerMessage.includes('practice');
+    lowerMessage.includes('practice') ||
+    lowerMessage.includes('clinical') ||
+    lowerMessage.includes('efficacy') ||
+    lowerMessage.includes('quality of life') ||
+    lowerMessage.includes('treatment goals') ||
+    lowerMessage.includes('care') ||
+    lowerMessage.includes('therapy');
   
   if (hasValueLanguage && wordCount > 10) {
     detected.push(REP_METRIC_CUES.MAKING_IT_MATTER);
@@ -389,8 +404,8 @@ export function detectRepMetrics(message: string, previousHcpMessage?: string): 
     }
   }
 
-  // Limit to top 2 metrics to avoid noise
-  return detected.slice(0, 2);
+  // Return top 3 metrics (increased from 2 for better evaluation)
+  return detected.slice(0, 3);
 }
 
 /**
