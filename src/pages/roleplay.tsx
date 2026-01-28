@@ -670,6 +670,18 @@ export default function RolePlayPage() {
                   // Detect raw cues from message
                   const rawCues = showCues && m.role === 'assistant' ? detectObservableCues(m.content) : [];
                   
+                  // 🔍 DEBUG LOG: Raw cue detection
+                  if (showCues && m.role === 'assistant') {
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                    console.log(`🎭 HCP MESSAGE #${idx + 1}:`, m.content.substring(0, 100) + '...');
+                    console.log('📊 Raw Cues Detected:', rawCues.length, rawCues.map(c => c.name));
+                    console.log('🔍 Conversation Context:', {
+                      turnNumber: conversationContext.turnNumber,
+                      previousCues: conversationContext.previousCues,
+                      hcpMood: conversationContext.hcpMood
+                    });
+                  }
+                  
                   // For user messages, evaluate rep response
                   const prevHcpMessage = idx > 0 && messages[idx - 1].role === 'assistant' 
                     ? messages[idx - 1].content 
@@ -692,6 +704,12 @@ export default function RolePlayPage() {
                   const cues = showCues && m.role === 'assistant'
                     ? selectDynamicCues(rawCues, conversationContext, repMetrics)
                     : [];
+                  
+                  // 🔍 DEBUG LOG: Final cues selected
+                  if (showCues && m.role === 'assistant') {
+                    console.log('✅ Final Cues Selected:', cues.length, cues.map(c => c.name));
+                    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+                  }
                   
                   // Update conversation context after each HCP message
                   if (m.role === 'assistant' && showCues && cues.length > 0) {
