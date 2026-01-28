@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -19,10 +21,9 @@ jobs:
       - name: Determine changed files
         run: |
           if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git fetch origin ${{ github.base_ref }} --depth=1
-            git diff --name-only origin/${{ github.base_ref }}...HEAD > changed.txt
+            git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed.txt
           else
-            git diff --name-only HEAD~1...HEAD > changed.txt
+            git diff --name-only HEAD~1 HEAD > changed.txt
           fi
           cat changed.txt
 
