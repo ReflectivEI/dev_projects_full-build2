@@ -28,6 +28,6 @@ jobs:
 
       - name: Enforce production lock
         env:
-          ALLOW_LOCKED_CHANGES: ${{ contains(github.event.head_commit.message, '[ALLOW_LOCKED]') && 'true' || 'false' }}
+          ALLOW_LOCKED_CHANGES: ${{ contains(github.event.pull_request.title, '[ALLOW_LOCKED]') && 'true' || 'false' }}
         run: |
           cat changed.txt | node scripts/guard-locked-files.mjs
