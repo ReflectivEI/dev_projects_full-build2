@@ -28,7 +28,7 @@ import {
 } from "@/lib/data";
 import { SignalIntelligencePanel, type SignalIntelligenceCapability } from "@/components/signal-intelligence-panel";
 import { RoleplayFeedbackDialog } from "@/components/roleplay-feedback-dialog";
-import type { Scenario } from "@shared/schema";
+import type { Scenario } from "@/types/schema";
 import { scoreConversation, type MetricResult, type Transcript } from "@/lib/signal-intelligence/scoring";
 import { 
   detectObservableCues, 

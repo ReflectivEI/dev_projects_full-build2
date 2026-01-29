@@ -31,7 +31,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { eqFrameworks, communicationStyleModels, heuristicTemplates } from "@/lib/data";
-import type { EQFramework, HeuristicTemplate } from "@shared/schema";
+import type { EQFramework, HeuristicTemplate } from "@/types/schema";
 import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 
 

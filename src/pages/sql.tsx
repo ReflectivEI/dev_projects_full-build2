@@ -19,7 +19,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { sampleSqlQueries } from "@/lib/data";
-import type { SQLQuery } from "@shared/schema";
+import type { SQLQuery } from "@/types/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { normalizeAIResponse } from "@/lib/normalizeAIResponse";

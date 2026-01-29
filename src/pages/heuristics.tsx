@@ -25,7 +25,7 @@ import {
   Wand2,
 } from "lucide-react";
 import { heuristicTemplates } from "@/lib/data";
-import type { HeuristicTemplate } from "@shared/schema";
+import type { HeuristicTemplate } from "@/types/schema";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Alert, AlertDescription } from "@/components/ui/alert";

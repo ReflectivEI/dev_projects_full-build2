@@ -46,7 +46,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { diseaseStates, hcpCategories, influenceDrivers, specialtiesByDiseaseState, allSpecialties } from "@/lib/data";
 import { SignalIntelligencePanel, type ObservableSignal } from "@/components/signal-intelligence-panel";
-import type { Message } from "@shared/schema";
+import type { Message } from "@/types/schema";
 
 const isValidSignalType = (t: unknown): t is ObservableSignal["type"] =>
   t === "verbal" || t === "conversational" || t === "engagement" || t === "contextual";

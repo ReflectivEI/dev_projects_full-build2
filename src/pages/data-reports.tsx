@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Database, Send, Clock, AlertTriangle, ShieldCheck, Download } from "lucide-react";
-import type { SQLQuery } from "@shared/schema";
+import type { SQLQuery } from "@/types/schema";
 import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { exportToCSV, generateFilename } from "@/lib/export-utils";
 import { toast as sonnerToast } from "sonner";

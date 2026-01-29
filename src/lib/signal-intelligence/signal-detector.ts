@@ -5,7 +5,7 @@
  */
 
 import { METRICS_SPEC, type BehavioralMetricId } from './metrics-spec';
-import type { Message } from '@shared/schema';
+import type { Message } from '@/types/schema';
 
 export interface DetectedSignal {
   id: string;

@@ -34,7 +34,7 @@ import {
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { coachingModules, eqFrameworks } from "@/lib/data";
-import type { CoachingModule } from "@shared/schema";
+import type { CoachingModule } from "@/types/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { normalizeAIResponse } from "@/lib/normalizeAIResponse";
 import { getPracticeQuestions, type PracticeQuestion } from "@/lib/modulePracticeQuestions";

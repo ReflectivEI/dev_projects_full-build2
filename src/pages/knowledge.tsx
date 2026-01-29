@@ -23,7 +23,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { knowledgeArticles } from "@/lib/data";
-import type { KnowledgeArticle } from "@shared/schema";
+import type { KnowledgeArticle } from "@/types/schema";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 
