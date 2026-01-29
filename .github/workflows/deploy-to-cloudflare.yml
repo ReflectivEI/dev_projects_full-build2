@@ -19,10 +19,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+
+      - name: Clear npm cache
+        run: npm cache clean --force
+
+      - name: Remove node_modules and package-lock
+        run: |
+          rm -rf node_modules
+          rm -f package-lock.json
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps --no-audit --no-fund
 
       - name: Build application
         run: npm run build
@@ -32,9 +39,9 @@ jobs:
       - name: Verify build output
         run: |
           echo "Checking dist/client directory..."
-          ls -la dist/client || echo "Warning: dist/client not found"
+          ls -la dist/client
           echo "Checking for index.html..."
-          ls -la dist/client/index.html || echo "Warning: index.html not found"
+          ls -la dist/client/index.html
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1
