@@ -602,6 +602,40 @@ export default function RolePlayPage() {
               </Select>
             </div>
 
+            {/* Practice Signal Intelligence Section */}
+            <Card className="bg-muted/30">
+              <CardHeader>
+                <CardTitle className="text-lg">Practice Signal Intelligence™ in a Range of Realistic Scenarios</CardTitle>
+                <CardDescription className="text-sm leading-relaxed mt-2">
+                  Each role-play emphasizes different judgment challenges, helping participants strengthen Signal Intelligence™ across diverse conversation types. Participants practice noticing signals, interpreting meaning, and responding thoughtfully as conversations evolve.
+                </CardDescription>
+                <CardDescription className="text-sm leading-relaxed mt-3">
+                  Scenarios are intentionally designed to bring specific behaviors into focus—reflecting the realities of high-stakes professional dialogue.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-medium mb-2">Depending on the scenario, practice may emphasize behaviors such as:</p>
+                <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Asking purposeful questions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Noticing shifts in engagement</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Navigating resistance</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-1">•</span>
+                    <span>Adjusting approach as new information emerges</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
             {/* Scenario Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredScenarios.map((scenario) => (

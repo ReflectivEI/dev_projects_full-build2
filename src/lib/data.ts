@@ -299,11 +299,11 @@ export const scenarios: Scenario[] = [
   // HIV/PrEP Scenarios
   {
     id: "hiv_im_prep_lowshare",
-    title: "Low Descovy Share with Missed PrEP Opportunity",
+    title: "HIV Prevention Gap in High-Risk Population",
     description: "IM prescriber underutilizes PrEP despite steady STI testing in young MSM",
     category: "hiv",
     stakeholder: "Dr. Maya Patel - Internal Medicine MD, Urban Clinic",
-    objective: "Create urgency around PrEP gaps; commit to proactive Descovy prescribing where appropriate and standardize quarterly follow-ups",
+    objective: "Create urgency around PrEP gaps; commit to proactive PrEP prescribing where appropriate and standardize quarterly follow-ups",
     context: "This time-pressed IM physician has inconsistent quarterly labs and follow-ups. STI testing volume suggests missed PrEP opportunities. Clinic believes few true PrEP candidates exist despite evidence to the contrary.",
     openingScene: "Dr. Patel glances at her watch as you enter. She's between patients, typing notes rapidly. 'I have about 10 minutes,' she says without looking up. 'What's this about?'",
     hcpMood: "time-pressured, skeptical",
@@ -315,7 +315,7 @@ export const scenarios: Scenario[] = [
     ],
     keyMessages: [
       "Quantify at-risk patient pool from STI volume",
-      "Review TAF renal safety advantages over TDF",
+      "Review TAF-based PrEP renal safety advantages",
       "Propose nurse-led PrEP/lab cadence",
       "Streamlined quarterly follow-up protocol"
     ],
@@ -334,13 +334,13 @@ export const scenarios: Scenario[] = [
   },
   {
     id: "hiv_np_highshare_access",
-    title: "High Descovy Share but Access Barriers",
-    description: "NP with strong share faces prior-auth workload and staffing friction",
+    title: "PrEP Access Barriers Despite Strong Adoption",
+    description: "NP with strong PrEP adoption faces prior-auth workload and staffing friction",
     category: "hiv",
     stakeholder: "Sarah Thompson, NP - HIV Specialty Clinic",
-    objective: "Broaden appropriate Descovy use via predictable PA batching and support roles; revisit generic TDF users with unrestricted coverage",
-    context: "High-performing NP with excellent Descovy adoption. However, prior-auth burden and limited staffing cap patient throughput. Workflow friction limits breadth of appropriate prescribing.",
-    openingScene: "Sarah looks up from a stack of prior-auth forms with a tired smile. 'I love Descovy for my patients, but honestly, the paperwork is killing us. We're drowning in PAs.'",
+    objective: "Broaden appropriate PrEP use via predictable PA batching and support roles; revisit patients on older regimens with unrestricted coverage",
+    context: "High-performing NP with excellent PrEP adoption. However, prior-auth burden and limited staffing cap patient throughput. Workflow friction limits breadth of appropriate prescribing.",
+    openingScene: "Sarah looks up from a stack of prior-auth forms with a tired smile. 'I love getting my patients on PrEP, but honestly, the paperwork is killing us. We're drowning in PAs.'",
     hcpMood: "frustrated, overwhelmed",
     challenges: [
       "Prior-auth processing burden",
@@ -351,36 +351,36 @@ export const scenarios: Scenario[] = [
     keyMessages: [
       "Implement twice-weekly PA batching protocol",
       "Partner with specialty pharmacy for benefits checks",
-      "Identify TDF users with commercial coverage for conversion",
+      "Identify patients on older regimens with commercial coverage for optimization",
       "Streamlined hub enrollment process"
     ],
     impact: [
       "Increase patient access to optimal PrEP regimen",
       "Reduce staff burnout from PA processing",
-      "Convert eligible TDF patients to TAF",
+      "Optimize eligible patients to newer regimens",
       "Improve clinic efficiency by 25%"
     ],
     suggestedPhrasing: [
-      "Your Descovy adoption is excellent. What if we could reduce the PA burden by batching them twice weekly?",
+      "Your PrEP adoption is excellent. What if we could reduce the PA burden by batching them twice weekly?",
       "I can connect you with our specialty pharmacy partner to handle benefits verification. Would that help free up your staff?",
-      "There may be TDF patients with commercial coverage who could convert to TAF without additional PA. Can we identify them together?"
+      "There may be patients on older regimens with commercial coverage who could benefit from newer options without additional PA. Can we identify them together?"
     ],
     difficulty: "advanced"
   },
   {
     id: "hiv_pa_treat_switch_slowdown",
-    title: "Slowing Biktarvy Switches in Stable Patients",
-    description: "Top HIV clinic with declining switch velocity; perception that most patients are optimized",
+    title: "Treatment Optimization in Stable HIV Patients",
+    description: "Top HIV clinic with declining optimization velocity; perception that most patients are already on best regimens",
     category: "hiv",
     stakeholder: "Michael Chen, PA-C - Academic HIV Center",
-    objective: "Reinforce durability and convenience benefits; define clear switch criteria and implement quarterly optimization review",
-    context: "Hospital-affiliated ID clinic where prior switch velocity fell to 1-2 patients in 13 weeks. Strong perception that most patients are already optimized on current regimens.",
+    objective: "Reinforce durability and convenience benefits; define clear optimization criteria and implement quarterly review",
+    context: "Hospital-affiliated ID clinic where prior optimization velocity fell to 1-2 patients in 13 weeks. Strong perception that most patients are already optimized on current regimens.",
     openingScene: "Michael leans back in his chair, arms crossed but with an open expression. 'I'm always interested in better outcomes for my patients. What data do you have on long-term durability?'",
     hcpMood: "curious, data-driven",
     challenges: [
-      "Reluctance to switch stable, suppressed patients",
+      "Reluctance to optimize stable, suppressed patients",
       "Perception of complete optimization",
-      "Limited awareness of newer regimen benefits",
+      "Limited awareness of newer treatment options",
       "Competing clinical priorities"
     ],
     keyMessages: [
@@ -397,7 +397,7 @@ export const scenarios: Scenario[] = [
     ],
     suggestedPhrasing: [
       "Even with stable, suppressed patients, there may be opportunities to simplify regimens. Can we review which patients might benefit?",
-      "The resistance barrier data for Biktarvy is compelling for long-term durability. Would you like to see the latest studies?",
+      "The resistance barrier data for single-tablet regimens is compelling for long-term durability. Would you like to see the latest studies?",
       "What if we scheduled a quarterly optimization day to systematically review candidates? I can provide a counseling script to streamline the process."
     ],
     difficulty: "advanced"
@@ -546,8 +546,8 @@ export const scenarios: Scenario[] = [
   // Cardiovascular Scenarios
   {
     id: "cv_card_md_hf_gdmt_uptake",
-    title: "HFrEF Clinic GDMT Optimization",
-    description: "Entresto uptake 62% of eligible HFrEF; SGLT2 at 38%; day-30 refill gaps",
+    title: "Heart Failure GDMT Optimization Challenge",
+    description: "ARNI uptake 62% of eligible HFrEF; SGLT2 at 38%; day-30 refill gaps",
     category: "cardiology",
     stakeholder: "Dr. Amanda Lewis - Cardiologist, Academic Heart Failure Center",
     objective: "Implement discharge GDMT checklist; pharmacy tech enrollment for copay help; achieve +10pp SGLT2 in 90 days",
