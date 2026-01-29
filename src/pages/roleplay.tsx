@@ -238,6 +238,7 @@ export default function RolePlayPage() {
   const [showCues, setShowCues] = useState(true);
   const [conversationContext, setConversationContext] = useState<ConversationContext>(createInitialContext());
   const [allDetectedCues, setAllDetectedCues] = useState<ObservableCue[]>([]);
+  const [currentScenario, setCurrentScenario] = useState<Scenario | null>(null);
 
   const queryClient = useQueryClient();
   const endCalledForSessionRef = useRef<Set<string>>(new Set());
@@ -286,31 +287,29 @@ export default function RolePlayPage() {
 
   // Calculate metric results whenever messages change
   useEffect(() => {
-    if (messages.length > 0) {
+    if (messages.length > 0 && currentScenario) {
       const transcript: Transcript = messages.map((msg) => ({
         speaker: msg.role === 'user' ? 'rep' as const : 'customer' as const,
         text: msg.content,
       }));
       
-      // Extract goal tokens from selected scenario
+      // Extract goal tokens from current scenario
       const goalTokens = new Set<string>();
-      if (selectedScenario) {
-        const goalText = [
-          selectedScenario.objective,
-          ...(selectedScenario.keyMessages || []),
-          ...(selectedScenario.impact || [])
-        ].join(' ');
-        goalText.toLowerCase().split(/\W+/).forEach(token => {
-          if (token.length > 3) goalTokens.add(token);
-        });
-      }
+      const goalText = [
+        currentScenario.objective,
+        ...(currentScenario.keyMessages || []),
+        ...(currentScenario.impact || [])
+      ].join(' ');
+      goalText.toLowerCase().split(/\W+/).forEach(token => {
+        if (token.length > 3) goalTokens.add(token);
+      });
       
       const results = scoreConversation(transcript, goalTokens);
       setMetricResults(results);
     } else {
       setMetricResults([]);
     }
-  }, [messages, selectedScenario]);
+  }, [messages, currentScenario]);
 
   const startScenarioMutation = useMutation({
     mutationFn: async (scenario: Scenario) => {
@@ -321,8 +320,9 @@ export default function RolePlayPage() {
       });
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, scenario) => {
       setSessionSignals([]);
+      setCurrentScenario(scenario);
       queryClient.invalidateQueries({ queryKey: ["/api/roleplay/session"] });
     },
   });
@@ -527,7 +527,7 @@ export default function RolePlayPage() {
     }
     
     // Clear all local state
-    setSelectedScenario(null);
+    setCurrentScenario(null);
     setSelectedDiseaseState("");
     setSelectedSpecialty("");
     setSelectedHcpCategory("");
