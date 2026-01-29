@@ -20,6 +20,7 @@ import {
   Radio
 } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { 
   eqMetrics,
@@ -191,6 +192,7 @@ function MetricDetailDialog({
 }
 
 export default function EIMetricsPage() {
+  const [location] = useLocation();
   const [selectedMetric, setSelectedMetric] = useState<MetricWithScore | null>(null);
   const [storedScores, setStoredScores] = useState<Record<string, number>>({});
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
@@ -215,6 +217,19 @@ export default function EIMetricsPage() {
     ...m,
     score: storedScores[m.id] ?? null  // Use stored score or null if not yet scored
   }));
+
+  // Auto-open metric from URL parameter (e.g., /ei-metrics?metric=question_quality)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const metricId = params.get('metric');
+    if (metricId && metricsWithScores.length > 0) {
+      const metric = metricsWithScores.find(m => m.id === metricId);
+      if (metric) {
+        setSelectedMetric(metric);
+        console.log('[EI_METRICS] Auto-opened metric from URL:', metricId);
+      }
+    }
+  }, [metricsWithScores.length]);
 
   return (
     <div className="h-full overflow-auto">

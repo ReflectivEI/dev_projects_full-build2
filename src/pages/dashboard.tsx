@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 // Logo removed - using text/icon instead
 import { coachingModules, signalCapabilities } from "@/lib/data";
+import { SIGNAL_CAPABILITY_TO_METRIC } from "@/lib/signal-intelligence/capability-metric-map";
 import { useQuery } from "@tanstack/react-query";
 import { exportProgressReportPDF, generateFilename } from "@/lib/export-utils";
 import { toast } from "sonner";
@@ -258,15 +259,19 @@ export default function Dashboard() {
               </p>
             </CardHeader>
             <CardContent className="space-y-3">
-              {signalCapabilities.map((capability) => (
-                <Link href="/ei-metrics" key={capability.id}>
-                  <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-capability-${capability.id}`}>
-                    <div className="h-2 w-2 rounded-full" style={{ backgroundColor: capability.color }} />
-                    <span className="text-sm font-medium flex-1">{capability.name}</span>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </div>
-                </Link>
-              ))}
+              {signalCapabilities.map((capability) => {
+                const mapping = SIGNAL_CAPABILITY_TO_METRIC[capability.id];
+                const metricUrl = mapping ? `/ei-metrics?metric=${mapping.metricId}` : '/ei-metrics';
+                return (
+                  <Link href={metricUrl} key={capability.id}>
+                    <div className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer" data-testid={`link-capability-${capability.id}`}>
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: capability.color }} />
+                      <span className="text-sm font-medium flex-1">{capability.name}</span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </Link>
+                );
+              })}
             </CardContent>
           </Card>
         </div>
