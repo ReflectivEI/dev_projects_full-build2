@@ -410,6 +410,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Jennifer Williams, NP - Community Health Center",
     objective: "Align on candidacy and monitoring criteria; protect long-term regimen durability through proper screening",
     context: "Patient demand is driving CAB/RPV selection without systematic adherence and resistance evaluation. Risk of inappropriate starts and treatment failures.",
+    openingScene: "Jennifer greets you warmly but looks slightly uncertain. 'I'm glad you're here. My patients keep asking about the long-acting injectable, and I want to make sure I'm doing this right. I've started a few, but I'm not sure if I'm screening properly.'",
+    hcpMood: "uncertain, eager to learn",
     challenges: [
       "Patient-driven selection without clinical criteria",
       "Uncertainty about resistance screening requirements",
@@ -444,6 +446,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Dr. Robert Chen - Hematology/Oncology, Community Practice",
     objective: "Define biomarker-driven patient subset with clear OS/PFS benefit and operational fit; add to order sets and tumor board review",
     context: "Center is IO-backbone heavy with toxicity bandwidth constraints. P&T committee focuses on cost-per-response and infusion chair time. Need to demonstrate clear value proposition.",
+    openingScene: "Dr. Chen looks up from reviewing lab results, his expression thoughtful. 'I've been hearing about the ADC data. Our P&T committee is very cost-conscious, and we're already managing a lot of IO toxicity. What makes this worth adding to our pathways?'",
+    hcpMood: "analytical, cost-conscious",
     challenges: [
       "Toxicity management resource constraints",
       "P&T cost scrutiny and pathway integration",
@@ -477,6 +481,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Lisa Martinez, NP - Community Oncology Infusion Center",
     objective: "Standardize NP-led education and toxicity call-tree; add AE one-pager to pathway handouts",
     context: "Conservative IO adoption due to staffing and AE management concerns. Education packets inconsistent across patients. Need standardized approach within resource constraints.",
+    openingScene: "Lisa is organizing patient education materials when you arrive. She looks up with a mix of frustration and hope. 'We're so short-staffed right now. I want to use the best treatments, but I need systems that won't overwhelm my team. Can you help with that?'",
+    hcpMood: "overwhelmed, seeking solutions",
     challenges: [
       "Staffing limitations for AE management",
       "Pathway paperwork burden",
@@ -510,6 +516,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "David Park, PA-C - GU Oncology Practice",
     objective: "Adopt T-7 onboarding with early hub enrollment, benefits check, and day-10 toxicity tele-visit",
     context: "Fragmented onboarding leads to late hub enrollment and refill gaps at days 25-30. Patients experience treatment interruptions affecting outcomes.",
+    openingScene: "David is reviewing a patient chart with visible frustration. 'Another refill gap. This is the third one this month. We're losing patients to these administrative delays. There has to be a better way to handle this.'",
+    hcpMood: "frustrated, process-focused",
     challenges: [
       "Fragmented onboarding process",
       "Late hub enrollment timing",
@@ -544,6 +552,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Dr. Amanda Lewis - Cardiologist, Academic Heart Failure Center",
     objective: "Implement discharge GDMT checklist; pharmacy tech enrollment for copay help; achieve +10pp SGLT2 in 90 days",
     context: "Top-tier HF program with suboptimal four-pillar GDMT adoption. Fellows handle PAs leading to delays. Day-30 refill gaps compromise outcomes.",
+    openingScene: "Dr. Lewis is reviewing discharge summaries when you enter. She looks up with a concerned expression. 'Our GDMT numbers aren't where they should be. I know the evidence, but the copay barriers and PA delays are killing us. What can we do differently?'",
+    hcpMood: "concerned, evidence-driven",
     challenges: [
       "Copay barriers for SGLT2 inhibitors",
       "PA friction through fellow workflow",
@@ -577,6 +587,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "Karen Mitchell, NP - Rural Heart Failure Clinic",
     objective: "Implement titration calendar and CKD-safe counseling; track eGFR and UACR at baseline and 12 weeks",
     context: "Rural practice with high CKD comorbidity in HF patients. SGLT2 inhibitors underutilized due to renal safety misconceptions. No structured titration approach.",
+    openingScene: "Karen looks up from patient charts, her expression cautious. 'I've been hesitant to use SGLT2 inhibitors in my CKD patients. I've heard conflicting things about renal safety, and we don't have easy access to specialists out here. Can you help me understand this better?'",
+    hcpMood: "cautious, seeking guidance",
     challenges: [
       "CKD safety misconceptions about SGLT2i",
       "No structured titration calendar",
@@ -610,6 +622,8 @@ export const scenarios: Scenario[] = [
     stakeholder: "James Rodriguez, PA-C - Cardiac Care Unit",
     objective: "Start SGLT2 prior to discharge and convert to ARNI within 48-72h; pharmacy follow-up day 7",
     context: "Post-MI patients with reduced EF often discharged without complete GDMT. SGLT2 deferred to PCP, ARNI delayed for echo. Readmission rates above national benchmark.",
+    openingScene: "James is reviewing readmission data with visible concern. 'Our readmission rates are too high. I know we should be starting GDMT before discharge, but there's always something that gets deferred. How do other centers handle this transition?'",
+    hcpMood: "concerned, quality-focused",
     challenges: [
       "Deferrals of GDMT initiation to outpatient",
       "Delayed ARNI titration pending echo",
