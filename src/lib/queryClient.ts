@@ -17,7 +17,7 @@ const API_BASE_URL =
   RUNTIME_BASE ||
   import.meta.env.VITE_WORKER_URL ||
   import.meta.env.VITE_API_BASE_URL ||
-  "https://saleseq-coach-prod.tonyabdelmalak.workers.dev";
+  "https://reflectivai-api-parity-prod.tonyabdelmalak.workers.dev";
 
 // Debug: Log the API base URL (FORCE REFRESH v2)
 console.log('🔧 [QueryClient] API_BASE_URL:', API_BASE_URL);
