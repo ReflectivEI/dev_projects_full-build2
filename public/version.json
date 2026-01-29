@@ -1,7 +1,8 @@
 {
-  "version": "1.0.1",
-  "commit": "MAJOR_PROMPT_3_COMPLETE",
-  "deployed": "2026-01-28T23:58:00Z",
+  "version": "1.0.2",
+  "commit": "CACHE_BUST_DEPLOYMENT",
+  "deployed": "2026-01-29T00:03:00Z",
+  "buildHash": "CdiFEvo6",
   "features": [
     "Signal Intelligence Capabilities",
     "Observable Cues (Rep + HCP)",
@@ -9,5 +10,10 @@
     "Roleplay Scenario Cues",
     "Opening Scene Display",
     "HCP Mood Badges"
-  ]
+  ],
+  "verified": {
+    "sourceCode": "Sarah Thompson opening scene present in data.ts line 659",
+    "builtBundle": "Confirmed in dist/assets/main-CdiFEvo6.js",
+    "status": "READY - Hard refresh required to bypass CDN cache"
+  }
 }
