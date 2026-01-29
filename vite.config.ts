@@ -26,11 +26,15 @@ if (allowedHosts.length === 0) {
 
 export default defineConfig(({ mode }) => ({
 <<<<<<< HEAD
+<<<<<<< HEAD
 	// Use root path for Cloudflare Pages, GitHub Pages path for GitHub deployment
 	base: process.env.VITE_BASE_PATH || '/',
 =======
 	base: process.env.VITE_BASE_PATH || '/dev_projects_full-build2/',
 >>>>>>> 20260129003134-yxpzdb7o9z
+=======
+	base: process.env.VITE_BASE_PATH || '/',
+>>>>>>> 20260129003420-yxpzdb7o9z
 	plugins: [
 		react({
 			babel: {
