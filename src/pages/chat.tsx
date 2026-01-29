@@ -188,6 +188,16 @@ export default function ChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const queryClient = useQueryClient();
 
+  // Cleanup: Reset state when component unmounts to prevent stale data on return
+  useEffect(() => {
+    return () => {
+      // Clear observable signals
+      setObservableSignals([]);
+      // Invalidate chat queries to force fresh data on next mount
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/messages"] });
+    };
+  }, [queryClient]);
+
   const selectedDisease = diseaseStates.find(d => d.id === selectedDiseaseState);
   const selectedCategory = hcpCategories.find(c => c.id === selectedHcpCategory);
   const selectedDriver = influenceDrivers.find(d => d.id === selectedInfluenceDriver);
