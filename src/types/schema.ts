@@ -6,7 +6,7 @@ export interface Scenario {
   id: string;
   title: string;
   description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
   category?: string;
   diseaseState?: string;
   specialty?: string;
@@ -14,10 +14,13 @@ export interface Scenario {
   influenceDriver?: string;
   objectives?: string[];
   challenges?: string[];
+  keyMessages?: string[];
   // NEW: Role-play cue fields (MAJOR AIRO PROMPT #2)
   context?: string;
   openingScene?: string;
   hcpMood?: string; // e.g., "frustrated", "curious", "skeptical"
+  stakeholder?: string; // HCP name and role
+  objective?: string; // Single objective string
 }
 
 export interface Message {
@@ -36,13 +39,14 @@ export interface CoachingModule {
   duration?: string;
   objectives?: string[];
   content?: any;
+  frameworks?: string[]; // Framework IDs
 }
 
 export interface EQFramework {
   id: string;
   name: string;
   description: string;
-  category: string;
+  category?: string;
   color?: string;
   principles?: any[];
   techniques?: any[];
