@@ -7,35 +7,31 @@ import { devToolsPlugin } from "./dev-tools/src/vite-plugin";
 import { fullStoryPlugin } from "./fullstory-plugin";
 import apiRoutes from "vite-plugin-api-routes";
 
-// Plugin to ensure _redirects is copied to dist
-function copyRedirectsPlugin(): Plugin {
+// Plugin to ensure Cloudflare files are copied to dist/client
+function copyCloudflareFilesPlugin(): Plugin {
 	return {
-		name: 'copy-redirects',
+		name: 'copy-cloudflare-files',
 		closeBundle() {
-			console.log('[copy-redirects] Running...');
-			const source = path.resolve(__dirname, 'public/_redirects');
-			const dest = path.resolve(__dirname, 'dist/_redirects');
-			console.log('[copy-redirects] Source:', source);
-			console.log('[copy-redirects] Dest:', dest);
-			console.log('[copy-redirects] Source exists?', fs.existsSync(source));
+			console.log('[copy-cloudflare-files] Running...');
+			const filesToCopy = ['_redirects', '_routes.json', '_worker.js'];
+			const destDir = path.resolve(__dirname, 'dist/client');
 			
-			if (fs.existsSync(source)) {
-				fs.copyFileSync(source, dest);
-				console.log('✅ [copy-redirects] Copied _redirects to dist/');
-				console.log('[copy-redirects] Dest exists?', fs.existsSync(dest));
-				if (fs.existsSync(dest)) {
-					const content = fs.readFileSync(dest, 'utf-8');
-					console.log('[copy-redirects] Content:', content);
-				}
-			} else {
-				console.warn('⚠️  [copy-redirects] _redirects not found in public/');
-				console.log('[copy-redirects] Listing public/ directory:');
-				const publicDir = path.resolve(__dirname, 'public');
-				if (fs.existsSync(publicDir)) {
-					const files = fs.readdirSync(publicDir);
-					console.log('[copy-redirects] Files:', files.join(', '));
-				}
+			// Ensure dist/client exists
+			if (!fs.existsSync(destDir)) {
+				fs.mkdirSync(destDir, { recursive: true });
 			}
+			
+			filesToCopy.forEach(file => {
+				const source = path.resolve(__dirname, 'public', file);
+				const dest = path.resolve(destDir, file);
+				
+				if (fs.existsSync(source)) {
+					fs.copyFileSync(source, dest);
+					console.log(`✅ [copy-cloudflare-files] Copied ${file} to dist/client/`);
+				} else {
+					console.warn(`⚠️  [copy-cloudflare-files] ${file} not found in public/`);
+				}
+			});
 		},
 	};
 }
@@ -75,7 +71,7 @@ export default defineConfig(({ mode }) => ({
 		...(mode === "development"
 			? [devToolsPlugin() as Plugin, fullStoryPlugin()]
 			: []),
-		copyRedirectsPlugin(),
+		copyCloudflareFilesPlugin(),
 	],
 
 	resolve: {
