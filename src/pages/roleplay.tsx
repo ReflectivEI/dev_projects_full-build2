@@ -284,6 +284,34 @@ export default function RolePlayPage() {
     }
   }, [roleplayData?.signals]);
 
+  // Calculate metric results whenever messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      const transcript: Transcript = messages.map((msg) => ({
+        speaker: msg.role === 'user' ? 'rep' as const : 'customer' as const,
+        text: msg.content,
+      }));
+      
+      // Extract goal tokens from selected scenario
+      const goalTokens = new Set<string>();
+      if (selectedScenario) {
+        const goalText = [
+          selectedScenario.objective,
+          ...(selectedScenario.keyMessages || []),
+          ...(selectedScenario.impact || [])
+        ].join(' ');
+        goalText.toLowerCase().split(/\W+/).forEach(token => {
+          if (token.length > 3) goalTokens.add(token);
+        });
+      }
+      
+      const results = scoreConversation(transcript, goalTokens);
+      setMetricResults(results);
+    } else {
+      setMetricResults([]);
+    }
+  }, [messages, selectedScenario]);
+
   const startScenarioMutation = useMutation({
     mutationFn: async (scenario: Scenario) => {
       const res = await apiRequest("POST", "/api/roleplay/start", {
@@ -673,6 +701,18 @@ export default function RolePlayPage() {
                             </li>
                           ))}
                         </ul>
+                      </div>
+                    )}
+                    {scenario.hcpMood && (
+                      <div className="pt-2 border-t">
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">HCP Mood</p>
+                        <p className="text-xs italic text-amber-600 dark:text-amber-400">{scenario.hcpMood}</p>
+                      </div>
+                    )}
+                    {scenario.openingScene && (
+                      <div>
+                        <p className="text-xs font-semibold text-muted-foreground mb-1">Opening Scene</p>
+                        <p className="text-xs italic line-clamp-3">{scenario.openingScene}</p>
                       </div>
                     )}
                     <Button
