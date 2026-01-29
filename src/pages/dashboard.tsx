@@ -203,9 +203,9 @@ export default function Dashboard() {
                       <Users className="h-6 w-6 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold" data-testid="link-quick-roleplay">Role Play Simulator</h3>
+                      <h3 className="font-semibold" data-testid="link-quick-roleplay">Roleplay Sampler</h3>
                       <p className="text-sm text-muted-foreground">
-                        Practice with pharma scenarios
+                        Practice Signal Intelligence™ in realistic scenarios
                       </p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
